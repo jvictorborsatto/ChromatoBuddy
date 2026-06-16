@@ -292,7 +292,7 @@
                 // Fallback rápido: busca por palavras-chave
                 const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
                 const scored = allChunks.map(chunk => {
-                    const text = `${chunk.conteudo} ${chunk.palavras_chave?.join(' ') || ''}`.toLowerCase();
+                    const text = `${chunk.conteudo} ${chunk.tags?.join(' ') || ''} ${chunk.titulo || ''}`.toLowerCase();
                     let score = 0;
                     for (const token of tokens) {
                         if (text.includes(token)) score += 1;
@@ -315,12 +315,11 @@
                 const batch = allChunks.slice(i, i + batchSize);
                 for (const chunk of batch) {
                     if (!chunk._embed) {
-                        const text = `${chunk.conteudo} ${chunk.palavras_chave?.join(' ') || ''}`;
+                        const text = `${chunk.conteudo} ${chunk.tags?.join(' ') || ''} ${chunk.titulo || ''}`;
                         try {
                             const emb = await embedder(text, { pooling: 'mean', normalize: true });
                             chunk._embed = emb.data;
                         } catch (e) {
-                            // fallback para este chunk
                             chunk._embed = null;
                         }
                     }
@@ -329,7 +328,6 @@
                         chunksWithScore.push({ ...chunk, similarity: sim });
                     }
                 }
-                // Permite UI responder entre lotes
                 await new Promise(r => setTimeout(r, 0));
             }
 
@@ -384,8 +382,25 @@
                 response += `📘 <strong>Chunks mais relevantes (${chunks.length}):</strong><br><br>`;
                 for (let i = 0; i < chunks.length; i++) {
                     const c = chunks[i];
-                    response += `<strong>${i+1}.</strong> ${c.conteudo.substring(0, 400)}${c.conteudo.length > 400 ? '...' : ''}<br>`;
-                    response += `<span style="font-size:0.75rem; color:#6b7f9c;">📄 ${c.fonte || 'knowledge-base'} | Palavras: ${c.palavras_chave?.join(', ') || '-'}</span><br><br>`;
+                    // Mostra título se disponível
+                    if (c.titulo) {
+                        response += `<strong>${i+1}.</strong> <strong>${c.titulo}</strong><br>`;
+                    } else {
+                        response += `<strong>${i+1}.</strong> `;
+                    }
+                    response += `${c.conteudo.substring(0, 400)}${c.conteudo.length > 400 ? '...' : ''}<br>`;
+                    response += `<span style="font-size:0.75rem; color:#6b7f9c;">`;
+                    response += `📄 ${c.fonte || 'knowledge-base'}`;
+                    if (c.tags && c.tags.length > 0) {
+                        response += ` | 🏷️ ${c.tags.join(', ')}`;
+                    }
+                    if (c.tipo) {
+                        response += ` | 📌 ${c.tipo}`;
+                    }
+                    if (c.autores && c.autores.length > 0) {
+                        response += ` | ✍️ ${c.autores.join(', ')}`;
+                    }
+                    response += `</span><br><br>`;
                 }
                 response += `💡 <em>Resposta gerada com RAG local (WebLLM + JSON pré-processado).</em>`;
                 addMessage('bot', response);
