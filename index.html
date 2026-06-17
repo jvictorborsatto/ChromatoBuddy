@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cromato Buddy - RAG Inteligente</title>
+    <title>ChromatoBuddy - Assistente Inteligente de Cromatografia</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: system-ui, sans-serif;
-            background: #f0f4f9;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #e8edf5 0%, #d5ddee 100%);
             min-height: 100vh;
             padding: 20px;
             display: flex;
@@ -16,207 +16,456 @@
             align-items: center;
         }
         .app {
-            max-width: 1000px;
+            max-width: 1100px;
             width: 100%;
             background: white;
-            border-radius: 28px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border-radius: 32px;
+            box-shadow: 0 25px 60px rgba(0,20,50,0.15);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            height: 90vh;
-            max-height: 800px;
-            border: 1px solid #e9edf4;
+            height: 94vh;
+            max-height: 900px;
+            border: 1px solid rgba(255,255,255,0.3);
         }
         .header {
             padding: 18px 28px;
-            background: white;
-            border-bottom: 1px solid #f0f3f8;
+            background: linear-gradient(135deg, #0a1e3d 0%, #1a3a6a 100%);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.08);
         }
-        .header h1 { font-size: 1.3rem; color: #0b1a33; }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            color: white;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .header h1 span { color: #6aafff; }
+        .header .subtitle {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            font-weight: 300;
+        }
+        .badge-group {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
         .badge {
-            padding: 4px 14px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.7rem;
-            background: #eef3fc;
-            color: #1f4a8a;
+            font-size: 0.65rem;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.85);
+            border: 1px solid rgba(255,255,255,0.06);
+            font-weight: 500;
         }
-        .badge.success { background: #e6f7ed; color: #0f6e3f; }
-        .badge.error { background: #fde8e8; color: #a93226; }
-        .badge.warning { background: #fff3cd; color: #856404; }
+        .badge.success { background: rgba(46,213,115,0.2); color: #7ddfa0; border-color: rgba(46,213,115,0.15); }
+        .badge.warning { background: rgba(255,193,7,0.15); color: #ffd54f; border-color: rgba(255,193,7,0.1); }
+        .badge.info { background: rgba(54,178,255,0.15); color: #6abfff; border-color: rgba(54,178,255,0.1); }
+        .badge.pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
         .chat-container {
             flex: 1;
             overflow-y: auto;
             padding: 20px 28px;
-            background: #fafcff;
+            background: #f8faff;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
+        .chat-container::-webkit-scrollbar { width: 5px; }
+        .chat-container::-webkit-scrollbar-track { background: transparent; }
+        .chat-container::-webkit-scrollbar-thumb { background: #c5d0e0; border-radius: 10px; }
+        
         .message {
-            max-width: 90%;
+            max-width: 92%;
             padding: 14px 20px;
             border-radius: 18px;
             line-height: 1.6;
             font-size: 0.95rem;
             word-break: break-word;
-            animation: fadeIn 0.25s ease;
+            animation: fadeSlide 0.3s ease;
         }
         .message.user {
             align-self: flex-end;
-            background: #dce6f9;
-            color: #0b1f3f;
+            background: #1a3a6a;
+            color: white;
             border-bottom-right-radius: 6px;
         }
         .message.bot {
             align-self: flex-start;
             background: white;
-            border: 1px solid #e2eaf5;
-            color: #1e293b;
+            border: 1px solid #e8edf5;
+            color: #1a2332;
             border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             max-width: 95%;
         }
-        .message.bot .meta {
-            font-size: 0.65rem;
-            color: #6b7f9c;
-            margin-top: 10px;
-            border-top: 1px solid #edf2f9;
-            padding-top: 8px;
+        .message .msg-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
         }
-        .message.bot .sources {
-            font-size: 0.8rem;
-            background: #f8faff;
-            padding: 10px 14px;
+        .message .msg-header .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            background: #eef3fc;
+        }
+        .message .msg-header .name {
+            font-weight: 600;
+            color: #1a3a6a;
+        }
+        .message.user .msg-header .name { color: rgba(255,255,255,0.9); }
+        .message.user .msg-header .avatar { background: rgba(255,255,255,0.15); }
+        
+        /* Thinking process - Chain of Thought */
+        .thinking-process {
+            background: #f0f4fc;
             border-radius: 10px;
-            margin-top: 10px;
-            border-left: 3px solid #2f6bb0;
+            padding: 12px 16px;
+            margin: 6px 0 12px 0;
+            border-left: 3px solid #6aafff;
+            font-size: 0.85rem;
         }
-        .message.bot .answer-box {
+        .thinking-process .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 4px 0;
+            color: #3a5a7a;
+        }
+        .thinking-process .step .emoji { font-size: 1rem; min-width: 24px; }
+        .thinking-process .step .text { flex: 1; }
+        .thinking-process .step .badge-step {
+            background: rgba(26,58,106,0.08);
+            padding: 1px 10px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            color: #1a3a6a;
+            font-weight: 500;
+        }
+        
+        .answer-box {
             background: #f8faff;
             padding: 16px 20px;
             border-radius: 12px;
-            border-left: 4px solid #2f6bb0;
-            margin: 8px 0;
+            border-left: 4px solid #1a3a6a;
+            margin: 6px 0;
         }
+        .answer-box h4 {
+            color: #1a3a6a;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .sources-box {
+            background: #f0f4fc;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.82rem;
+            border-left: 3px solid #6aafff;
+        }
+        .tags-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .tag-pill {
+            display: inline-block;
+            background: #e8edf5;
+            padding: 2px 12px;
+            border-radius: 14px;
+            font-size: 0.7rem;
+            color: #1a3a6a;
+            font-weight: 500;
+        }
+        .tag-pill.highlight { background: #1a3a6a; color: white; }
+        
+        .meta {
+            font-size: 0.7rem;
+            color: #8899b0;
+            margin-top: 10px;
+            border-top: 1px solid #eef2f8;
+            padding-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .confidence-high { color: #27ae60; font-weight: 600; }
+        .confidence-medium { color: #f39c12; font-weight: 600; }
+        .confidence-low { color: #e74c3c; font-weight: 600; }
+        .confidence-fallback { color: #7f8c8d; font-weight: 600; }
+        
+        /* Suggested questions */
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eef2f8;
+        }
+        .suggestion-btn {
+            background: #f0f4fc;
+            border: 1px solid #dde4f0;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #1a3a6a;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .suggestion-btn:hover {
+            background: #1a3a6a;
+            color: white;
+            border-color: #1a3a6a;
+            transform: translateY(-1px);
+        }
+        
         .typing {
             align-self: flex-start;
             background: white;
-            padding: 12px 20px;
+            padding: 12px 22px;
             border-radius: 24px;
-            border: 1px solid #e2eaf5;
-            color: #3e5a7a;
+            border: 1px solid #e8edf5;
+            color: #4a5a7a;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
+        .typing .dots {
+            display: flex;
+            gap: 4px;
+        }
+        .typing .dots span {
+            width: 7px;
+            height: 7px;
+            background: #6aafff;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+        .typing .dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing .dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
         .input-area {
-            padding: 16px 28px 24px;
+            padding: 14px 28px 20px;
             background: white;
-            border-top: 1px solid #edf2f9;
+            border-top: 1px solid #e8edf5;
             display: flex;
             gap: 12px;
             align-items: flex-end;
         }
         .input-area textarea {
             flex: 1;
-            border: 1px solid #dce3ee;
+            border: 2px solid #e8edf5;
             border-radius: 24px;
-            padding: 12px 18px;
+            padding: 12px 20px;
             font-size: 0.95rem;
             font-family: inherit;
             resize: none;
             outline: none;
-            background: #f9fcff;
+            background: #fafcff;
             min-height: 52px;
-            max-height: 120px;
-            line-height: 1.4;
+            max-height: 130px;
+            line-height: 1.5;
+            transition: all 0.2s;
         }
         .input-area textarea:focus {
-            border-color: #2f6bb0;
+            border-color: #1a3a6a;
             background: white;
+            box-shadow: 0 0 0 3px rgba(26,58,106,0.08);
         }
+        .input-area textarea::placeholder { color: #aab5c8; }
         .input-area button {
-            background: #1a4b8c;
+            background: linear-gradient(135deg, #1a3a6a 0%, #2a5a9a 100%);
             border: none;
             color: white;
-            font-weight: 500;
-            padding: 12px 24px;
+            font-weight: 600;
+            padding: 12px 28px;
             border-radius: 40px;
             font-size: 0.95rem;
             cursor: pointer;
             height: 52px;
-            box-shadow: 0 4px 8px rgba(26, 75, 140, 0.15);
-            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(26,58,106,0.25);
+            transition: all 0.25s;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         .input-area button:hover:not(:disabled) {
-            background: #0f3d72;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(26,58,106,0.35);
         }
         .input-area button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
-        .info-bar {
-            padding: 6px 28px 16px;
+        .input-area button .shortcut {
+            font-size: 0.65rem;
+            opacity: 0.5;
+            font-weight: 400;
+        }
+        
+        .footer {
+            padding: 6px 28px 12px;
             display: flex;
-            gap: 20px;
+            justify-content: space-between;
             flex-wrap: wrap;
-            font-size: 0.75rem;
-            color: #6b7f9c;
-            border-top: 1px solid #f0f3f8;
+            gap: 10px;
+            font-size: 0.7rem;
+            color: #8899b0;
+            background: #fafcff;
+            border-top: 1px solid #eef2f8;
         }
-        @keyframes fadeIn {
-            from { opacity: 0.4; transform: translateY(6px); }
+        .footer .stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .footer .stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .footer .memory-status {
+            color: #6aafff;
+            font-weight: 500;
+        }
+        
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        
+        .welcome-box {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%);
+            border-radius: 14px;
+            padding: 16px 20px;
+            border: 1px solid #d5e0f0;
         }
-        .confidence-high { color: #27ae60; font-weight: 500; }
-        .confidence-medium { color: #f39c12; font-weight: 500; }
-        .confidence-low { color: #e74c3c; font-weight: 500; }
-        .tag-pill {
-            display: inline-block;
-            background: #eef3fc;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            color: #1f4a8a;
-            margin: 2px 4px 2px 0;
+        .welcome-box .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .welcome-box .feature-item {
+            background: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            border: 1px solid #e8edf5;
+            color: #1a3a6a;
+        }
+        
+        @media (max-width: 640px) {
+            .app { max-height: none; height: 96vh; border-radius: 20px; }
+            .header { padding: 12px 16px; }
+            .header h1 { font-size: 1.1rem; }
+            .chat-container { padding: 14px 16px; }
+            .message { max-width: 96%; padding: 12px 16px; font-size: 0.9rem; }
+            .input-area { padding: 10px 16px 16px; flex-wrap: wrap; }
+            .input-area textarea { min-height: 44px; font-size: 0.9rem; }
+            .input-area button { height: 44px; padding: 8px 18px; font-size: 0.85rem; }
+            .footer { padding: 6px 16px 10px; font-size: 0.6rem; }
+            .badge-group .badge { font-size: 0.55rem; padding: 2px 8px; }
+            .thinking-process { font-size: 0.75rem; padding: 8px 12px; }
+            .suggestion-btn { font-size: 0.7rem; padding: 4px 12px; }
         }
     </style>
 </head>
 <body>
     <div class="app">
         <div class="header">
-            <h1>🧪 Cromato Buddy</h1>
-            <div>
+            <div class="header-left">
+                <h1>🧪 Chromato<span>Buddy</span></h1>
+                <span class="subtitle">Assistente Inteligente</span>
+            </div>
+            <div class="badge-group">
                 <span class="badge" id="statusBadge">⏳ carregando...</span>
                 <span class="badge" id="modelBadge">⏳ modelo...</span>
+                <span class="badge info" id="memoryBadge">🧠 0 aprendidos</span>
             </div>
         </div>
+        
         <div class="chat-container" id="chatContainer">
             <div class="message bot">
-                <strong>🧠 Cromato Buddy - RAG Inteligente</strong><br><br>
-                🔍 <strong>Detecção de tópicos</strong> + <strong>Fallback inteligente</strong><br>
-                📂 Base: <code>knowledge-base.json</code><br>
-                💬 Faça perguntas sobre cromatografia, partículas, colunas, LC-MS e muito mais.
-                <div class="meta">✅ Similaridade com threshold · Fallback por tópico · Síntese contextual</div>
+                <div class="msg-header">
+                    <span class="avatar">🧪</span>
+                    <span class="name">ChromatoBuddy</span>
+                </div>
+                <div class="welcome-box">
+                    <strong>🧠 Olá! Sou seu assistente inteligente de cromatografia.</strong>
+                    <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
+                        💡 <strong>Funcionalidades avançadas:</strong>
+                    </div>
+                    <div class="features">
+                        <span class="feature-item">🧠 Chain-of-Thought</span>
+                        <span class="feature-item">📚 Memória de longo prazo</span>
+                        <span class="feature-item">🔍 Busca híbrida</span>
+                        <span class="feature-item">💡 Sugestões inteligentes</span>
+                        <span class="feature-item">✅ Validação cruzada</span>
+                    </div>
+                    <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
+                        Pergunte sobre: <strong>tamanho de partícula</strong>, <strong>pressão</strong>, 
+                        <strong>resolução</strong>, <strong>Van Deemter</strong>, <strong>core-shell</strong>
+                    </div>
+                </div>
+                <div class="meta">
+                    <span>✅ Sistema híbrido com raciocínio</span>
+                    <span id="chunkInfo">📚 0 chunks</span>
+                </div>
             </div>
         </div>
+        
         <div class="input-area">
             <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito do tamanho da partícula na separação?" disabled></textarea>
-            <button id="sendBtn" disabled>Enviar</button>
+            <button id="sendBtn" disabled>
+                Enviar
+                <span class="shortcut">⌘↵</span>
+            </button>
         </div>
-        <div class="info-bar">
-            <span id="chunkInfo">📚 0 chunks</span>
-            <span id="versionInfo">📌 versão: -</span>
-            <span id="sourceInfo">📄 origem: -</span>
+        
+        <div class="footer">
+            <div class="stats">
+                <span id="versionInfo">📌 versão: -</span>
+                <span id="sourceInfo">📄 origem: -</span>
+                <span id="memoryStats" class="memory-status">🧠 aprendendo...</span>
+            </div>
+            <span>🔒 Local · Sem API · Raciocínio em cadeia</span>
         </div>
     </div>
 
@@ -235,180 +484,192 @@
         let knowledgeData = null;
         let embedder = null;
         let modelReady = false;
+        let conversationHistory = [];
+        
+        // Memória de longo prazo (IndexDB)
+        let longTermMemory = {
+            learnedTopics: new Map(),
+            queryHistory: [],
+            confidenceScores: new Map()
+        };
+        
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
-        // ==================== KNOWLEDGE BASE EXPANDIDA ====================
-        const FALLBACK_KNOWLEDGE = {
-            'tamanho partícula separação': {
-                keywords: ['tamanho', 'partícula', 'particula', 'diâmetro', 'diametro', 'dp', 'µm', 'micrometro', 'separação', 'separacao', 'resolução', 'resolucao', 'eficiencia', 'coluna'],
-                content: `O **tamanho da partícula** é um dos parâmetros mais críticos em cromatografia líquida e afeta diretamente a eficiência da separação, a pressão do sistema e a resolução.
+        // ==================== KNOWLEDGE BASE GERAL ====================
+        const GENERAL_KNOWLEDGE = {
+            'tamanho partícula': {
+                keywords: ['tamanho', 'partícula', 'particula', 'diâmetro', 'diametro', 'dp', 'µm', 'micrometro', 'separação', 'separacao', 'resolução', 'resolucao', 'eficiencia', 'coluna', 'empacotamento'],
+                title: 'Efeito do Tamanho da Partícula na Separação',
+                content: `O **tamanho da partícula** é o parâmetro mais crítico em cromatografia líquida, afetando diretamente eficiência, pressão e resolução.
 
-## 📊 Efeitos principais:
+## 📊 Efeitos Principais:
 
-**1. Eficiência da coluna (Teoria de Van Deemter)**
-- Partículas menores (≤ 2 µm) proporcionam maior eficiência, com menor HETP (altura equivalente a um prato teórico)
-- A equação de Van Deemter: H = A + B/u + C·u, onde C ∝ dp² (diâmetro da partícula ao quadrado)
-- Isso significa que a transferência de massa é significativamente melhor com partículas menores
+### 1. Eficiência da Coluna (Van Deemter)
+- Partículas menores (≤ 2 µm) → menor HETP → maior eficiência
+- Termo C (transferência de massa) ∝ dp²
+- Partículas de 1,7 µm podem alcançar ~40.000 pratos/m
 
-**2. Resolução**
-- Rs ∝ √N, e N ∝ 1/dp (teoricamente)
-- Partículas menores → mais pratos teóricos → maior resolução entre picos
-- Permite separar compostos com estruturas muito similares
+### 2. Resolução
+- Rs ∝ √N, N ∝ 1/dp (teoricamente)
+- Partículas menores → mais pratos teóricos → melhor separação
+- Permite separar compostos estruturalmente similares
 
-**3. Pressão do sistema (Lei de Darcy)**
-- ΔP ∝ 1/dp² (pressão inversamente proporcional ao quadrado do diâmetro)
-- Partículas de 1,7 µm geram pressões ~2x maiores que 3 µm e ~4x maiores que 5 µm
-- Limite prático: UHPLC (até 1300 bar) para partículas < 2 µm
+### 3. Pressão do Sistema (Lei de Darcy)
+- ΔP ∝ 1/dp² (pressão é inversamente proporcional ao quadrado do diâmetro)
+- 5 µm: ~100-200 bar (HPLC)
+- 3 µm: ~250-400 bar (HPLC)
+- 1,7 µm: ~600-1300 bar (UHPLC)
 
-**4. Velocidade de análise**
-- Partículas menores permitem fluxos mais altos sem perda de eficiência
-- Análises mais rápidas (cromatografia ultra-rápida)
+### 4. Velocidade de Análise
+- Partículas menores permitem fluxos mais altos
+- Análises mais rápidas sem perder eficiência
 
-**5. Tipos de partícula:**
-- **Totalmente Porosas (FP):** 3-5 µm, HPLC tradicional, maior capacidade de carga
-- **Superficialmente Porosas (SPP/core-shell):** núcleo sólido + camada porosa (2,7 µm, 1,7 µm), alta eficiência com pressão moderada
-- **Monolíticas:** estrutura contínua porosa, baixa pressão, altas vazões
+### 5. Tipos de Partícula
+| Tipo | Tamanho | Pressão | Eficiência | Aplicação |
+|------|---------|---------|------------|-----------|
+| Totalmente Porosa (FP) | 3-5 µm | Baixa | Base | HPLC |
+| Superficialmente Porosa (SPP) | 2,7 µm | Média | Alta | HPLC/UHPLC |
+| Superficialmente Porosa (SPP) | 1,7 µm | Alta | Excelente | UHPLC |
 
-**⚖️ Trade-off:** partículas menores = maior resolução, mas também maior pressão, maior custo e maior susceptibilidade a entupimentos. A escolha depende da técnica (HPLC vs UHPLC) e da instrumentação disponível.
+### ⚖️ Trade-off
+Partículas menores = maior resolução, mas também:
+- Maior pressão (exige UHPLC)
+- Maior custo
+- Maior susceptibilidade a entupimentos
+- Menor capacidade de carga
 
-**📈 Exemplo prático:**
-- Coluna com partículas de 5 µm: ~15.000 pratos/m, pressão ~100 bar
-- Coluna com partículas de 3 µm: ~25.000 pratos/m, pressão ~250 bar  
-- Coluna com partículas de 1,7 µm: ~40.000 pratos/m, pressão ~600 bar`,
-                source: 'Conhecimento geral de cromatografia',
-                tags: ['partículas', 'eficiência', 'resolução', 'pressão', 'Van Deemter']
+### 📈 Exemplo Prático
+- Partícula 5 µm: N ≈ 15.000 pratos/m, P ≈ 150 bar
+- Partícula 3 µm: N ≈ 25.000 pratos/m, P ≈ 300 bar  
+- Partícula 1,7 µm: N ≈ 40.000 pratos/m, P ≈ 700 bar`,
+                tags: ['partículas', 'eficiência', 'resolução', 'pressão', 'Van Deemter', 'UHPLC', 'HPLC'],
+                source: 'Conhecimento geral de cromatografia'
             },
             
             'pressão coluna': {
-                keywords: ['pressão', 'pressao', 'bar', 'psi', 'coluna', 'fluxo', 'vazão', 'vazao'],
-                content: `A **pressão em colunas cromatográficas** é um parâmetro crítico que limita as condições operacionais.
+                keywords: ['pressão', 'pressao', 'bar', 'psi', 'coluna', 'fluxo', 'vazão', 'vazao', 'darcy'],
+                title: 'Pressão em Colunas Cromatográficas',
+                content: `A **pressão** é um dos principais limitadores operacionais em cromatografia.
 
-## 📊 Fatores que afetam a pressão:
+## 📊 Fatores que Determinam a Pressão:
 
-1. **Tamanho da partícula** (fator mais importante):
-   - ΔP ∝ 1/dp² (inversamente proporcional ao quadrado do diâmetro)
-   - Partículas de 5 µm: pressão moderada (~100-200 bar)
-   - Partículas de 3 µm: pressão alta (~250-400 bar)
-   - Partículas de 1,7 µm: pressão muito alta (~600-1300 bar)
+### 1. Tamanho da Partícula (Fator Dominante)
+- ΔP ∝ 1/dp² (Lei de Darcy modificada)
+- Reduzir dp pela metade → pressão quadruplica!
 
-2. **Viscosidade da fase móvel**:
-   - Água: 1,0 cP → pressão mais alta
-   - Acetonitrila: 0,37 cP → pressão mais baixa
-   - Metanol: 0,6 cP → pressão intermediária
+### 2. Viscosidade da Fase Móvel
+- Água (1,0 cP) → maior pressão
+- Acetonitrila (0,37 cP) → menor pressão
+- Metanol (0,6 cP) → intermediário
 
-3. **Comprimento da coluna**:
-   - ΔP ∝ L (pressão proporcional ao comprimento)
-   - Colunas mais longas = maior pressão
+### 3. Comprimento da Coluna
+- ΔP ∝ L (pressão proporcional ao comprimento)
 
-4. **Vazão (fluxo)**:
-   - ΔP ∝ Q (pressão proporcional à vazão)
+### 4. Vazão
+- ΔP ∝ Q (pressão proporcional à vazão)
 
-**⚠️ Limites práticos:**
-- HPLC convencional: até 400 bar (partículas 3-5 µm)
+### ⚠️ Limites Práticos
+- HPLC: até 400 bar (partículas 3-5 µm)
 - UHPLC: até 1300 bar (partículas 1,7-2 µm)
 - Sistemas de ultra-alta pressão: até 1500 bar
 
-**💡 Dica:** A pressão é um diagnóstico da coluna. Aumento gradual da pressão → coluna suja. Aumento súbito → coluna entupida.`,
-                source: 'Conhecimento geral de cromatografia',
-                tags: ['pressão', 'coluna', 'HPLC', 'UHPLC']
+### 🔧 Diagnóstico
+- Aumento gradual da pressão → coluna suja
+- Aumento súbito da pressão → coluna entupida
+- Queda de pressão → vazamento no sistema`,
+                tags: ['pressão', 'coluna', 'HPLC', 'UHPLC', 'viscosidade'],
+                source: 'Conhecimento geral de cromatografia'
             },
 
-            'resolução cromatográfica': {
-                keywords: ['resolução', 'resolucao', 'rs', 'separação', 'separacao', 'picos', 'seletividade'],
-                content: `A **resolução (Rs)** é a capacidade da coluna de separar dois picos adjacentes.
+            'resolução': {
+                keywords: ['resolução', 'resolucao', 'rs', 'separação', 'separacao', 'picos', 'seletividade', 'alpha'],
+                title: 'Resolução Cromatográfica',
+                content: `A **resolução (Rs)** mede a capacidade da coluna de separar dois picos adjacentes.
 
 ## 📊 Equação Fundamental:
-**Rs = (√N/4) × (α-1/α) × (k'/(1+k'))**
+**Rs = (√N/4) × ((α-1)/α) × (k'/(1+k'))**
 
-Onde:
-- **N:** número de pratos teóricos (eficiência da coluna)
-- **α:** seletividade (fator de separação entre picos)  
-- **k':** fator de retenção
+### Componentes:
+- **N:** Número de pratos teóricos (eficiência)
+- **α:** Seletividade (razão dos fatores de retenção)
+- **k':** Fator de retenção
 
-## 🎯 Como melhorar a resolução:
+### 🎯 Como Melhorar:
 
-**1. Aumentar N (eficiência):**
-- Usar partículas menores (dp ↓ → N ↑)
-- Colunas mais longas (L ↑ → N ↑)
-- Melhor empacotamento da coluna
+| Fator | Ação | Impacto |
+|-------|------|---------|
+| N | Partículas menores | ↑ N, ↑ Rs |
+| N | Coluna mais longa | ↑ N, ↑ Rs |
+| α | Mudar fase móvel | ↑ α, ↑ Rs |
+| α | Mudar coluna | ↑ α, ↑ Rs |
+| k' | Ajustar força da fase móvel | ↑ k', ↑ Rs |
 
-**2. Aumentar α (seletividade):**
-- Mudar a fase móvel (solventes, pH, temperatura)
-- Mudar a fase estacionária (coluna diferente)
-- Gradiente de eluição
+### 📈 Valores de Referência
+- Rs > 1,5: Separação completa (linha de base)
+- Rs = 1,0: Separação parcial (picos sobrepostos)
+- Rs < 0,8: Separação inadequada
 
-**3. Aumentar k' (retenção):**
-- Aumentar a força da fase móvel
-- Aumentar o tempo de retenção
-
-**📈 Valores típicos:**
-- Rs > 1,5: separação completa (linha de base)
-- Rs = 1,0: separação parcial (picos sobrepostos)
-- Rs < 0,8: separação inadequada
-
-**🔬 Relação com tamanho de partícula:**
+### 🔬 Relação com Tamanho de Partícula
 - Partículas menores → N maior → Rs maior
-- Mas o ganho é limitado pelo aumento da pressão`,
-                source: 'Conhecimento geral de cromatografia',
-                tags: ['resolução', 'seletividade', 'eficiência', 'pratos teóricos']
+- Limite: ganho é limitado pelo aumento da pressão`,
+                tags: ['resolução', 'seletividade', 'eficiência', 'pratos teóricos'],
+                source: 'Conhecimento geral de cromatografia'
             },
 
             'van deemter': {
-                keywords: ['van deemter', 'van deemter', 'hetp', 'curva', 'eficiência', 'eficiencia'],
-                content: `A **equação de Van Deemter** descreve a eficiência da coluna em função da velocidade linear da fase móvel.
+                keywords: ['van deemter', 'van deemter', 'hetp', 'curva', 'eficiência', 'eficiencia', 'altura equivalente'],
+                title: 'Equação de Van Deemter',
+                content: `A **equação de Van Deemter** descreve a eficiência da coluna (HETP) em função da velocidade linear da fase móvel.
 
-## 📊 Equação de Van Deemter:
+## 📊 Equação:
 **H = A + B/u + C·u**
 
-Onde:
-- **H:** altura equivalente a um prato teórico (HETP) - quanto menor, melhor
-- **u:** velocidade linear da fase móvel
-- **A:** termo de difusão Eddy (empacotamento da coluna) - independente de u
-- **B/u:** termo de difusão longitudinal - dominante em baixas velocidades
-- **C·u:** termo de transferência de massa - dominante em altas velocidades
+### Termos:
+- **A:** Difusão Eddy (empacotamento) - independente de u
+- **B/u:** Difusão longitudinal - domina em baixa velocidade
+- **C·u:** Transferência de massa - domina em alta velocidade
 
-## 🔬 Efeito do tamanho da partícula:
-**C ∝ dp²** (termo C é proporcional ao quadrado do diâmetro da partícula)
+### 🔬 Efeito do Tamanho da Partícula:
+**C ∝ dp²** (termo C é proporcional ao quadrado do diâmetro)
 
-- Partículas menores → C menor → curva mais plana → maior eficiência em altas velocidades
-- Partículas maiores → C maior → eficiência cai rapidamente com o aumento da velocidade
+- Partículas menores → C menor → curva mais plana
+- Partículas menores → velocidade ótima mais alta
 
-## 📈 Interpretação prática:
-1. **Região A (baixa velocidade):** domínio da difusão longitudinal (B/u) - H diminui com u
-2. **Região B (velocidade ótima):** mínimo da curva - eficiência máxima
-3. **Região C (alta velocidade):** domínio da transferência de massa (C·u) - H aumenta com u
+### 📈 Interpretação da Curva:
+1. **Baixa velocidade:** termo B/u domina, H diminui com u
+2. **Velocidade ótima:** mínimo da curva (máxima eficiência)
+3. **Alta velocidade:** termo C·u domina, H aumenta com u
 
-**💡 Consequência:** Com partículas menores, a velocidade ótima é maior, permitindo análises mais rápidas sem perda de eficiência.`,
-                source: 'Conhecimento geral de cromatografia',
-                tags: ['Van Deemter', 'HETP', 'eficiência', 'transferência de massa']
+### 💡 Consequência Prática
+Com partículas menores, a velocidade ótima é maior, permitindo análises mais rápidas sem perda de eficiência.`,
+                tags: ['Van Deemter', 'HETP', 'eficiência', 'transferência de massa'],
+                source: 'Conhecimento geral de cromatografia'
             },
 
-            'core shell': {
-                keywords: ['core-shell', 'core shell', 'spp', 'superficialmente porosa', 'partícula porosa', 'fused core'],
-                content: `As **partículas core-shell (SPP - Superficialmente Porosas)** representam uma inovação importante em colunas cromatográficas.
+            'core shell spp': {
+                keywords: ['core-shell', 'core shell', 'spp', 'superficialmente porosa', 'fused core', 'porosa'],
+                title: 'Partículas Core-Shell (SPP)',
+                content: `As **partículas core-shell (SPP - Superficialmente Porosas)** são uma inovação em colunas cromatográficas.
 
 ## 🏗️ Estrutura:
-- **Núcleo sólido** (core) não poroso
-- **Camada externa porosa** (shell) onde ocorre a interação cromatográfica
+- **Núcleo sólido** (core) - não poroso
+- **Camada externa porosa** (shell) - onde ocorre a separação
 
-## ✅ Vantagens sobre partículas totalmente porosas:
+## ✅ Vantagens:
 
-1. **Maior eficiência com menor pressão:**
-   - Transferência de massa mais rápida (difusão mais curta)
-   - Eficiência comparável a partículas totalmente porosas de tamanho menor
-   - Pressão ~50-70% menor que partículas totalmente porosas equivalentes
+### 1. Alta Eficiência com Menor Pressão
+- Transferência de massa mais rápida (difusão mais curta)
+- Eficiência similar a partículas totalmente porosas menores
+- Pressão ~50-70% menor
 
-2. **Exemplo prático:**
-   - Partícula core-shell de 2,7 µm → eficiência similar a partícula totalmente porosa de 1,8 µm
-   - Mas com pressão ~60% menor!
+### 2. Exemplo Prático
+- Core-shell 2,7 µm → eficiência similar a FP 1,8 µm
+- Mas com pressão ~60% menor!
 
-3. **Menor tempo de análise:**
-   - Permite fluxos mais altos
-   - Análises mais rápidas
+### 📊 Comparação:
 
-## 📊 Comparação de tamanhos:
 | Tipo | Tamanho | Eficiência | Pressão |
 |------|---------|------------|---------|
 | FP 5 µm | 5 µm | Base | Baixa |
@@ -417,9 +678,10 @@ Onde:
 | FP 1,8 µm | 1,8 µm | Muito alta | Muito alta |
 | SPP 1,7 µm | 1,7 µm | Excelente | Alta |
 
-**💡 Aplicação:** Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC convencionais.`,
-                source: 'Conhecimento geral de cromatografia',
-                tags: ['core-shell', 'SPP', 'partículas', 'eficiência', 'pressão']
+### 💡 Aplicação
+Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC convencionais.`,
+                tags: ['core-shell', 'SPP', 'partículas', 'eficiência', 'pressão'],
+                source: 'Conhecimento geral de cromatografia'
             }
         };
 
@@ -428,36 +690,30 @@ Onde:
             const statusBadge = document.getElementById('statusBadge');
             
             try {
-                statusBadge.textContent = '⏳ carregando JSON...';
+                statusBadge.textContent = '⏳ carregando...';
                 const response = await fetch('knowledge-base.json');
                 
-                if (!response.ok) {
-                    throw new Error('knowledge-base.json não encontrado');
-                }
+                if (!response.ok) throw new Error('JSON não encontrado');
                 
                 knowledgeData = await response.json();
-                
                 const chunks = knowledgeData.chunks || [];
+                
                 statusBadge.textContent = `✅ ${chunks.length} chunks`;
                 statusBadge.className = 'badge success';
                 
                 document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks`;
-                document.getElementById('versionInfo').textContent = `📌 versão: ${knowledgeData.versao || '-'}`;
+                document.getElementById('versionInfo').textContent = `📌 ${knowledgeData.versao || '-'}`;
                 document.getElementById('sourceInfo').textContent = `📄 ${knowledgeData.arquivos_origem?.join(', ') || '-'}`;
                 
                 userInput.disabled = false;
                 sendBtn.disabled = false;
-                
-                addMessage('bot', `✅ **Base carregada com sucesso!**\n\n📚 ${chunks.length} chunks\n📌 Versão: ${knowledgeData.versao || '-'}\n📄 Fontes: ${knowledgeData.arquivos_origem?.join(', ') || '-'}\n\n🧠 Sistema com **detecção de tópicos** e **fallback inteligente**.`);
-                
                 return chunks;
                 
             } catch (err) {
-                console.warn('Erro ao carregar knowledge-base.json:', err);
-                statusBadge.textContent = '⚠️ Fallback ativo';
-                statusBadge.className = 'badge warning';
-                
-                addMessage('bot', `⚠️ **Arquivo JSON não encontrado.**\n\nUsando modo **fallback com conhecimento geral**.\n\nExecute o script Python para gerar o arquivo \`knowledge-base.json\`.\n\n\`\`\`bash\npython processor.py\n\`\`\``);
+                console.warn('Erro ao carregar JSON:', err);
+                statusBadge.textContent = '📚 Modo Geral';
+                statusBadge.className = 'badge info';
+                document.getElementById('chunkInfo').textContent = '📚 Modo conhecimento geral';
                 
                 userInput.disabled = false;
                 sendBtn.disabled = false;
@@ -471,10 +727,12 @@ Onde:
                 document.getElementById('modelBadge').textContent = '⏳ carregando...';
                 embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
                 modelReady = true;
-                document.getElementById('modelBadge').textContent = '✅ modelo pronto';
+                document.getElementById('modelBadge').textContent = '✅ pronto';
+                document.getElementById('modelBadge').className = 'badge success';
             } catch (err) {
                 console.warn('Erro no modelo:', err);
-                document.getElementById('modelBadge').textContent = '⚠️ fallback texto';
+                document.getElementById('modelBadge').textContent = '🔤 texto';
+                document.getElementById('modelBadge').className = 'badge info';
                 modelReady = false;
             }
         }
@@ -492,32 +750,69 @@ Onde:
             return dot / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
-        // ===== DETECÇÃO DE TÓPICOS =====
-        function detectTopic(query) {
+        // ===== BUSCA HIERÁRQUICA AVANÇADA =====
+        function hierarchicalSearch(query, chunks) {
             const queryLower = query.toLowerCase();
-            let bestTopic = null;
-            let bestScore = 0;
+            const queryTokens = queryLower.split(/\s+/).filter(w => w.length > 2);
             
-            for (const [topicKey, topicData] of Object.entries(FALLBACK_KNOWLEDGE)) {
+            // Extrai bigramas e trigramas para melhor matching
+            const ngrams = [];
+            for (let i = 0; i < queryTokens.length - 1; i++) {
+                ngrams.push(queryTokens[i] + ' ' + queryTokens[i+1]);
+            }
+            
+            const scored = chunks.map(chunk => {
                 let score = 0;
-                for (const keyword of topicData.keywords) {
-                    if (queryLower.includes(keyword)) {
-                        score += 1;
+                let matchInfo = [];
+                const title = (chunk.titulo || '').toLowerCase();
+                const tags = (chunk.tags || []).join(' ').toLowerCase();
+                const content = (chunk.conteudo || '').toLowerCase();
+                
+                // 1. TÍTULO (peso 4)
+                for (const token of queryTokens) {
+                    if (title.includes(token)) {
+                        score += 4;
+                        matchInfo.push(`título:${token}`);
                     }
                 }
-                // Normaliza pelo número de palavras
-                const normalizedScore = score / topicData.keywords.length;
-                if (normalizedScore > bestScore) {
-                    bestScore = normalizedScore;
-                    bestTopic = topicKey;
+                // Bigramas no título
+                for (const ngram of ngrams) {
+                    if (title.includes(ngram)) {
+                        score += 6;
+                        matchInfo.push(`título-frase:${ngram}`);
+                    }
                 }
-            }
+                
+                // 2. TAGS (peso 3)
+                for (const token of queryTokens) {
+                    if (tags.includes(token)) {
+                        score += 3;
+                        matchInfo.push(`tags:${token}`);
+                    }
+                }
+                
+                // 3. CONTEÚDO (peso 1-2)
+                for (const token of queryTokens) {
+                    if (content.includes(token)) {
+                        const count = (content.match(new RegExp(token, 'g')) || []).length;
+                        score += 1 + Math.min(count, 3) * 0.5;
+                        matchInfo.push(`conteúdo:${token}(${count})`);
+                    }
+                }
+                
+                // 4. Frases exatas no conteúdo
+                for (const ngram of ngrams) {
+                    if (content.includes(ngram)) {
+                        score += 3;
+                        matchInfo.push(`conteúdo-frase:${ngram}`);
+                    }
+                }
+                
+                return { ...chunk, score, matchInfo };
+            });
             
-            // Só retorna se tiver pelo menos 2 palavras-chave match
-            if (bestScore > 0.15) {
-                return { topic: bestTopic, score: bestScore };
-            }
-            return null;
+            scored.sort((a, b) => b.score - a.score);
+            return scored;
         }
 
         // ===== BM25 MELHORADO =====
@@ -526,7 +821,7 @@ Onde:
             if (queryTokens.length === 0) return chunks.slice(0, topK);
             
             const docLengths = chunks.map(c => {
-                const text = `${c.conteudo || ''} ${c.tags?.join(' ') || ''} ${c.titulo || ''}`.toLowerCase();
+                const text = `${c.titulo || ''} ${c.tags?.join(' ') || ''} ${c.conteudo || ''}`.toLowerCase();
                 return text.split(/\s+/);
             });
             
@@ -561,169 +856,418 @@ Onde:
             return scores.slice(0, topK);
         }
 
+        // ===== BUSCA HÍBRIDA =====
         async function retrieveChunks(query, topK = 10) {
             if (!knowledgeData || !knowledgeData.chunks || knowledgeData.chunks.length === 0) {
                 return [];
             }
 
             const allChunks = knowledgeData.chunks;
-
-            if (!modelReady || !embedder) {
-                return bm25Search(query, allChunks, topK);
-            }
-
-            const queryEmbed = await embedder(query, { pooling: 'mean', normalize: true });
-            const queryVec = queryEmbed.data;
-
-            const chunksWithScore = [];
             
-            const batchSize = 20;
-            for (let i = 0; i < allChunks.length; i += batchSize) {
-                const batch = allChunks.slice(i, i + batchSize);
-                for (const chunk of batch) {
-                    if (!chunk._embed) {
-                        const text = `${chunk.conteudo} ${chunk.tags?.join(' ') || ''} ${chunk.titulo || ''}`;
-                        try {
-                            const emb = await embedder(text, { pooling: 'mean', normalize: true });
-                            chunk._embed = emb.data;
-                        } catch (e) {
-                            chunk._embed = null;
-                        }
-                    }
-                    if (chunk._embed) {
-                        const sim = cosineSimilarity(queryVec, chunk._embed);
-                        chunksWithScore.push({ ...chunk, similarity: sim });
-                    }
+            // 1. BUSCA HIERÁRQUICA
+            const hierarchicalResults = hierarchicalSearch(query, allChunks);
+            const topHierarchical = hierarchicalResults.slice(0, topK * 2);
+            
+            // 2. BM25
+            const bm25Results = bm25Search(query, allChunks, topK * 2);
+            
+            // 3. Combina resultados (dedup)
+            const combinedMap = new Map();
+            
+            // Adiciona resultados hierárquicos (peso maior)
+            topHierarchical.forEach(c => {
+                const key = c.id || c.conteudo?.substring(0, 50);
+                if (!combinedMap.has(key)) {
+                    combinedMap.set(key, { ...c, combinedScore: c.score * 1.5 });
+                } else {
+                    const existing = combinedMap.get(key);
+                    existing.combinedScore += c.score * 1.5;
                 }
-                await new Promise(r => setTimeout(r, 0));
+            });
+            
+            // Adiciona resultados BM25
+            bm25Results.forEach(c => {
+                const key = c.id || c.conteudo?.substring(0, 50);
+                if (!combinedMap.has(key)) {
+                    combinedMap.set(key, { ...c, combinedScore: (c.bm25_score || 0) * 2 });
+                } else {
+                    const existing = combinedMap.get(key);
+                    existing.combinedScore += (c.bm25_score || 0) * 2;
+                }
+            });
+            
+            let results = Array.from(combinedMap.values());
+            
+            // 4. Reranking com embedding (se disponível)
+            if (modelReady && embedder && results.length > 0) {
+                try {
+                    const queryEmbed = await embedder(query, { pooling: 'mean', normalize: true });
+                    const queryVec = queryEmbed.data;
+                    
+                    // Processa em lotes
+                    const batchSize = 10;
+                    for (let i = 0; i < results.length; i += batchSize) {
+                        const batch = results.slice(i, i + batchSize);
+                        for (const chunk of batch) {
+                            const text = `${chunk.titulo || ''} ${chunk.tags?.join(' ') || ''} ${chunk.conteudo || ''}`;
+                            try {
+                                const emb = await embedder(text, { pooling: 'mean', normalize: true });
+                                const sim = cosineSimilarity(queryVec, emb.data);
+                                chunk.similarity = sim;
+                                chunk.combinedScore = (chunk.combinedScore || 0) * 0.4 + sim * 100 * 0.6;
+                            } catch (e) {
+                                chunk.similarity = 0;
+                            }
+                        }
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                } catch (e) {
+                    console.warn('Erro no reranking:', e);
+                }
             }
-
-            chunksWithScore.sort((a, b) => b.similarity - a.similarity);
-            return chunksWithScore.slice(0, topK);
+            
+            results.sort((a, b) => (b.combinedScore || 0) - (a.combinedScore || 0));
+            return results.slice(0, topK);
         }
 
-        // ==================== SÍNTESE INTELIGENTE ====================
-        function synthesizeResponse(query, chunks) {
+        // ==================== DETECÇÃO DE TÓPICOS ====================
+        function detectTopic(query) {
             const queryLower = query.toLowerCase();
+            let bestTopic = null;
+            let bestScore = 0;
+            let matchedKeywords = [];
             
-            // 1. DETECTA TÓPICO DA PERGUNTA
-            const topicMatch = detectTopic(query);
-            
-            // 2. VERIFICA SIMILARIDADE DOS CHUNKS
-            const highSimChunks = chunks.filter(c => (c.similarity || 0) > 0.45);
-            const mediumSimChunks = chunks.filter(c => (c.similarity || 0) > 0.25);
-            
-            // 3. SE O TÓPICO FOI DETECTADO E TEM ALTA CONFIANÇA, USA FALLBACK
-            if (topicMatch && topicMatch.score > 0.25) {
-                const topicData = FALLBACK_KNOWLEDGE[topicMatch.topic];
-                if (topicData) {
-                    return {
-                        answer: topicData.content,
-                        confidence: 'medium',
-                        confidenceText: '📚 Resposta baseada em conhecimento geral (tópico detectado)',
-                        sources: [topicData.source || 'Conhecimento geral'],
-                        tags: topicData.tags || [],
-                        fromFallback: true,
-                        topicDetected: topicMatch.topic
-                    };
+            // Verifica memória primeiro
+            for (const [topicKey, data] of longTermMemory.learnedTopics) {
+                if (queryLower.includes(topicKey)) {
+                    const score = data.count / 10;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestTopic = topicKey;
+                        matchedKeywords = [topicKey];
+                    }
                 }
             }
             
-            // 4. SE TEM CHUNKS COM ALTA SIMILARIDADE, USA ELES
-            if (highSimChunks.length >= 2) {
-                const answer = buildAnswerFromChunks(query, highSimChunks);
-                return {
-                    answer: answer,
-                    confidence: 'high',
-                    confidenceText: '✅ Resposta baseada na base de conhecimento (alta similaridade)',
-                    sources: [...new Set(highSimChunks.map(c => c.fonte || 'knowledge-base').filter(Boolean))],
-                    tags: extractTags(highSimChunks),
-                    fromFallback: false
-                };
+            // Depois verifica conhecimento geral
+            for (const [topicKey, topicData] of Object.entries(GENERAL_KNOWLEDGE)) {
+                let score = 0;
+                const matched = [];
+                for (const keyword of topicData.keywords) {
+                    if (queryLower.includes(keyword)) {
+                        score += 1;
+                        matched.push(keyword);
+                    }
+                }
+                const normalizedScore = score / topicData.keywords.length;
+                if (normalizedScore > bestScore) {
+                    bestScore = normalizedScore;
+                    bestTopic = topicKey;
+                    matchedKeywords = matched;
+                }
             }
             
-            // 5. SE TEM CHUNKS COM MÉDIA SIMILARIDADE
-            if (mediumSimChunks.length >= 2) {
-                const answer = buildAnswerFromChunks(query, mediumSimChunks);
+            if (bestScore > 0.1) {
+                return { 
+                    topic: bestTopic, 
+                    score: bestScore, 
+                    keywords: matchedKeywords,
+                    data: GENERAL_KNOWLEDGE[bestTopic]
+                };
+            }
+            return null;
+        }
+
+        // ==================== CHAIN OF THOUGHT ====================
+        function generateChainOfThought(query, topicMatch, chunks) {
+            const steps = [];
+            
+            // Passo 1: Análise da pergunta
+            steps.push({
+                emoji: '🔍',
+                text: `Analisando a pergunta: "${query}"`,
+                badge: 'entrada'
+            });
+            
+            // Passo 2: Detecção de tópico
+            if (topicMatch && topicMatch.score > 0.15) {
+                steps.push({
+                    emoji: '🎯',
+                    text: `Tópico detectado: "${topicMatch.topic}" com ${Math.round(topicMatch.score * 100)}% de confiança`,
+                    badge: 'tópico'
+                });
+                if (topicMatch.keywords.length > 0) {
+                    steps.push({
+                        emoji: '🔑',
+                        text: `Palavras-chave encontradas: ${topicMatch.keywords.slice(0, 5).join(', ')}`,
+                        badge: 'keywords'
+                    });
+                }
+            } else {
+                steps.push({
+                    emoji: '🤔',
+                    text: 'Nenhum tópico específico detectado, buscando na base...',
+                    badge: 'busca'
+                });
+            }
+            
+            // Passo 3: Busca na base
+            if (chunks && chunks.length > 0) {
+                const topChunk = chunks[0];
+                steps.push({
+                    emoji: '📚',
+                    text: `${chunks.length} chunks encontrados. O mais relevante tem score ${Math.round((topChunk.combinedScore || topChunk.score || 0) * 10) / 10}`,
+                    badge: 'resultados'
+                });
+                if (topChunk.titulo) {
+                    steps.push({
+                        emoji: '📖',
+                        text: `Título do chunk principal: "${topChunk.titulo}"`,
+                        badge: 'fonte'
+                    });
+                }
+            } else {
+                steps.push({
+                    emoji: '⚠️',
+                    text: 'Nenhum chunk encontrado na base, usando conhecimento geral',
+                    badge: 'fallback'
+                });
+            }
+            
+            // Passo 4: Validação cruzada
+            if (chunks && chunks.length >= 2) {
+                const simCheck = chunks.filter(c => (c.similarity || 0) > 0.3);
+                if (simCheck.length >= 2) {
+                    steps.push({
+                        emoji: '✅',
+                        text: `${simCheck.length} fontes concordam com alta similaridade`,
+                        badge: 'validação'
+                    });
+                }
+            }
+            
+            // Passo 5: Síntese
+            steps.push({
+                emoji: '🧠',
+                text: 'Sintetizando resposta com base nas informações mais relevantes...',
+                badge: 'síntese'
+            });
+            
+            return steps;
+        }
+
+        // ==================== SÍNTESE DE RESPOSTA ====================
+        function synthesizeResponse(query, chunks, topicMatch, chainSteps) {
+            // 1. SE DETECTOU TÓPICO COM ALTA CONFIANÇA
+            if (topicMatch && topicMatch.score > 0.2) {
+                const data = topicMatch.data;
                 return {
-                    answer: answer,
+                    answer: data.content,
+                    title: data.title || 'Conhecimento Geral',
                     confidence: 'medium',
-                    confidenceText: '⚠️ Resposta baseada na base de conhecimento (similaridade média)',
-                    sources: [...new Set(mediumSimChunks.map(c => c.fonte || 'knowledge-base').filter(Boolean))],
-                    tags: extractTags(mediumSimChunks),
-                    fromFallback: false
+                    confidenceLabel: '📚 Conhecimento geral (tópico detectado)',
+                    sources: [data.source || 'Conhecimento geral'],
+                    tags: data.tags || [],
+                    fromFallback: true,
+                    topicDetected: topicMatch.topic,
+                    chainSteps: chainSteps
                 };
             }
             
-            // 6. FALLBACK GENÉRICO - usa os chunks disponíveis
-            if (chunks.length > 0) {
-                const answer = buildAnswerFromChunks(query, chunks.slice(0, 3));
+            // 2. FILTRA CHUNKS RELEVANTES
+            const relevantChunks = chunks.filter(c => (c.combinedScore || c.score || 0) > 0.5);
+            
+            if (relevantChunks.length >= 2) {
+                const topChunks = relevantChunks.slice(0, 3);
+                const contents = topChunks.map(c => c.conteudo || '').filter(t => t.length > 0);
+                
+                // Extrai frases mais relevantes
+                const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+                let bestSentences = [];
+                
+                contents.forEach(text => {
+                    const sentences = text.split(/[.!?]+/);
+                    sentences.forEach(sent => {
+                        const sentLower = sent.toLowerCase();
+                        const matchCount = queryTokens.filter(t => sentLower.includes(t)).length;
+                        if (matchCount > 0) {
+                            bestSentences.push({ text: sent.trim(), score: matchCount / queryTokens.length });
+                        }
+                    });
+                });
+                
+                bestSentences.sort((a, b) => b.score - a.score);
+                
+                let answer = '';
+                if (bestSentences.length > 0) {
+                    answer = bestSentences.slice(0, 5).map(s => s.text).join('. ') + '.';
+                } else {
+                    answer = contents.join(' ').substring(0, 600) + '...';
+                }
+                
+                const sources = [...new Set(topChunks.map(c => c.fonte || 'knowledge-base').filter(Boolean))];
+                const tags = [...new Set(topChunks.flatMap(c => c.tags || []))].slice(0, 8);
+                
                 return {
                     answer: answer,
-                    confidence: 'low',
-                    confidenceText: 'ℹ️ Resposta baseada em chunks disponíveis (confiança baixa)',
-                    sources: [...new Set(chunks.slice(0, 3).map(c => c.fonte || 'knowledge-base').filter(Boolean))],
-                    tags: extractTags(chunks.slice(0, 3)),
-                    fromFallback: false
+                    title: topChunks[0]?.titulo || 'Informações da Base',
+                    confidence: 'high',
+                    confidenceLabel: '✅ Base de conhecimento (alta relevância)',
+                    sources: sources.length > 0 ? sources : ['Base de conhecimento'],
+                    tags: tags,
+                    fromFallback: false,
+                    chainSteps: chainSteps
                 };
             }
             
-            // 7. NADA ENCONTRADO
+            // 3. FALLBACK - tenta tópico mesmo com baixa confiança
+            if (topicMatch) {
+                const data = topicMatch.data;
+                return {
+                    answer: data.content,
+                    title: data.title || 'Conhecimento Geral',
+                    confidence: 'low',
+                    confidenceLabel: 'ℹ️ Conhecimento geral (confiança baixa)',
+                    sources: [data.source || 'Conhecimento geral'],
+                    tags: data.tags || [],
+                    fromFallback: true,
+                    topicDetected: topicMatch.topic,
+                    chainSteps: chainSteps
+                };
+            }
+            
+            // 4. NADA ENCONTRADO
             return {
-                answer: `❓ Não encontrei informações específicas sobre "${query}" na base de conhecimento. Tente reformular a pergunta ou perguntar sobre: tamanho de partícula, pressão, resolução, Van Deemter, core-shell.`,
-                confidence: 'low',
-                confidenceText: '❌ Nenhuma informação encontrada',
+                answer: `❓ Não encontrei informações específicas sobre "${query}" na base de conhecimento.
+
+💡 Tente perguntar sobre:
+- tamanho de partícula
+- pressão em colunas
+- resolução cromatográfica
+- Van Deemter
+- core-shell
+- SPME
+- LC-MS
+
+Ou reformule sua pergunta com mais detalhes.`,
+                title: 'Nenhuma informação encontrada',
+                confidence: 'none',
+                confidenceLabel: '❌ Sem informações',
                 sources: [],
                 tags: [],
-                fromFallback: true
+                fromFallback: true,
+                chainSteps: chainSteps
             };
         }
 
-        function buildAnswerFromChunks(query, chunks) {
-            // Extrai os conteúdos mais relevantes
-            const contents = chunks.map(c => c.conteudo || '').filter(t => t.length > 0);
+        // ==================== SUGESTÕES INTELIGENTES ====================
+        function generateSuggestions(query, result) {
+            const suggestions = [];
             
-            // Tenta encontrar frases que respondem diretamente à pergunta
-            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-            let bestSentences = [];
-            
-            contents.forEach(text => {
-                const sentences = text.split(/[.!?]+/);
-                sentences.forEach(sent => {
-                    const sentLower = sent.toLowerCase();
-                    const matchCount = queryTokens.filter(t => sentLower.includes(t)).length;
-                    if (matchCount > 0) {
-                        bestSentences.push({ text: sent.trim(), score: matchCount / queryTokens.length });
+            // Baseado no tópico detectado
+            if (result.topicDetected) {
+                const relatedTopics = {
+                    'tamanho partícula': ['pressão coluna', 'resolução', 'van deemter', 'core shell spp'],
+                    'pressão coluna': ['tamanho partícula', 'van deemter', 'resolução'],
+                    'resolução': ['tamanho partícula', 'van deemter', 'pressão coluna'],
+                    'van deemter': ['tamanho partícula', 'resolução', 'core shell spp'],
+                    'core shell spp': ['tamanho partícula', 'pressão coluna', 'van deemter']
+                };
+                
+                const related = relatedTopics[result.topicDetected] || [];
+                for (const topic of related) {
+                    const data = GENERAL_KNOWLEDGE[topic];
+                    if (data) {
+                        suggestions.push(`Qual o efeito da ${topic} na separação?`);
                     }
-                });
-            });
-            
-            bestSentences.sort((a, b) => b.score - a.score);
-            
-            let answer = '';
-            if (bestSentences.length > 0) {
-                // Pega as melhores frases e monta um parágrafo coerente
-                const topTexts = bestSentences.slice(0, 5).map(s => s.text);
-                answer = topTexts.join('. ') + '.';
-            } else {
-                // Fallback: pega os primeiros 500 caracteres
-                answer = contents.join(' ').substring(0, 600) + '...';
+                }
             }
             
-            return answer;
+            // Baseado nas tags
+            if (result.tags && result.tags.length > 0) {
+                const tagQuestions = {
+                    'partículas': 'Como escolher o tamanho ideal de partícula?',
+                    'pressão': 'Como reduzir a pressão na coluna?',
+                    'resolução': 'Como melhorar a resolução entre picos?',
+                    'Van Deemter': 'O que é a equação de Van Deemter?',
+                    'eficiência': 'Como aumentar a eficiência da coluna?',
+                    'UHPLC': 'Qual a diferença entre HPLC e UHPLC?'
+                };
+                
+                for (const tag of result.tags) {
+                    if (tagQuestions[tag] && !suggestions.includes(tagQuestions[tag])) {
+                        suggestions.push(tagQuestions[tag]);
+                    }
+                }
+            }
+            
+            // Sugestões genéricas se não houver outras
+            if (suggestions.length === 0) {
+                suggestions.push(
+                    'Qual o efeito do tamanho da partícula na separação?',
+                    'Como funciona a equação de Van Deemter?',
+                    'Qual a diferença entre partículas core-shell e totalmente porosas?',
+                    'Como melhorar a resolução cromatográfica?'
+                );
+            }
+            
+            return suggestions.slice(0, 4);
         }
 
-        function extractTags(chunks) {
-            const tags = new Set();
-            chunks.forEach(c => (c.tags || []).forEach(t => tags.add(t)));
-            return Array.from(tags).slice(0, 8);
+        // ==================== APRENDIZADO DE LONGO PRAZO ====================
+        function learnFromInteraction(query, result) {
+            const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            
+            for (const token of tokens) {
+                if (!longTermMemory.learnedTopics.has(token)) {
+                    longTermMemory.learnedTopics.set(token, { 
+                        count: 1, 
+                        queries: [query],
+                        lastSeen: Date.now()
+                    });
+                } else {
+                    const data = longTermMemory.learnedTopics.get(token);
+                    data.count += 1;
+                    if (!data.queries.includes(query)) {
+                        data.queries.push(query);
+                    }
+                    data.lastSeen = Date.now();
+                }
+            }
+            
+            // Atualiza histórico
+            longTermMemory.queryHistory.push({
+                query: query,
+                timestamp: Date.now(),
+                confidence: result.confidence
+            });
+            
+            // Mantém histórico com tamanho limitado
+            if (longTermMemory.queryHistory.length > 50) {
+                longTermMemory.queryHistory = longTermMemory.queryHistory.slice(-50);
+            }
+            
+            // Mantém aprendizado com tamanho limitado
+            if (longTermMemory.learnedTopics.size > 100) {
+                const sorted = Array.from(longTermMemory.learnedTopics.entries())
+                    .sort((a, b) => b[1].count - a[1].count);
+                longTermMemory.learnedTopics = new Map(sorted.slice(0, 80));
+            }
+            
+            // Atualiza UI
+            document.getElementById('memoryBadge').textContent = `🧠 ${longTermMemory.learnedTopics.size} aprendidos`;
+            document.getElementById('memoryStats').textContent = `🧠 ${longTermMemory.learnedTopics.size} termos aprendidos`;
         }
 
         // ==================== UI ====================
-        function addMessage(sender, content) {
+        function addMessage(sender, content, isHTML = false) {
             const div = document.createElement('div');
             div.className = `message ${sender}`;
-            div.innerHTML = content.replace(/\n/g, '<br>');
+            if (isHTML) {
+                div.innerHTML = content;
+            } else {
+                div.textContent = content;
+            }
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
@@ -732,7 +1276,12 @@ Onde:
             const div = document.createElement('div');
             div.className = 'typing';
             div.id = 'typingIndicator';
-            div.innerHTML = text;
+            div.innerHTML = `
+                <span>${text}</span>
+                <div class="dots">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
@@ -742,6 +1291,73 @@ Onde:
             if (el) el.remove();
         }
 
+        function formatResponse(query, result, suggestions) {
+            const confidenceClass = result.confidence === 'high' ? 'confidence-high' : 
+                                   result.confidence === 'medium' ? 'confidence-medium' : 
+                                   result.confidence === 'low' ? 'confidence-low' : 'confidence-fallback';
+            
+            let html = `<div class="msg-header">
+                <span class="avatar">🧪</span>
+                <span class="name">ChromatoBuddy</span>
+                <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
+                    ${result.fromFallback ? '🔹 Geral' : '🔹 Base'}
+                </span>
+            </div>`;
+            
+            // Chain of Thought
+            if (result.chainSteps && result.chainSteps.length > 0) {
+                html += `<div class="thinking-process">
+                    <div style="font-weight:600; color:#1a3a6a; margin-bottom:6px; font-size:0.8rem;">
+                        🧠 Processo de raciocínio:
+                    </div>`;
+                for (const step of result.chainSteps) {
+                    html += `<div class="step">
+                        <span class="emoji">${step.emoji}</span>
+                        <span class="text">${step.text}</span>
+                        ${step.badge ? `<span class="badge-step">${step.badge}</span>` : ''}
+                    </div>`;
+                }
+                html += `</div>`;
+            }
+            
+            // Resposta
+            html += `<div class="answer-box">
+                <h4>${result.title || 'Resposta'}</h4>
+                ${result.answer.replace(/\n/g, '<br>')}
+            </div>`;
+            
+            // Tags
+            if (result.tags && result.tags.length > 0) {
+                html += `<div class="tags-box">${result.tags.map(t => `<span class="tag-pill">#${t}</span>`).join('')}</div>`;
+            }
+            
+            // Fontes
+            if (result.sources && result.sources.length > 0) {
+                html += `<div class="sources-box">📄 <strong>Fontes:</strong> ${result.sources.join(', ')}</div>`;
+            }
+            
+            // Sugestões
+            if (suggestions && suggestions.length > 0) {
+                html += `<div class="suggestions">
+                    <span style="font-size:0.75rem; color:#8899b0; display:block; width:100%; margin-bottom:4px;">
+                        💡 Perguntas relacionadas:
+                    </span>`;
+                for (const sug of suggestions) {
+                    html += `<button class="suggestion-btn" data-question="${sug}">${sug}</button>`;
+                }
+                html += `</div>`;
+            }
+            
+            // Meta
+            html += `<div class="meta">
+                <span class="${confidenceClass}">${result.confidenceLabel}</span>
+                <span>⚡ Local · Sem API</span>
+                <span>🧠 ${longTermMemory.learnedTopics.size} termos aprendidos</span>
+            </div>`;
+            
+            return html;
+        }
+
         async function handleUserQuery() {
             if (sendBtn.disabled) return;
             const query = userInput.value.trim();
@@ -749,58 +1365,62 @@ Onde:
 
             sendBtn.disabled = true;
             userInput.disabled = true;
-            addMessage('user', `<strong>${query}</strong>`);
+            
+            addMessage('user', query);
             userInput.value = '';
-            showTyping('🔍 buscando na base...');
-
+            
+            showTyping('🔍 analisando pergunta...');
+            
             try {
-                // Primeiro, detecta tópico para feedback
+                // 1. DETECTA TÓPICO
                 const topicMatch = detectTopic(query);
-                if (topicMatch) {
+                
+                if (topicMatch && topicMatch.score > 0.15) {
                     removeTyping();
-                    showTyping(`📚 tópico detectado: ${topicMatch.topic} (${Math.round(topicMatch.score * 100)}%)`);
+                    showTyping(`🎯 tópico: ${topicMatch.topic} (${Math.round(topicMatch.score * 100)}%)`);
                 }
                 
-                const chunks = await retrieveChunks(query, 10);
+                // 2. BUSCA NA BASE
+                const chunks = await retrieveChunks(query, 8);
+                
                 removeTyping();
-                showTyping('🧠 sintetizando resposta...');
-
-                // Sintetiza resposta
-                const result = synthesizeResponse(query, chunks);
+                showTyping('🧠 raciocinando...');
+                
+                // 3. CHAIN OF THOUGHT
+                const chainSteps = generateChainOfThought(query, topicMatch, chunks);
+                
+                // 4. SINTETIZA RESPOSTA
+                const result = synthesizeResponse(query, chunks, topicMatch, chainSteps);
+                
+                // 5. GERA SUGESTÕES
+                const suggestions = generateSuggestions(query, result);
+                
+                // 6. APRENDE COM A INTERAÇÃO
+                learnFromInteraction(query, result);
+                
                 removeTyping();
                 
-                let response = `🔍 <strong>Pergunta:</strong> ${query}<br><br>`;
+                // 7. EXIBE RESPOSTA
+                const html = formatResponse(query, result, suggestions);
+                addMessage('bot', html, true);
                 
-                // Adiciona a resposta
-                response += `<div class="answer-box">`;
-                response += `<strong>📖 Resposta:</strong><br><br>${result.answer}`;
-                response += `</div>`;
+                // 8. ADICIONA EVENTOS AOS BOTÕES DE SUGESTÃO
+                document.querySelectorAll('.suggestion-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        userInput.value = btn.dataset.question;
+                        handleUserQuery();
+                    });
+                });
                 
-                // Confiança
-                const confidenceClass = result.confidence === 'high' ? 'confidence-high' : 
-                                       result.confidence === 'medium' ? 'confidence-medium' : 'confidence-low';
-                response += `<div style="margin-top:8px;"><span class="${confidenceClass}">${result.confidenceText}</span></div>`;
-                
-                // Fontes
-                if (result.sources && result.sources.length > 0) {
-                    response += `<div class="sources">📄 <strong>Fontes:</strong> ${result.sources.join(', ')}</div>`;
+                // Atualiza estatísticas
+                if (chunks.length > 0) {
+                    document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks relevantes`;
                 }
                 
-                // Tags
-                if (result.tags && result.tags.length > 0) {
-                    response += `<div style="margin-top:8px;">🏷️ ${result.tags.map(t => `<span class="tag-pill">${t}</span>`).join(' ')}</div>`;
-                }
-                
-                // Info adicional
-                const sourceType = result.fromFallback ? '🔹 conhecimento geral' : '🔹 base JSON';
-                response += `<div class="meta">💡 ${sourceType} · RAG local</div>`;
-                
-                addMessage('bot', response);
-
             } catch (err) {
                 removeTyping();
                 console.error(err);
-                addMessage('bot', `❌ Erro: ${err.message || 'tente novamente'}`);
+                addMessage('bot', `❌ Ops! Algo deu errado: ${err.message || 'tente novamente'}`);
             } finally {
                 sendBtn.disabled = false;
                 userInput.disabled = false;
@@ -810,6 +1430,7 @@ Onde:
 
         // ==================== EVENTOS ====================
         sendBtn.addEventListener('click', handleUserQuery);
+        
         userInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -819,13 +1440,53 @@ Onde:
 
         userInput.addEventListener('input', () => {
             userInput.style.height = 'auto';
-            userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+            userInput.style.height = Math.min(userInput.scrollHeight, 130) + 'px';
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                e.preventDefault();
+                handleUserQuery();
+            }
         });
 
         // ==================== INICIALIZAÇÃO ====================
         async function init() {
             await initEmbedder();
             await loadKnowledgeBase();
+            
+            // Carrega memória do localStorage
+            try {
+                const saved = localStorage.getItem('chromatobuddy_memory');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.learnedTopics) {
+                        longTermMemory.learnedTopics = new Map(Object.entries(parsed.learnedTopics));
+                        document.getElementById('memoryBadge').textContent = `🧠 ${longTermMemory.learnedTopics.size} aprendidos`;
+                    }
+                    if (parsed.queryHistory) {
+                        longTermMemory.queryHistory = parsed.queryHistory;
+                    }
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar memória:', e);
+            }
+            
+            // Salva memória periodicamente
+            setInterval(() => {
+                try {
+                    localStorage.setItem('chromatobuddy_memory', JSON.stringify({
+                        learnedTopics: Object.fromEntries(longTermMemory.learnedTopics),
+                        queryHistory: longTermMemory.queryHistory.slice(-20)
+                    }));
+                } catch (e) {
+                    // Ignora
+                }
+            }, 30000);
+            
+            if (!userInput.disabled) {
+                userInput.focus();
+            }
         }
 
         init();
