@@ -149,7 +149,7 @@
         }
         .answer-box h4 { color: #1a3a6a; margin-bottom: 8px; font-size: 0.95rem; }
         
-        .sources-box {
+        .references-box {
             background: #f0f4fc;
             padding: 10px 16px;
             border-radius: 10px;
@@ -157,6 +157,63 @@
             font-size: 0.82rem;
             border-left: 3px solid #6aafff;
         }
+        .references-box .ref-item {
+            display: block;
+            padding: 2px 0;
+            color: #2a4a7a;
+            font-size: 0.75rem;
+        }
+        
+        .chunks-used-box {
+            background: #f5f7fa;
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-top: 8px;
+            font-size: 0.78rem;
+            border: 1px dashed #c5d0e0;
+        }
+        .chunks-used-box .chunk-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #eef2f8;
+            cursor: pointer;
+        }
+        .chunks-used-box .chunk-item:last-child { border-bottom: none; }
+        .chunks-used-box .chunk-item .chunk-score {
+            background: #1a3a6a;
+            color: white;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 600;
+        }
+        .chunks-used-box .chunk-item .chunk-title {
+            flex: 1;
+            color: #1a3a6a;
+        }
+        .chunks-used-box .chunk-item .chunk-toggle {
+            background: none;
+            border: none;
+            color: #6aafff;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .chunks-used-box .chunk-content-preview {
+            display: none;
+            padding: 8px 12px;
+            background: #f8faff;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #4a5a7a;
+            margin: 4px 0 4px 24px;
+            border-left: 2px solid #6aafff;
+        }
+        .chunks-used-box .chunk-content-preview.show {
+            display: block;
+        }
+        
         .tags-box {
             display: flex;
             flex-wrap: wrap;
@@ -212,6 +269,56 @@
             color: white;
             border-color: #1a3a6a;
             transform: translateY(-1px);
+        }
+        
+        .feedback-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eef2f8;
+        }
+        .feedback-btn {
+            background: none;
+            border: 1px solid #dde4f0;
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            color: #4a5a7a;
+        }
+        .feedback-btn:hover {
+            background: #1a3a6a;
+            color: white;
+            border-color: #1a3a6a;
+        }
+        .feedback-btn.active {
+            background: #1a3a6a;
+            color: white;
+            border-color: #1a3a6a;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .export-btn {
+            background: none;
+            border: 1px solid #dde4f0;
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            color: #4a5a7a;
+        }
+        .export-btn:hover {
+            background: #e8edf5;
+            border-color: #1a3a6a;
         }
         
         .typing {
@@ -328,6 +435,21 @@
             gap: 4px;
         }
         
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a3a6a;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: fadeSlide 0.3s ease;
+            z-index: 1000;
+        }
+        
         @keyframes fadeSlide {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -391,13 +513,15 @@
                 <div class="welcome-box">
                     <strong>👋 Olá! Sou seu assistente de cromatografia.</strong>
                     <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-                        🔍 <strong>Busca inteligente com sinônimos</strong>
+                        🔍 <strong>Busca inteligente com sinônimos e semântica</strong>
                     </div>
                     <div class="features">
-                        <span class="feature-item">🔍 Busca hierárquica</span>
-                        <span class="feature-item">📚 Sinônimos integrados</span>
+                        <span class="feature-item">🔍 Busca híbrida</span>
+                        <span class="feature-item">📚 Sinônimos dinâmicos</span>
                         <span class="feature-item">🧠 Chain-of-Thought</span>
                         <span class="feature-item">✅ Validação cruzada</span>
+                        <span class="feature-item">📖 Referências completas</span>
+                        <span class="feature-item">🔍 Ver chunks usados</span>
                     </div>
                     <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
                         💬 Pergunte sobre cromatografia, LC-MS, SPME, colunas e muito mais.
@@ -422,6 +546,7 @@
             <div class="stats">
                 <span id="versionInfo">📌 versão: -</span>
                 <span id="sourceInfo">📄 origem: -</span>
+                <span id="queryCount">📊 consultas: 0</span>
             </div>
             <span>🔒 Local · Sem API · Apenas chunks do JSON</span>
         </div>
@@ -442,97 +567,143 @@
         let knowledgeData = null;
         let embedder = null;
         let modelReady = false;
+        let messageCounter = 0;
+        let queryCount = 0;
+        let lastChunksUsed = [];
         
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
-        // ==================== LISTA DE SINÔNIMOS ====================
-        // Mapeia termos para suas variações/sinônimos
-        const SYNONYM_MAP = {
-            // Cromatografia em geral
-            'cromatografia': ['cromatográfico', 'cromatográfica', 'cromatográficas', 'cromatográficos', 'lc', 'hplc', 'uhplc'],
-            'lc': ['cromatografia líquida', 'cromatografia liquida', 'hplc', 'uhplc', 'cromatografia'],
-            'hplc': ['cromatografia líquida de alta eficiência', 'cromatografia liquida de alta eficiencia', 'lc', 'cromatografia'],
-            'uhplc': ['cromatografia líquida de ultra eficiência', 'cromatografia liquida de ultra eficiencia', 'lc', 'hplc'],
+        // ==================== CACHES ====================
+        const embeddingCache = new Map();
+        const searchCache = new Map();
+        const feedbackData = JSON.parse(localStorage.getItem('chromatoFeedback') || '{}');
+        const statsData = JSON.parse(localStorage.getItem('chromatoStats') || '{"queries": [], "total": 0}');
+
+        // ==================== PREPROCESSAMENTO DE TEXTO ====================
+        function preprocessText(text) {
+            if (!text) return '';
+            return text
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function normalizeText(text) {
+            if (!text) return '';
+            return text
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '');
+        }
+
+        // ==================== SINÔNIMOS DINÂMICOS ====================
+        function buildDynamicSynonyms(chunks) {
+            const dynamicMap = {};
             
-            // Partículas e colunas
-            'partícula': ['particula', 'partículas', 'particulas', 'particle', 'beads', 'esferas', 'sílica', 'silica'],
-            'tamanho': ['tamanho', 'diâmetro', 'diametro', 'dp', 'µm', 'micrometro', 'micron', 'micro'],
+            for (const chunk of chunks) {
+                const tags = chunk.tags || [];
+                const title = chunk.titulo || '';
+                
+                const titleWords = preprocessText(title).split(/\s+/).filter(w => w.length > 3);
+                for (const word of titleWords) {
+                    if (!dynamicMap[word]) dynamicMap[word] = new Set();
+                    for (const tag of tags) {
+                        const tagNorm = preprocessText(tag);
+                        if (tagNorm !== word) {
+                            dynamicMap[word].add(tagNorm);
+                        }
+                    }
+                }
+            }
+            
+            const result = {};
+            for (const [key, value] of Object.entries(dynamicMap)) {
+                result[key] = Array.from(value);
+            }
+            return result;
+        }
+
+        // ==================== LISTA DE SINÔNIMOS BASE ====================
+        const BASE_SYNONYM_MAP = {
+            'cromatografia': ['cromatografico', 'cromatografica', 'lc', 'hplc', 'uhplc'],
+            'lc': ['cromatografia liquida', 'hplc', 'uhplc'],
+            'hplc': ['cromatografia liquida de alta eficiencia', 'lc'],
+            'uhplc': ['cromatografia liquida de ultra eficiencia', 'lc', 'hplc'],
+            'particula': ['particulas', 'particle', 'beads', 'esferas', 'silica'],
+            'tamanho': ['tamanho', 'diametro', 'dp', 'micrometro', 'micron', 'micro'],
             'coluna': ['colunas', 'column', 'columns', 'empacotamento', 'packing'],
-            
-            // Separação e eficiência
-            'separação': ['separacao', 'separar', 'separa', 'resolução', 'resolucao', 'rs'],
-            'resolução': ['resolucao', 'rs', 'separação', 'separacao', 'eficiencia', 'eficiência'],
-            'eficiência': ['eficiencia', 'pratos teóricos', 'pratos teoricos', 'n', 'hetp'],
-            
-            // Pressão e fluxo
-            'pressão': ['pressao', 'pressões', 'pressoes', 'bar', 'psi', 'pressure', 'backpressure'],
-            'fluxo': ['vazão', 'vazao', 'flow', 'vazões', 'vazoes'],
-            
-            // Van Deemter
-            'van deemter': ['van deemter', 'vandeemter', 'curva de van deemter', 'hetp', 'altura equivalente'],
-            'hetp': ['altura equivalente a um prato teórico', 'altura equivalente a um prato teorico'],
-            
-            // Tipos de partícula
-            'core-shell': ['core shell', 'spp', 'fused core', 'superficialmente porosa', 'núcleo sólido', 'nucleo solido'],
-            'totalmente porosa': ['totalmente poroso', 'fp', 'fully porous', 'porosa'],
-            
-            // Fases e solventes
-            'fase móvel': ['fase movel', 'mobile phase', 'solvente', 'eluente'],
-            'fase estacionária': ['fase estacionaria', 'stationary phase', 'fase fixa'],
-            
-            // Temperatura
-            'temperatura': ['temperaturas', 'thermal', 'térmico', 'termico', 'heat', 'calor', 'aquecimento'],
-            
-            // Técnicas
-            'spme': ['solid phase microextraction', 'microextração', 'microextracao', 'fibra', 'it-spme'],
-            'lc-ms': ['lcms', 'espectrometria de massas', 'mass spectrometry', 'ms'],
+            'separacao': ['separar', 'separa', 'resolucao', 'rs'],
+            'resolucao': ['rs', 'separacao', 'eficiencia'],
+            'eficiencia': ['pratos teoricos', 'n', 'hetp'],
+            'pressao': ['pressoes', 'bar', 'psi', 'pressure', 'backpressure'],
+            'fluxo': ['vazao', 'flow', 'vazoes'],
+            'van deemter': ['vandeemter', 'curva de van deemter', 'hetp'],
+            'hetp': ['altura equivalente a um prato teorico'],
+            'core shell': ['spp', 'fused core', 'superficialmente porosa', 'nucleo solido'],
+            'totalmente porosa': ['totalmente poroso', 'fp', 'fully porous'],
+            'fase movel': ['mobile phase', 'solvente', 'eluente'],
+            'fase estacionaria': ['stationary phase', 'fase fixa'],
+            'temperatura': ['temperaturas', 'thermal', 'termico', 'heat', 'calor', 'aquecimento'],
+            'spme': ['solid phase microextraction', 'microextracao', 'fibra', 'it-spme'],
+            'lc ms': ['lcms', 'espectrometria de massas', 'mass spectrometry', 'ms'],
             'gc': ['cromatografia gasosa', 'gas chromatography'],
-            
-            // Validação
-            'validação': ['validacao', 'validate', 'validation', 'anvisa', 'ich', 'rdc'],
-            'linearidade': ['linear', 'correlação', 'correlacao', 'r²', 'r2'],
-            'precisão': ['precisao', 'repetibilidade', 'repetitividade', 'reprodutibilidade'],
-            'exatidão': ['exatidao', 'recuperação', 'recuperacao', 'accuracy'],
-            
-            // Quimiometria
-            'pca': ['componentes principais', 'principal component', 'análise multivariada', 'analise multivariada'],
-            
-            // Métodos
-            'gradiente': ['gradient', 'gradiente de solvente', 'eluição', 'eluição gradiente', 'eluicao'],
-            'isotermico': ['isotérmico', 'isotermico', 'isocratico', 'isocrático'],
-            
-            // Amostras
-            'amostra': ['sample', 'samples', 'preparo', 'preparação', 'preparacao', 'extração', 'extracao'],
-            
-            // Geral
-            'analito': ['analitos', 'composto', 'compostos', 'substância', 'substancia', 'soluto'],
+            'validacao': ['validate', 'validation', 'anvisa', 'ich', 'rdc'],
+            'linearidade': ['linear', 'correlacao', 'r2'],
+            'precisao': ['repetibilidade', 'repetitividade', 'reprodutibilidade'],
+            'exatidao': ['recuperacao', 'accuracy'],
+            'pca': ['componentes principais', 'principal component', 'analise multivariada'],
+            'gradiente': ['gradient', 'gradiente de solvente', 'eluição', 'eluicao'],
+            'isocratico': ['isotermico', 'isocrático'],
+            'amostra': ['sample', 'samples', 'preparo', 'preparacao', 'extracao'],
+            'analito': ['analitos', 'composto', 'compostos', 'substancia', 'soluto'],
             'matriz': ['matrizes', 'matrix', 'interferente', 'interferentes'],
+            'diametro': ['diametro', 'i.d.', 'id', 'internal diameter'],
+            'capilar': ['capilares', 'capillary', 'capillaries'],
+            'poppe': ['curvas de poppe', 'poppe plot', 'cineticas'],
+            'kinetic': ['cinetico', 'cinetica', 'poppe', 'plot']
         };
 
-        // ==================== EXPANDE SINÔNIMOS ====================
-        function expandWithSynonyms(query) {
+        // ==================== EXPANSÃO DE SINÔNIMOS ====================
+        function expandWithSynonyms(query, dynamicSynonyms = {}) {
             let expanded = query;
-            const queryLower = query.toLowerCase();
+            const queryNorm = preprocessText(query);
             
-            for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
-                if (queryLower.includes(term)) {
-                    // Adiciona os sinônimos à query expandida
+            const allSynonyms = { ...BASE_SYNONYM_MAP };
+            for (const [key, values] of Object.entries(dynamicSynonyms)) {
+                if (!allSynonyms[key]) {
+                    allSynonyms[key] = [];
+                }
+                for (const val of values) {
+                    if (!allSynonyms[key].includes(val)) {
+                        allSynonyms[key].push(val);
+                    }
+                }
+            }
+            
+            for (const [term, synonyms] of Object.entries(allSynonyms)) {
+                const termNorm = preprocessText(term);
+                if (queryNorm.includes(termNorm)) {
                     for (const syn of synonyms) {
-                        if (!expanded.includes(syn)) {
+                        const synNorm = preprocessText(syn);
+                        if (!preprocessText(expanded).includes(synNorm)) {
                             expanded += ' ' + syn;
                         }
                     }
                 }
-                // Verifica sinônimos na query
                 for (const syn of synonyms) {
-                    if (queryLower.includes(syn)) {
-                        if (!expanded.includes(term)) {
+                    const synNorm = preprocessText(syn);
+                    if (queryNorm.includes(synNorm)) {
+                        if (!preprocessText(expanded).includes(termNorm)) {
                             expanded += ' ' + term;
                         }
                         for (const otherSyn of synonyms) {
-                            if (otherSyn !== syn && !expanded.includes(otherSyn)) {
+                            const otherNorm = preprocessText(otherSyn);
+                            if (otherNorm !== synNorm && !preprocessText(expanded).includes(otherNorm)) {
                                 expanded += ' ' + otherSyn;
                             }
                         }
@@ -541,6 +712,30 @@
             }
             
             return expanded;
+        }
+
+        // ==================== DETECÇÃO DE INTENÇÃO ====================
+        function detectIntent(query) {
+            const q = preprocessText(query);
+            
+            const intents = {
+                definicao: ['o que e', 'definicao', 'significa', 'conceito', 'oque e', 'defina'],
+                comparacao: ['diferenca', 'comparacao', 'vs', 'versus', 'diferente', 'entre'],
+                causa_efeito: ['como afeta', 'influencia', 'impacto', 'efeito', 'causa', 'porque', 'influencia'],
+                procedimento: ['como fazer', 'como usar', 'passo a passo', 'protocolo', 'metodo', 'como preparar'],
+                problema: ['problema', 'erro', 'falha', 'dificuldade', 'solucao', 'resolver'],
+                otimizacao: ['melhor', 'otimizar', 'aumentar', 'reduzir', 'melhora', 'otimizacao', 'maximizar'],
+                relacao: ['relacao', 'entre', 'correlacao', 'associacao', 'ligacao']
+            };
+            
+            for (const [intent, keywords] of Object.entries(intents)) {
+                for (const keyword of keywords) {
+                    if (q.includes(keyword)) {
+                        return intent;
+                    }
+                }
+            }
+            return 'geral';
         }
 
         // ==================== CARREGA JSON ====================
@@ -608,63 +803,122 @@
             return dot / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
-        // ===== BUSCA HIERÁRQUICA COM SINÔNIMOS =====
-        function hierarchicalSearch(query, chunks) {
-            // Expande a query com sinônimos
-            const expandedQuery = expandWithSynonyms(query);
-            const queryLower = expandedQuery.toLowerCase();
-            const queryTokens = queryLower.split(/\s+/).filter(w => w.length > 2);
+        // ===== CACHE DE EMBEDDINGS =====
+        async function getChunkEmbedding(chunk) {
+            const key = chunk.id || chunk.conteudo?.substring(0, 100);
+            if (embeddingCache.has(key)) {
+                return embeddingCache.get(key);
+            }
             
-            // Extrai bigramas e trigramas
+            if (!modelReady || !embedder) return null;
+            
+            const text = `${chunk.titulo || ''} ${chunk.tags?.join(' ') || ''} ${chunk.conteudo || ''}`;
+            try {
+                const emb = await embedder(text, { pooling: 'mean', normalize: true });
+                embeddingCache.set(key, emb.data);
+                return emb.data;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ===== BUSCA SEMÂNTICA =====
+        async function semanticSearch(query, chunks, topK = 10) {
+            if (!modelReady || !embedder || chunks.length === 0) return [];
+            
+            try {
+                const queryEmbed = await embedder(query, { pooling: 'mean', normalize: true });
+                const queryVec = queryEmbed.data;
+                
+                const scored = [];
+                const batchSize = 5;
+                for (let i = 0; i < chunks.length; i += batchSize) {
+                    const batch = chunks.slice(i, i + batchSize);
+                    for (const chunk of batch) {
+                        const emb = await getChunkEmbedding(chunk);
+                        if (emb) {
+                            const sim = cosineSimilarity(queryVec, emb);
+                            scored.push({ ...chunk, semanticScore: sim });
+                        }
+                    }
+                }
+                
+                scored.sort((a, b) => (b.semanticScore || 0) - (a.semanticScore || 0));
+                return scored.slice(0, topK);
+            } catch (e) {
+                console.warn('Erro na busca semântica:', e);
+                return [];
+            }
+        }
+
+        // ===== BUSCA HIERÁRQUICA COM SINÔNIMOS =====
+        function hierarchicalSearch(query, chunks, dynamicSynonyms = {}) {
+            const expandedQuery = expandWithSynonyms(query, dynamicSynonyms);
+            const queryNorm = preprocessText(expandedQuery);
+            const queryTokens = queryNorm.split(/\s+/).filter(w => w.length > 2);
+            
             const ngrams = [];
             for (let i = 0; i < queryTokens.length - 1; i++) {
                 ngrams.push(queryTokens[i] + ' ' + queryTokens[i+1]);
+                if (i < queryTokens.length - 2) {
+                    ngrams.push(queryTokens[i] + ' ' + queryTokens[i+1] + ' ' + queryTokens[i+2]);
+                }
             }
             
             const scored = chunks.map(chunk => {
                 let score = 0;
                 let matchInfo = [];
-                const title = (chunk.titulo || '').toLowerCase();
-                const tags = (chunk.tags || []).join(' ').toLowerCase();
-                const content = (chunk.conteudo || '').toLowerCase();
+                const titleNorm = preprocessText(chunk.titulo || '');
+                const tagsNorm = preprocessText((chunk.tags || []).join(' '));
+                const contentNorm = preprocessText(chunk.conteudo || '');
                 
-                // 1. TÍTULO (peso 4)
+                // 1. TÍTULO (peso 5)
                 for (const token of queryTokens) {
-                    if (title.includes(token)) {
-                        score += 4;
+                    if (titleNorm.includes(token)) {
+                        const count = (titleNorm.match(new RegExp(token, 'g')) || []).length;
+                        score += 5 * count;
                         matchInfo.push(`título:${token}`);
                     }
                 }
                 for (const ngram of ngrams) {
-                    if (title.includes(ngram)) {
-                        score += 6;
+                    if (titleNorm.includes(ngram)) {
+                        score += 8;
                         matchInfo.push(`título-frase:${ngram}`);
                     }
                 }
                 
-                // 2. TAGS (peso 3)
+                // 2. TAGS (peso 4)
                 for (const token of queryTokens) {
-                    if (tags.includes(token)) {
-                        score += 3;
+                    if (tagsNorm.includes(token)) {
+                        const count = (tagsNorm.match(new RegExp(token, 'g')) || []).length;
+                        score += 4 * count;
                         matchInfo.push(`tags:${token}`);
                     }
                 }
                 
-                // 3. CONTEÚDO (peso 1-2)
+                // 3. CONTEÚDO (peso 1-3)
                 for (const token of queryTokens) {
-                    if (content.includes(token)) {
-                        const count = (content.match(new RegExp(token, 'g')) || []).length;
-                        score += 1 + Math.min(count, 3) * 0.5;
+                    if (contentNorm.includes(token)) {
+                        const count = (contentNorm.match(new RegExp(token, 'g')) || []).length;
+                        score += 1 + Math.min(count, 5) * 0.4;
                         matchInfo.push(`conteúdo:${token}(${count})`);
                     }
                 }
                 
                 // 4. Frases exatas no conteúdo
                 for (const ngram of ngrams) {
-                    if (content.includes(ngram)) {
-                        score += 3;
+                    if (contentNorm.includes(ngram)) {
+                        const count = (contentNorm.match(new RegExp(ngram, 'g')) || []).length;
+                        score += 3 * Math.min(count, 3);
                         matchInfo.push(`conteúdo-frase:${ngram}`);
                     }
+                }
+                
+                // 5. Bônus para chunks com alta densidade de termos
+                const totalTerms = queryTokens.length;
+                const matchedTerms = queryTokens.filter(t => contentNorm.includes(t)).length;
+                if (matchedTerms > 0) {
+                    score += (matchedTerms / totalTerms) * 2;
                 }
                 
                 return { ...chunk, score, matchInfo };
@@ -677,11 +931,11 @@
         // ===== BM25 =====
         function bm25Search(query, chunks, topK = 10) {
             const expandedQuery = expandWithSynonyms(query);
-            const queryTokens = expandedQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+            const queryTokens = preprocessText(expandedQuery).split(/\s+/).filter(w => w.length > 2);
             if (queryTokens.length === 0) return chunks.slice(0, topK);
             
             const docLengths = chunks.map(c => {
-                const text = `${c.titulo || ''} ${c.tags?.join(' ') || ''} ${c.conteudo || ''}`.toLowerCase();
+                const text = preprocessText(`${c.titulo || ''} ${c.tags?.join(' ') || ''} ${c.conteudo || ''}`);
                 return text.split(/\s+/);
             });
             
@@ -716,31 +970,54 @@
             return scores.slice(0, topK);
         }
 
-        // ===== BUSCA HÍBRIDA =====
-        async function retrieveChunks(query, topK = 10) {
+        // ===== FUNÇÃO DE PESO POR POSIÇÃO =====
+        function addPositionWeight(chunks) {
+            const total = chunks.length;
+            return chunks.map((chunk, index) => {
+                const positionWeight = 1 - (index / total) * 0.3;
+                chunk.positionScore = (chunk.score || 0) * positionWeight;
+                return chunk;
+            });
+        }
+
+        // ===== BUSCA HÍBRIDA PRINCIPAL =====
+        async function retrieveChunks(query, topK = 10, tipo = null) {
             if (!knowledgeData || !knowledgeData.chunks || knowledgeData.chunks.length === 0) {
                 return [];
             }
 
-            const allChunks = knowledgeData.chunks;
+            const cacheKey = `${preprocessText(query)}_${topK}_${tipo || 'all'}`;
+            if (searchCache.has(cacheKey)) {
+                return searchCache.get(cacheKey);
+            }
+
+            let allChunks = knowledgeData.chunks;
             
-            // 1. BUSCA HIERÁRQUICA COM SINÔNIMOS
-            const hierarchicalResults = hierarchicalSearch(query, allChunks);
+            if (tipo && tipo !== 'todos') {
+                allChunks = allChunks.filter(c => c.tipo === tipo);
+            }
+
+            const dynamicSynonyms = buildDynamicSynonyms(allChunks);
+            
+            const hierarchicalResults = hierarchicalSearch(query, allChunks, dynamicSynonyms);
             const topHierarchical = hierarchicalResults.slice(0, topK * 2);
             
-            // 2. BM25 COM SINÔNIMOS
             const bm25Results = bm25Search(query, allChunks, topK * 2);
             
-            // 3. Combina resultados
+            let semanticResults = [];
+            if (modelReady) {
+                semanticResults = await semanticSearch(query, allChunks, topK * 2);
+            }
+            
             const combinedMap = new Map();
             
             topHierarchical.forEach(c => {
                 const key = c.id || c.conteudo?.substring(0, 50);
                 if (!combinedMap.has(key)) {
-                    combinedMap.set(key, { ...c, combinedScore: c.score * 1.5 });
+                    combinedMap.set(key, { ...c, combinedScore: (c.score || 0) * 1.5 });
                 } else {
                     const existing = combinedMap.get(key);
-                    existing.combinedScore += c.score * 1.5;
+                    existing.combinedScore += (c.score || 0) * 1.5;
                 }
             });
             
@@ -754,41 +1031,52 @@
                 }
             });
             
+            semanticResults.forEach(c => {
+                const key = c.id || c.conteudo?.substring(0, 50);
+                if (!combinedMap.has(key)) {
+                    combinedMap.set(key, { ...c, combinedScore: (c.semanticScore || 0) * 100 * 3 });
+                } else {
+                    const existing = combinedMap.get(key);
+                    existing.combinedScore += (c.semanticScore || 0) * 100 * 3;
+                }
+            });
+            
             let results = Array.from(combinedMap.values());
             
-            // 4. Reranking com embedding
-            if (modelReady && embedder && results.length > 0) {
-                try {
-                    const queryEmbed = await embedder(query, { pooling: 'mean', normalize: true });
-                    const queryVec = queryEmbed.data;
-                    
-                    const batchSize = 10;
-                    for (let i = 0; i < results.length; i += batchSize) {
-                        const batch = results.slice(i, i + batchSize);
-                        for (const chunk of batch) {
-                            const text = `${chunk.titulo || ''} ${chunk.tags?.join(' ') || ''} ${chunk.conteudo || ''}`;
-                            try {
-                                const emb = await embedder(text, { pooling: 'mean', normalize: true });
-                                const sim = cosineSimilarity(queryVec, emb.data);
-                                chunk.similarity = sim;
-                                chunk.combinedScore = (chunk.combinedScore || 0) * 0.4 + sim * 100 * 0.6;
-                            } catch (e) {
-                                chunk.similarity = 0;
-                            }
-                        }
-                        await new Promise(r => setTimeout(r, 0));
+            const queryNorm = preprocessText(query);
+            const queryTokens = queryNorm.split(/\s+/).filter(w => w.length > 2);
+            
+            results = results.map(chunk => {
+                const contentNorm = preprocessText(chunk.conteudo || '');
+                const titleNorm = preprocessText(chunk.titulo || '');
+                let specificityBonus = 0;
+                
+                for (const token of queryTokens) {
+                    if (titleNorm.includes(token)) {
+                        specificityBonus += 2;
                     }
-                } catch (e) {
-                    console.warn('Erro no reranking:', e);
+                    if (contentNorm.includes(token)) {
+                        const count = (contentNorm.match(new RegExp(token, 'g')) || []).length;
+                        specificityBonus += Math.min(count, 3) * 0.3;
+                    }
                 }
-            }
+                
+                chunk.combinedScore = (chunk.combinedScore || 0) + specificityBonus;
+                return chunk;
+            });
+            
+            results = addPositionWeight(results);
             
             results.sort((a, b) => (b.combinedScore || 0) - (a.combinedScore || 0));
-            return results.slice(0, topK);
+            const finalResults = results.slice(0, topK);
+            
+            searchCache.set(cacheKey, finalResults);
+            
+            return finalResults;
         }
 
         // ==================== CHAIN OF THOUGHT ====================
-        function generateChainOfThought(query, chunks) {
+        function generateChainOfThought(query, chunks, intent) {
             const steps = [];
             
             steps.push({
@@ -797,12 +1085,27 @@
                 badge: 'entrada'
             });
             
-            // Mostra expansão de sinônimos
-            const expanded = expandWithSynonyms(query);
-            if (expanded !== query) {
+            const intentLabels = {
+                definicao: 'Definição',
+                comparacao: 'Comparação',
+                causa_efeito: 'Causa/efeito',
+                procedimento: 'Procedimento',
+                problema: 'Problema/solução',
+                otimizacao: 'Otimização',
+                relacao: 'Relação entre fatores',
+                geral: 'Consulta geral'
+            };
+            steps.push({
+                emoji: '🎯',
+                text: `Intenção detectada: ${intentLabels[intent] || 'Geral'}`,
+                badge: 'intenção'
+            });
+            
+            const expanded = expandWithSynonyms(query, buildDynamicSynonyms(knowledgeData?.chunks || []));
+            if (preprocessText(expanded) !== preprocessText(query)) {
                 steps.push({
                     emoji: '📚',
-                    text: `Sinônimos expandidos: ${expanded}`,
+                    text: `Sinônimos expandidos: ${expanded.substring(0, 100)}${expanded.length > 100 ? '...' : ''}`,
                     badge: 'sinônimos'
                 });
             }
@@ -849,87 +1152,282 @@
             return steps;
         }
 
-        // ==================== SÍNTESE DE RESPOSTA ====================
-        function synthesizeResponse(query, chunks, chainSteps) {
-            const relevantChunks = chunks.filter(c => (c.combinedScore || c.score || 0) > 0.5);
+        // ==================== EXTRAÇÃO DE SENTENÇAS ====================
+        function extractRelevantSentences(text, queryTokens) {
+            if (!text) return [];
+            const sentences = text.split(/[.!?;:]+/);
+            const scored = [];
             
-            if (relevantChunks.length >= 2) {
-                const topChunks = relevantChunks.slice(0, 3);
-                const contents = topChunks.map(c => c.conteudo || '').filter(t => t.length > 0);
+            for (const sent of sentences) {
+                const sentNorm = preprocessText(sent);
+                if (sentNorm.length < 10) continue;
                 
-                // Extrai frases mais relevantes
-                const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-                let bestSentences = [];
+                let relevance = 0;
+                let exactMatches = 0;
                 
-                contents.forEach(text => {
-                    const sentences = text.split(/[.!?]+/);
-                    sentences.forEach(sent => {
-                        const sentLower = sent.toLowerCase();
-                        const matchCount = queryTokens.filter(t => sentLower.includes(t)).length;
-                        if (matchCount > 0) {
-                            bestSentences.push({ text: sent.trim(), score: matchCount / queryTokens.length });
+                for (const token of queryTokens) {
+                    if (token.length < 3) continue;
+                    
+                    if (sentNorm.includes(token)) {
+                        const count = (sentNorm.match(new RegExp(token, 'g')) || []).length;
+                        relevance += count * 1.5;
+                        exactMatches += count;
+                        
+                        const wordPattern = new RegExp('\\b' + token + '\\b', 'g');
+                        const fullMatches = (sentNorm.match(wordPattern) || []).length;
+                        if (fullMatches > 0) {
+                            relevance += fullMatches * 1.0;
                         }
-                    });
-                });
-                
-                bestSentences.sort((a, b) => b.score - a.score);
-                
-                let answer = '';
-                if (bestSentences.length > 0) {
-                    answer = bestSentences.slice(0, 5).map(s => s.text).join('. ') + '.';
-                } else {
-                    answer = contents.join(' ').substring(0, 600) + '...';
+                    }
                 }
                 
-                const sources = [...new Set(topChunks.map(c => c.fonte || 'knowledge-base').filter(Boolean))];
-                const tags = [...new Set(topChunks.flatMap(c => c.tags || []))].slice(0, 8);
+                const contextTerms = [
+                    'diametro', 'coluna', 'particula', 'eficiencia', 'pressao',
+                    'vazao', 'temperatura', 'resolucao', 'separacao', 'capilar',
+                    'i.d.', 'dp', 'hetp', 'n', 'van deemter', 'empacotamento',
+                    'cromatografia', 'cromatografica', 'cromatografico', 'poppe',
+                    'cinetico', 'curva'
+                ];
                 
-                return {
-                    answer: answer,
-                    title: topChunks[0]?.titulo || 'Informações da Base',
-                    confidence: 'high',
-                    confidenceLabel: '✅ Base de conhecimento',
-                    sources: sources.length > 0 ? sources : ['knowledge-base.json'],
-                    tags: tags,
-                    chainSteps: chainSteps
-                };
+                for (const term of contextTerms) {
+                    if (sentNorm.includes(term)) {
+                        relevance += 0.5;
+                    }
+                }
+                
+                if (relevance > 0) {
+                    scored.push({ text: sent.trim(), relevance, exactMatches });
+                }
             }
             
-            // Fallback: mostra o que encontrou
-            if (chunks.length > 0) {
-                const topChunk = chunks[0];
-                const content = topChunk.conteudo || '';
+            scored.sort((a, b) => b.relevance - a.relevance);
+            return scored;
+        }
+
+        // ==================== SÍNTESE DE RESPOSTA CORRIGIDA ====================
+        function synthesizeResponse(query, chunks, chainSteps, intent) {
+            const relevantChunks = chunks.filter(c => (c.combinedScore || c.score || 0) > 0.3);
+            
+            // Guarda os chunks usados para exibição
+            lastChunksUsed = relevantChunks.slice(0, 5);
+            
+            if (relevantChunks.length === 0) {
                 return {
-                    answer: content.substring(0, 600) + (content.length > 600 ? '...' : ''),
-                    title: topChunk.titulo || 'Informação encontrada',
-                    confidence: 'low',
-                    confidenceLabel: 'ℹ️ Pouca informação disponível',
-                    sources: [topChunk.fonte || 'knowledge-base.json'],
-                    tags: topChunk.tags || [],
-                    chainSteps: chainSteps
+                    answer: `Não encontrei informações sobre "${query}" na base de conhecimento.`,
+                    title: 'Nenhuma informação encontrada',
+                    confidence: 'none',
+                    confidenceLabel: 'Sem informações',
+                    references: [],
+                    tags: [],
+                    chainSteps: chainSteps,
+                    suggestions: [],
+                    chunksUsed: []
                 };
             }
+
+            const topChunks = relevantChunks.slice(0, 5);
+            const queryNorm = preprocessText(query);
+            const queryTokens = queryNorm.split(/\s+/).filter(w => w.length > 2);
+            
+            let allSentences = [];
+            let allTags = [];
+            let allReferences = [];
+            let chunkTitles = [];
+            
+            for (const chunk of topChunks) {
+                const content = chunk.conteudo || '';
+                const sentences = extractRelevantSentences(content, queryTokens);
+                
+                for (const sent of sentences) {
+                    const exists = allSentences.some(s => 
+                        s.text.toLowerCase() === sent.text.toLowerCase() || 
+                        s.text.toLowerCase().includes(sent.text.toLowerCase()) ||
+                        sent.text.toLowerCase().includes(s.text.toLowerCase())
+                    );
+                    if (!exists && sent.text.length > 10) {
+                        allSentences.push(sent);
+                    }
+                }
+                
+                if (chunk.tags) {
+                    for (const tag of chunk.tags) {
+                        if (!allTags.includes(tag)) allTags.push(tag);
+                    }
+                }
+                
+                // COLETA REFERÊNCIAS em vez de fontes
+                if (chunk.referencias && Array.isArray(chunk.referencias)) {
+                    for (const ref of chunk.referencias) {
+                        if (!allReferences.includes(ref)) {
+                            allReferences.push(ref);
+                        }
+                    }
+                }
+                
+                if (chunk.titulo && !chunkTitles.includes(chunk.titulo)) {
+                    chunkTitles.push(chunk.titulo);
+                }
+            }
+            
+            // Ordena por relevância
+            allSentences.sort((a, b) => b.relevance - a.relevance);
+            
+            // CONSTRÓI RESPOSTA COMPLETA - evita cortes
+            let answer = '';
+            const maxSentences = Math.min(allSentences.length, 10);
+            const selectedSentences = allSentences.slice(0, maxSentences);
+            
+            if (selectedSentences.length > 0) {
+                const parts = [];
+                for (const sent of selectedSentences) {
+                    let cleanText = sent.text.replace(/\s+/g, ' ').trim();
+                    // Garante que termina com pontuação
+                    if (!cleanText.endsWith('.') && !cleanText.endsWith('!') && !cleanText.endsWith('?')) {
+                        cleanText += '.';
+                    }
+                    parts.push(cleanText);
+                }
+                // Junta todas as sentenças com espaço
+                answer = parts.join(' ');
+                
+                // CORREÇÃO: Remove duplicatas de frases repetidas
+                const uniqueSentences = [];
+                const seen = new Set();
+                for (const part of parts) {
+                    const key = part.substring(0, 50).toLowerCase();
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        uniqueSentences.push(part);
+                    }
+                }
+                answer = uniqueSentences.join(' ');
+            } else {
+                answer = topChunks[0]?.conteudo || 'Informação não disponível';
+            }
+            
+            // Título mais específico
+            let title = topChunks[0]?.titulo || 'Informação da Base';
+            const specificChunk = topChunks.find(c => {
+                const titleNorm = preprocessText(c.titulo || '');
+                return queryTokens.some(token => titleNorm.includes(token));
+            });
+            if (specificChunk) {
+                title = specificChunk.titulo;
+            }
+            
+            // Confiança
+            let confidence = 'low';
+            let confidenceLabel = 'Informação limitada';
+            
+            if (allSentences.length >= 5 && topChunks.length >= 2) {
+                confidence = 'high';
+                confidenceLabel = 'Múltiplas fontes confirmam';
+            } else if (allSentences.length >= 3 && topChunks.length >= 1) {
+                confidence = 'medium';
+                confidenceLabel = 'Informação consistente';
+            }
+            
+            const suggestions = generateFollowUpQuestions(query, topChunks, queryTokens);
+            
+            // Preparar chunks usados para exibição
+            const chunksUsed = topChunks.map(c => ({
+                id: c.id,
+                titulo: c.titulo || 'Sem título',
+                score: Math.round((c.combinedScore || c.score || 0) * 10) / 10,
+                conteudo: c.conteudo || '',
+                tags: c.tags || []
+            }));
             
             return {
-                answer: `❓ Não encontrei informações sobre "${query}" na base de conhecimento.
-
-💡 Dicas:
-- Use sinônimos: "partícula" → "particula", "dp", "micro"
-- Seja mais específico
-- A base tem ${knowledgeData?.chunks?.length || 0} chunks disponíveis`,
-                title: 'Nenhuma informação encontrada',
-                confidence: 'none',
-                confidenceLabel: '❌ Sem informações',
-                sources: [],
-                tags: [],
-                chainSteps: chainSteps
+                answer: answer,
+                title: title,
+                confidence: confidence,
+                confidenceLabel: confidenceLabel,
+                references: allReferences.length > 0 ? allReferences : [],
+                tags: allTags.slice(0, 10),
+                chainSteps: chainSteps,
+                suggestions: suggestions,
+                chunksUsed: chunksUsed
             };
+        }
+
+        // ==================== PERGUNTAS SUGERIDAS ====================
+        function generateFollowUpQuestions(query, chunks, queryTokens) {
+            const questions = [];
+            const tags = new Set();
+            
+            for (const chunk of chunks.slice(0, 3)) {
+                if (chunk.tags) {
+                    for (const tag of chunk.tags) {
+                        tags.add(tag);
+                    }
+                }
+            }
+            
+            const tagList = Array.from(tags);
+            const queryWords = preprocessText(query).split(/\s+/);
+            
+            for (const tag of tagList) {
+                const tagNorm = preprocessText(tag);
+                if (!queryWords.some(w => tagNorm.includes(w) || w.includes(tagNorm))) {
+                    questions.push(`Como ${tag} afeta a cromatografia?`);
+                }
+            }
+            
+            for (const chunk of chunks.slice(0, 2)) {
+                const content = chunk.conteudo || '';
+                const sentences = content.split(/[.!?]+/);
+                for (const sent of sentences.slice(0, 3)) {
+                    const sentNorm = preprocessText(sent);
+                    const words = sentNorm.split(/\s+/).filter(w => w.length > 5);
+                    const importantTerms = words.filter(w => !queryWords.includes(w));
+                    if (importantTerms.length > 0) {
+                        const term = importantTerms[0];
+                        if (!questions.some(q => preprocessText(q).includes(term))) {
+                            questions.push(`Qual a relação entre ${term} e a separação cromatográfica?`);
+                        }
+                    }
+                }
+            }
+            
+            return questions.slice(0, 5);
+        }
+
+        // ==================== TRACKING DE CONSULTAS ====================
+        function trackQuery(query) {
+            queryCount++;
+            document.getElementById('queryCount').textContent = `📊 consultas: ${queryCount}`;
+            
+            statsData.queries.push({
+                query: query,
+                timestamp: new Date().toISOString()
+            });
+            statsData.total = queryCount;
+            localStorage.setItem('chromatoStats', JSON.stringify(statsData));
+        }
+
+        // ==================== NOTIFICAÇÕES ====================
+        function showNotification(message) {
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+            
+            const div = document.createElement('div');
+            div.className = 'notification';
+            div.textContent = message;
+            document.body.appendChild(div);
+            
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transition = 'opacity 0.5s';
+                setTimeout(() => div.remove(), 500);
+            }, 2000);
         }
 
         // ==================== UI ====================
         function addMessage(sender, content, isHTML = false) {
             const div = document.createElement('div');
             div.className = `message ${sender}`;
+            div.id = `msg_${messageCounter++}`;
             if (isHTML) {
                 div.innerHTML = content;
             } else {
@@ -937,6 +1435,7 @@
             }
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
         }
 
         function showTyping(text = '🧠 processando...') {
@@ -986,10 +1485,10 @@
                 html += `</div>`;
             }
             
-            // Resposta
+            // Resposta - corrigida para não cortar
             html += `<div class="answer-box">
                 <h4>${result.title || 'Resposta'}</h4>
-                ${result.answer.replace(/\n/g, '<br>')}
+                ${result.answer.replace(/\n/g, '<br>').replace(/\.\.\.\./g, '.')}
             </div>`;
             
             // Tags
@@ -997,21 +1496,100 @@
                 html += `<div class="tags-box">${result.tags.map(t => `<span class="tag-pill">#${t}</span>`).join('')}</div>`;
             }
             
-            // Fontes
-            if (result.sources && result.sources.length > 0) {
-                html += `<div class="sources-box">📄 <strong>Fontes:</strong> ${result.sources.join(', ')}</div>`;
+            // REFERÊNCIAS em vez de fontes
+            if (result.references && result.references.length > 0) {
+                html += `<div class="references-box">
+                    <strong>📖 Referências:</strong>
+                    ${result.references.map(ref => `<span class="ref-item">• ${ref}</span>`).join('')}
+                </div>`;
             }
+            
+            // CHUNKS USADOS - expandível
+            if (result.chunksUsed && result.chunksUsed.length > 0) {
+                html += `<div class="chunks-used-box">
+                    <div style="font-weight:600; color:#1a3a6a; margin-bottom:4px; font-size:0.8rem;">
+                        📚 Chunks usados na resposta (${result.chunksUsed.length}):
+                    </div>`;
+                for (let i = 0; i < result.chunksUsed.length; i++) {
+                    const chunk = result.chunksUsed[i];
+                    const chunkId = `chunk_${i}_${Date.now()}`;
+                    html += `
+                        <div class="chunk-item">
+                            <span class="chunk-score">${chunk.score || 0}</span>
+                            <span class="chunk-title">${chunk.titulo}</span>
+                            <button class="chunk-toggle" data-target="${chunkId}">▶</button>
+                        </div>
+                        <div class="chunk-content-preview" id="${chunkId}">
+                            ${chunk.conteudo.substring(0, 300)}${chunk.conteudo.length > 300 ? '...' : ''}
+                            ${chunk.tags.length > 0 ? `<br><span style="color:#6aafff;font-size:0.7rem;">Tags: ${chunk.tags.join(', ')}</span>` : ''}
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+            
+            // Perguntas sugeridas
+            if (result.suggestions && result.suggestions.length > 0) {
+                html += `<div class="suggestions">
+                    <span style="font-size:0.75rem; color:#8899b0; width:100%;">💡 Perguntas relacionadas:</span>`;
+                for (const suggestion of result.suggestions) {
+                    html += `<button class="suggestion-btn" data-query="${suggestion.replace(/"/g, '&quot;')}">${suggestion}</button>`;
+                }
+                html += `</div>`;
+            }
+            
+            // Feedback
+            html += `<div class="feedback-buttons">
+                <button class="feedback-btn" data-action="positive" data-msgid="${messageCounter - 1}">👍 Útil</button>
+                <button class="feedback-btn" data-action="negative" data-msgid="${messageCounter - 1}">👎 Não útil</button>
+                <button class="feedback-btn" data-action="copy" data-msgid="${messageCounter - 1}">📋 Copiar</button>
+            </div>`;
             
             // Meta
             html += `<div class="meta">
                 <span class="${confidenceClass}">${result.confidenceLabel}</span>
                 <span>⚡ Local · Sem API</span>
-                <span>📚 Apenas chunks do JSON</span>
+                <span>📚 ${result.chunksUsed?.length || 0} chunks usados</span>
             </div>`;
             
             return html;
         }
 
+        // ==================== HANDLE FEEDBACK ====================
+        function handleFeedback(messageId, action) {
+            if (action === 'positive') {
+                feedbackData[messageId] = 'positive';
+                showNotification('👍 Obrigado pelo feedback!');
+            } else if (action === 'negative') {
+                feedbackData[messageId] = 'negative';
+                showNotification('👎 Feedback registrado, vamos melhorar!');
+            } else if (action === 'copy') {
+                const msgElement = document.getElementById(`msg_${messageId}`);
+                if (msgElement) {
+                    const text = msgElement.textContent || '';
+                    navigator.clipboard.writeText(text).then(() => {
+                        showNotification('📋 Copiado!');
+                    }).catch(() => {
+                        const range = document.createRange();
+                        range.selectNode(msgElement);
+                        window.getSelection().removeAllRanges();
+                        window.getSelection().addRange(range);
+                        document.execCommand('copy');
+                        showNotification('📋 Copiado!');
+                    });
+                }
+            }
+            
+            localStorage.setItem('chromatoFeedback', JSON.stringify(feedbackData));
+            
+            const buttons = document.querySelectorAll(`.feedback-btn[data-msgid="${messageId}"]`);
+            for (const btn of buttons) {
+                if (btn.dataset.action === action || btn.dataset.action === 'copy') continue;
+                btn.classList.toggle('active', btn.dataset.action === action);
+            }
+        }
+
+        // ==================== HANDLE USER QUERY ====================
         async function handleUserQuery() {
             if (sendBtn.disabled) return;
             const query = userInput.value.trim();
@@ -1020,28 +1598,55 @@
             sendBtn.disabled = true;
             userInput.disabled = true;
             
+            trackQuery(query);
+            
             addMessage('user', query);
             userInput.value = '';
             
             showTyping('🔍 analisando pergunta...');
             
             try {
-                // Busca na base
-                const chunks = await retrieveChunks(query, 8);
+                const intent = detectIntent(query);
+                const chunks = await retrieveChunks(query, 10);
                 
                 removeTyping();
                 showTyping('🧠 raciocinando...');
                 
-                // Chain of Thought
-                const chainSteps = generateChainOfThought(query, chunks);
-                
-                // Sintetiza resposta
-                const result = synthesizeResponse(query, chunks, chainSteps);
+                const chainSteps = generateChainOfThought(query, chunks, intent);
+                const result = synthesizeResponse(query, chunks, chainSteps, intent);
                 
                 removeTyping();
                 
                 const html = formatResponse(query, result);
-                addMessage('bot', html, true);
+                const msgDiv = addMessage('bot', html, true);
+                
+                const msgId = parseInt(msgDiv.id.split('_')[1]);
+                
+                // Feedback buttons
+                msgDiv.querySelectorAll('.feedback-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        handleFeedback(msgId, btn.dataset.action);
+                    });
+                });
+                
+                // Suggestion buttons
+                msgDiv.querySelectorAll('.suggestion-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        userInput.value = btn.dataset.query;
+                        handleUserQuery();
+                    });
+                });
+                
+                // Chunk toggle buttons
+                msgDiv.querySelectorAll('.chunk-toggle').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const target = document.getElementById(btn.dataset.target);
+                        if (target) {
+                            target.classList.toggle('show');
+                            btn.textContent = target.classList.contains('show') ? '▼' : '▶';
+                        }
+                    });
+                });
                 
                 if (chunks.length > 0) {
                     document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks relevantes`;
@@ -1083,7 +1688,10 @@
         // ==================== INICIALIZAÇÃO ====================
         async function init() {
             await initEmbedder();
-            await loadKnowledgeBase();
+            const chunks = await loadKnowledgeBase();
+            
+            document.getElementById('queryCount').textContent = `📊 consultas: ${statsData.total || 0}`;
+            queryCount = statsData.total || 0;
             
             if (!userInput.disabled) {
                 userInput.focus();
