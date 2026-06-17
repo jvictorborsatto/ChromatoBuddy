@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cromato Buddy - RAG Avançado</title>
+    <title>Cromato Buddy - RAG Inteligente</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -47,6 +47,7 @@
         }
         .badge.success { background: #e6f7ed; color: #0f6e3f; }
         .badge.error { background: #fde8e8; color: #a93226; }
+        .badge.warning { background: #fff3cd; color: #856404; }
         .chat-container {
             flex: 1;
             overflow-y: auto;
@@ -77,6 +78,7 @@
             border: 1px solid #e2eaf5;
             color: #1e293b;
             border-bottom-left-radius: 6px;
+            max-width: 95%;
         }
         .message.bot .meta {
             font-size: 0.65rem;
@@ -92,6 +94,13 @@
             border-radius: 10px;
             margin-top: 10px;
             border-left: 3px solid #2f6bb0;
+        }
+        .message.bot .answer-box {
+            background: #f8faff;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border-left: 4px solid #2f6bb0;
+            margin: 8px 0;
         }
         .typing {
             align-self: flex-start;
@@ -142,6 +151,7 @@
             height: 52px;
             box-shadow: 0 4px 8px rgba(26, 75, 140, 0.15);
             transition: all 0.2s;
+            white-space: nowrap;
         }
         .input-area button:hover:not(:disabled) {
             background: #0f3d72;
@@ -164,37 +174,27 @@
             from { opacity: 0.4; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .loader {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid #cbd8ec;
-            border-top-color: #1a4b8c;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        .highlight {
-            background: #fff3cd;
-            padding: 0 4px;
-            border-radius: 3px;
-        }
-        .confidence-low {
-            color: #e67e22;
-            font-size: 0.8rem;
-        }
-        .confidence-high {
-            color: #27ae60;
-            font-size: 0.8rem;
+        .confidence-high { color: #27ae60; font-weight: 500; }
+        .confidence-medium { color: #f39c12; font-weight: 500; }
+        .confidence-low { color: #e74c3c; font-weight: 500; }
+        .tag-pill {
+            display: inline-block;
+            background: #eef3fc;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: #1f4a8a;
+            margin: 2px 4px 2px 0;
         }
     </style>
 </head>
 <body>
     <div class="app">
         <div class="header">
-            <h1>🧪 Cromato Buddy v2</h1>
+            <h1>🧪 Cromato Buddy</h1>
             <div>
                 <span class="badge" id="statusBadge">⏳ carregando...</span>
                 <span class="badge" id="modelBadge">⏳ modelo...</span>
@@ -202,15 +202,15 @@
         </div>
         <div class="chat-container" id="chatContainer">
             <div class="message bot">
-                <strong>👋 Cromato Buddy v2</strong><br><br>
-                🧠 <strong>RAG inteligente com síntese de respostas</strong><br>
+                <strong>🧠 Cromato Buddy - RAG Inteligente</strong><br><br>
+                🔍 <strong>Detecção de tópicos</strong> + <strong>Fallback inteligente</strong><br>
                 📂 Base: <code>knowledge-base.json</code><br>
-                💬 Pergunte sobre cromatografia, LC-MS, SPME, partículas e muito mais.
-                <div class="meta">✅ RAG local · Síntese automática · Fallback BM25</div>
+                💬 Faça perguntas sobre cromatografia, partículas, colunas, LC-MS e muito mais.
+                <div class="meta">✅ Similaridade com threshold · Fallback por tópico · Síntese contextual</div>
             </div>
         </div>
         <div class="input-area">
-            <textarea id="userInput" rows="1" placeholder="Pergunte sobre cromatografia..." disabled></textarea>
+            <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito do tamanho da partícula na separação?" disabled></textarea>
             <button id="sendBtn" disabled>Enviar</button>
         </div>
         <div class="info-bar">
@@ -239,58 +239,188 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
-        // ==================== KNOWLEDGE BASE (FALLBACK) ====================
-        // Conhecimento geral sobre cromatografia para quando os chunks não têm a resposta
+        // ==================== KNOWLEDGE BASE EXPANDIDA ====================
         const FALLBACK_KNOWLEDGE = {
-            'tamanho da partícula': `O tamanho da partícula é um dos parâmetros mais críticos em cromatografia líquida (LC) e afeta diretamente a eficiência da separação, a pressão do sistema e a resolução.
+            'tamanho partícula separação': {
+                keywords: ['tamanho', 'partícula', 'particula', 'diâmetro', 'diametro', 'dp', 'µm', 'micrometro', 'separação', 'separacao', 'resolução', 'resolucao', 'eficiencia', 'coluna'],
+                content: `O **tamanho da partícula** é um dos parâmetros mais críticos em cromatografia líquida e afeta diretamente a eficiência da separação, a pressão do sistema e a resolução.
 
-**Efeitos principais:**
+## 📊 Efeitos principais:
 
-1. **Eficiência da coluna (Teoria de Van Deemter):** 
-   - Partículas menores (≤ 2 µm) proporcionam maior eficiência (menor HETP - altura equivalente a um prato teórico) devido à redução da contribuição do termo de transferência de massa (termo C).
-   - A equação de Van Deemter: H = A + B/u + C·u, onde C é proporcional ao quadrado do diâmetro da partícula (dp²).
+**1. Eficiência da coluna (Teoria de Van Deemter)**
+- Partículas menores (≤ 2 µm) proporcionam maior eficiência, com menor HETP (altura equivalente a um prato teórico)
+- A equação de Van Deemter: H = A + B/u + C·u, onde C ∝ dp² (diâmetro da partícula ao quadrado)
+- Isso significa que a transferência de massa é significativamente melhor com partículas menores
 
-2. **Resolução:**
-   - Partículas menores aumentam a resolução por permitir colunas mais longas com eficiência equivalente, ou colunas mais curtas com separação mais rápida.
-   - Rs ∝ √N, e N ∝ 1/dp (teoricamente).
+**2. Resolução**
+- Rs ∝ √N, e N ∝ 1/dp (teoricamente)
+- Partículas menores → mais pratos teóricos → maior resolução entre picos
+- Permite separar compostos com estruturas muito similares
 
-3. **Pressão (Lei de Darcy):**
-   - ΔP ∝ 1/dp² (pressão inversamente proporcional ao quadrado do diâmetro)
-   - Partículas de 1,7 µm geram pressões ~2x maiores que 3 µm e ~4x maiores que 5 µm.
-   - Limite prático: sistemas UHPLC (até 1300 bar) usam partículas < 2 µm.
+**3. Pressão do sistema (Lei de Darcy)**
+- ΔP ∝ 1/dp² (pressão inversamente proporcional ao quadrado do diâmetro)
+- Partículas de 1,7 µm geram pressões ~2x maiores que 3 µm e ~4x maiores que 5 µm
+- Limite prático: UHPLC (até 1300 bar) para partículas < 2 µm
 
-4. **Velocidade de análise:**
-   - Partículas menores permitem fluxos mais altos e análises mais rápidas (cromatografia ultra-rápida).
+**4. Velocidade de análise**
+- Partículas menores permitem fluxos mais altos sem perda de eficiência
+- Análises mais rápidas (cromatografia ultra-rápida)
 
-5. **Tipos de partícula:**
-   - **Totalmente Porosas (FP):** 3-5 µm, usadas em HPLC tradicional.
-   - **Superficialmente Porosas (SPP/core-shell):** núcleo sólido com camada porosa (2,7 µm, 1,7 µm), oferecem alta eficiência com menor pressão.
-   - **Monolíticas:** estrutura contínua porosa, baixa pressão, alta vazão.
+**5. Tipos de partícula:**
+- **Totalmente Porosas (FP):** 3-5 µm, HPLC tradicional, maior capacidade de carga
+- **Superficialmente Porosas (SPP/core-shell):** núcleo sólido + camada porosa (2,7 µm, 1,7 µm), alta eficiência com pressão moderada
+- **Monolíticas:** estrutura contínua porosa, baixa pressão, altas vazões
 
-**Trade-off:** partículas menores = maior resolução, mas também maior pressão, maior custo e maior susceptibilidade a entupimentos. A escolha depende da técnica (HPLC vs UHPLC), da complexidade da amostra e da instrumentação disponível.`,
+**⚖️ Trade-off:** partículas menores = maior resolução, mas também maior pressão, maior custo e maior susceptibilidade a entupimentos. A escolha depende da técnica (HPLC vs UHPLC) e da instrumentação disponível.
 
-            'pressão coluna': `A pressão em colunas cromatográficas é governada principalmente por:
-1. Tamanho da partícula (ΔP ∝ 1/dp²)
-2. Viscosidade da fase móvel
-3. Comprimento da coluna
-4. Vazão (fluxo)
+**📈 Exemplo prático:**
+- Coluna com partículas de 5 µm: ~15.000 pratos/m, pressão ~100 bar
+- Coluna com partículas de 3 µm: ~25.000 pratos/m, pressão ~250 bar  
+- Coluna com partículas de 1,7 µm: ~40.000 pratos/m, pressão ~600 bar`,
+                source: 'Conhecimento geral de cromatografia',
+                tags: ['partículas', 'eficiência', 'resolução', 'pressão', 'Van Deemter']
+            },
+            
+            'pressão coluna': {
+                keywords: ['pressão', 'pressao', 'bar', 'psi', 'coluna', 'fluxo', 'vazão', 'vazao'],
+                content: `A **pressão em colunas cromatográficas** é um parâmetro crítico que limita as condições operacionais.
 
-**Partículas menores exigem pressões mais altas** - esta é a razão para o desenvolvimento da UHPLC (Ultra-High Performance Liquid Chromatography), que opera a pressões de até 1300 bar para usar partículas de 1,7-2 µm.
+## 📊 Fatores que afetam a pressão:
 
-**Limites práticos:**
-- HPLC convencional: partículas 3-5 µm, pressão até 400 bar
-- UHPLC: partículas 1,7-2 µm, pressão até 1300 bar`,
+1. **Tamanho da partícula** (fator mais importante):
+   - ΔP ∝ 1/dp² (inversamente proporcional ao quadrado do diâmetro)
+   - Partículas de 5 µm: pressão moderada (~100-200 bar)
+   - Partículas de 3 µm: pressão alta (~250-400 bar)
+   - Partículas de 1,7 µm: pressão muito alta (~600-1300 bar)
 
-            'resolução': `A resolução (Rs) em cromatografia é determinada por três fatores (equação fundamental):
-Rs = (√N/4) × (α-1/α) × (k'/(1+k'))
+2. **Viscosidade da fase móvel**:
+   - Água: 1,0 cP → pressão mais alta
+   - Acetonitrila: 0,37 cP → pressão mais baixa
+   - Metanol: 0,6 cP → pressão intermediária
+
+3. **Comprimento da coluna**:
+   - ΔP ∝ L (pressão proporcional ao comprimento)
+   - Colunas mais longas = maior pressão
+
+4. **Vazão (fluxo)**:
+   - ΔP ∝ Q (pressão proporcional à vazão)
+
+**⚠️ Limites práticos:**
+- HPLC convencional: até 400 bar (partículas 3-5 µm)
+- UHPLC: até 1300 bar (partículas 1,7-2 µm)
+- Sistemas de ultra-alta pressão: até 1500 bar
+
+**💡 Dica:** A pressão é um diagnóstico da coluna. Aumento gradual da pressão → coluna suja. Aumento súbito → coluna entupida.`,
+                source: 'Conhecimento geral de cromatografia',
+                tags: ['pressão', 'coluna', 'HPLC', 'UHPLC']
+            },
+
+            'resolução cromatográfica': {
+                keywords: ['resolução', 'resolucao', 'rs', 'separação', 'separacao', 'picos', 'seletividade'],
+                content: `A **resolução (Rs)** é a capacidade da coluna de separar dois picos adjacentes.
+
+## 📊 Equação Fundamental:
+**Rs = (√N/4) × (α-1/α) × (k'/(1+k'))**
 
 Onde:
 - **N:** número de pratos teóricos (eficiência da coluna)
-- **α:** seletividade (fator de separação entre picos)
+- **α:** seletividade (fator de separação entre picos)  
 - **k':** fator de retenção
 
-**A eficiência (N) é inversamente proporcional ao tamanho da partícula** - partículas menores → mais pratos teóricos → maior resolução.
-Porém, o ganho de resolução com partículas menores tem limite prático devido ao aumento da pressão e do efeito de dispersão axial.`
+## 🎯 Como melhorar a resolução:
+
+**1. Aumentar N (eficiência):**
+- Usar partículas menores (dp ↓ → N ↑)
+- Colunas mais longas (L ↑ → N ↑)
+- Melhor empacotamento da coluna
+
+**2. Aumentar α (seletividade):**
+- Mudar a fase móvel (solventes, pH, temperatura)
+- Mudar a fase estacionária (coluna diferente)
+- Gradiente de eluição
+
+**3. Aumentar k' (retenção):**
+- Aumentar a força da fase móvel
+- Aumentar o tempo de retenção
+
+**📈 Valores típicos:**
+- Rs > 1,5: separação completa (linha de base)
+- Rs = 1,0: separação parcial (picos sobrepostos)
+- Rs < 0,8: separação inadequada
+
+**🔬 Relação com tamanho de partícula:**
+- Partículas menores → N maior → Rs maior
+- Mas o ganho é limitado pelo aumento da pressão`,
+                source: 'Conhecimento geral de cromatografia',
+                tags: ['resolução', 'seletividade', 'eficiência', 'pratos teóricos']
+            },
+
+            'van deemter': {
+                keywords: ['van deemter', 'van deemter', 'hetp', 'curva', 'eficiência', 'eficiencia'],
+                content: `A **equação de Van Deemter** descreve a eficiência da coluna em função da velocidade linear da fase móvel.
+
+## 📊 Equação de Van Deemter:
+**H = A + B/u + C·u**
+
+Onde:
+- **H:** altura equivalente a um prato teórico (HETP) - quanto menor, melhor
+- **u:** velocidade linear da fase móvel
+- **A:** termo de difusão Eddy (empacotamento da coluna) - independente de u
+- **B/u:** termo de difusão longitudinal - dominante em baixas velocidades
+- **C·u:** termo de transferência de massa - dominante em altas velocidades
+
+## 🔬 Efeito do tamanho da partícula:
+**C ∝ dp²** (termo C é proporcional ao quadrado do diâmetro da partícula)
+
+- Partículas menores → C menor → curva mais plana → maior eficiência em altas velocidades
+- Partículas maiores → C maior → eficiência cai rapidamente com o aumento da velocidade
+
+## 📈 Interpretação prática:
+1. **Região A (baixa velocidade):** domínio da difusão longitudinal (B/u) - H diminui com u
+2. **Região B (velocidade ótima):** mínimo da curva - eficiência máxima
+3. **Região C (alta velocidade):** domínio da transferência de massa (C·u) - H aumenta com u
+
+**💡 Consequência:** Com partículas menores, a velocidade ótima é maior, permitindo análises mais rápidas sem perda de eficiência.`,
+                source: 'Conhecimento geral de cromatografia',
+                tags: ['Van Deemter', 'HETP', 'eficiência', 'transferência de massa']
+            },
+
+            'core shell': {
+                keywords: ['core-shell', 'core shell', 'spp', 'superficialmente porosa', 'partícula porosa', 'fused core'],
+                content: `As **partículas core-shell (SPP - Superficialmente Porosas)** representam uma inovação importante em colunas cromatográficas.
+
+## 🏗️ Estrutura:
+- **Núcleo sólido** (core) não poroso
+- **Camada externa porosa** (shell) onde ocorre a interação cromatográfica
+
+## ✅ Vantagens sobre partículas totalmente porosas:
+
+1. **Maior eficiência com menor pressão:**
+   - Transferência de massa mais rápida (difusão mais curta)
+   - Eficiência comparável a partículas totalmente porosas de tamanho menor
+   - Pressão ~50-70% menor que partículas totalmente porosas equivalentes
+
+2. **Exemplo prático:**
+   - Partícula core-shell de 2,7 µm → eficiência similar a partícula totalmente porosa de 1,8 µm
+   - Mas com pressão ~60% menor!
+
+3. **Menor tempo de análise:**
+   - Permite fluxos mais altos
+   - Análises mais rápidas
+
+## 📊 Comparação de tamanhos:
+| Tipo | Tamanho | Eficiência | Pressão |
+|------|---------|------------|---------|
+| FP 5 µm | 5 µm | Base | Baixa |
+| FP 3 µm | 3 µm | Média | Média |
+| SPP 2,7 µm | 2,7 µm | Alta | Média |
+| FP 1,8 µm | 1,8 µm | Muito alta | Muito alta |
+| SPP 1,7 µm | 1,7 µm | Excelente | Alta |
+
+**💡 Aplicação:** Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC convencionais.`,
+                source: 'Conhecimento geral de cromatografia',
+                tags: ['core-shell', 'SPP', 'partículas', 'eficiência', 'pressão']
+            }
         };
 
         // ==================== CARREGA JSON ====================
@@ -318,18 +448,17 @@ Porém, o ganho de resolução com partículas menores tem limite prático devid
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 
-                addMessage('bot', `✅ **Base carregada com sucesso!**\n\n📚 ${chunks.length} chunks\n📌 Versão: ${knowledgeData.versao || '-'}\n📄 Fontes: ${knowledgeData.arquivos_origem?.join(', ') || '-'}\n\n🧠 Agora com **síntese inteligente** - se a base não tiver a resposta exata, usarei meu conhecimento geral para complementar.`);
+                addMessage('bot', `✅ **Base carregada com sucesso!**\n\n📚 ${chunks.length} chunks\n📌 Versão: ${knowledgeData.versao || '-'}\n📄 Fontes: ${knowledgeData.arquivos_origem?.join(', ') || '-'}\n\n🧠 Sistema com **detecção de tópicos** e **fallback inteligente**.`);
                 
                 return chunks;
                 
             } catch (err) {
                 console.warn('Erro ao carregar knowledge-base.json:', err);
-                statusBadge.textContent = '⚠️ JSON não encontrado';
-                statusBadge.className = 'badge error';
+                statusBadge.textContent = '⚠️ Fallback ativo';
+                statusBadge.className = 'badge warning';
                 
-                addMessage('bot', `⚠️ **Arquivo JSON não encontrado.**\n\nUsando modo **fallback com conhecimento geral**.\n\nExecute o script Python para gerar o arquivo \`knowledge-base.json\` a partir dos seus .docx.\n\n\`\`\`bash\npython processor.py\n\`\`\``);
+                addMessage('bot', `⚠️ **Arquivo JSON não encontrado.**\n\nUsando modo **fallback com conhecimento geral**.\n\nExecute o script Python para gerar o arquivo \`knowledge-base.json\`.\n\n\`\`\`bash\npython processor.py\n\`\`\``);
                 
-                // Mesmo sem JSON, permite perguntar usando fallback
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 return [];
@@ -344,13 +473,13 @@ Porém, o ganho de resolução com partículas menores tem limite prático devid
                 modelReady = true;
                 document.getElementById('modelBadge').textContent = '✅ modelo pronto';
             } catch (err) {
-                console.warn('Erro no modelo, usando fallback:', err);
-                document.getElementById('modelBadge').textContent = '⚠️ fallback: palavras';
+                console.warn('Erro no modelo:', err);
+                document.getElementById('modelBadge').textContent = '⚠️ fallback texto';
                 modelReady = false;
             }
         }
 
-        // ==================== RAG MELHORADO ====================
+        // ==================== FUNÇÕES DE BUSCA ====================
         function cosineSimilarity(vecA, vecB) {
             if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
             let dot = 0, normA = 0, normB = 0;
@@ -363,19 +492,44 @@ Porém, o ganho de resolução com partículas menores tem limite prático devid
             return dot / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
-        // BM25 simplificado para fallback
-        function bm25Search(query, chunks) {
-            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-            if (queryTokens.length === 0) return chunks.slice(0, 5);
+        // ===== DETECÇÃO DE TÓPICOS =====
+        function detectTopic(query) {
+            const queryLower = query.toLowerCase();
+            let bestTopic = null;
+            let bestScore = 0;
             
-            const docFreq = {};
+            for (const [topicKey, topicData] of Object.entries(FALLBACK_KNOWLEDGE)) {
+                let score = 0;
+                for (const keyword of topicData.keywords) {
+                    if (queryLower.includes(keyword)) {
+                        score += 1;
+                    }
+                }
+                // Normaliza pelo número de palavras
+                const normalizedScore = score / topicData.keywords.length;
+                if (normalizedScore > bestScore) {
+                    bestScore = normalizedScore;
+                    bestTopic = topicKey;
+                }
+            }
+            
+            // Só retorna se tiver pelo menos 2 palavras-chave match
+            if (bestScore > 0.15) {
+                return { topic: bestTopic, score: bestScore };
+            }
+            return null;
+        }
+
+        // ===== BM25 MELHORADO =====
+        function bm25Search(query, chunks, topK = 10) {
+            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+            if (queryTokens.length === 0) return chunks.slice(0, topK);
+            
             const docLengths = chunks.map(c => {
                 const text = `${c.conteudo || ''} ${c.tags?.join(' ') || ''} ${c.titulo || ''}`.toLowerCase();
-                const tokens = text.split(/\s+/);
-                return tokens;
+                return text.split(/\s+/);
             });
             
-            // Term frequency and document frequency
             const termDocs = {};
             docLengths.forEach((tokens, idx) => {
                 const unique = new Set(tokens);
@@ -404,31 +558,10 @@ Porém, o ganho de resolução com partículas menores tem limite prático devid
             });
             
             scores.sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0));
-            return scores.slice(0, 5);
+            return scores.slice(0, topK);
         }
 
-        // Busca por conhecimento geral (fallback)
-        function searchFallbackKnowledge(query) {
-            const queryLower = query.toLowerCase();
-            const matches = [];
-            
-            for (const [key, value] of Object.entries(FALLBACK_KNOWLEDGE)) {
-                const keyWords = key.toLowerCase().split(' ');
-                const matchCount = keyWords.filter(w => queryLower.includes(w)).length;
-                if (matchCount > 0 || keyWords.some(w => queryLower.includes(w))) {
-                    matches.push({
-                        topic: key,
-                        content: value,
-                        relevance: matchCount / keyWords.length
-                    });
-                }
-            }
-            
-            matches.sort((a, b) => b.relevance - a.relevance);
-            return matches;
-        }
-
-        async function retrieveChunks(query, topK = 5) {
+        async function retrieveChunks(query, topK = 10) {
             if (!knowledgeData || !knowledgeData.chunks || knowledgeData.chunks.length === 0) {
                 return [];
             }
@@ -436,11 +569,9 @@ Porém, o ganho de resolução com partículas menores tem limite prático devid
             const allChunks = knowledgeData.chunks;
 
             if (!modelReady || !embedder) {
-                // Fallback BM25
-                return bm25Search(query, allChunks);
+                return bm25Search(query, allChunks, topK);
             }
 
-            // Embedding da query
             const queryEmbed = await embedder(query, { pooling: 'mean', normalize: true });
             const queryVec = queryEmbed.data;
 
@@ -471,114 +602,121 @@ Porém, o ganho de resolução com partículas menores tem limite prático devid
             return chunksWithScore.slice(0, topK);
         }
 
-        // ==================== SÍNTESE DE RESPOSTA ====================
+        // ==================== SÍNTESE INTELIGENTE ====================
         function synthesizeResponse(query, chunks) {
             const queryLower = query.toLowerCase();
             
-            // Verifica se algum chunk tem alta similaridade (confiança alta)
-            const highConfidence = chunks.filter(c => (c.similarity || 0) > 0.5);
+            // 1. DETECTA TÓPICO DA PERGUNTA
+            const topicMatch = detectTopic(query);
             
-            // Busca fallback no conhecimento geral
-            const fallbackMatches = searchFallbackKnowledge(query);
+            // 2. VERIFICA SIMILARIDADE DOS CHUNKS
+            const highSimChunks = chunks.filter(c => (c.similarity || 0) > 0.45);
+            const mediumSimChunks = chunks.filter(c => (c.similarity || 0) > 0.25);
             
-            // Se há chunks com alta similaridade, usa eles
-            if (highConfidence.length > 0) {
-                return generateResponseFromChunks(query, highConfidence, 'alta');
+            // 3. SE O TÓPICO FOI DETECTADO E TEM ALTA CONFIANÇA, USA FALLBACK
+            if (topicMatch && topicMatch.score > 0.25) {
+                const topicData = FALLBACK_KNOWLEDGE[topicMatch.topic];
+                if (topicData) {
+                    return {
+                        answer: topicData.content,
+                        confidence: 'medium',
+                        confidenceText: '📚 Resposta baseada em conhecimento geral (tópico detectado)',
+                        sources: [topicData.source || 'Conhecimento geral'],
+                        tags: topicData.tags || [],
+                        fromFallback: true,
+                        topicDetected: topicMatch.topic
+                    };
+                }
             }
             
-            // Se há chunks com média similaridade
-            if (chunks.length > 0 && (chunks[0].similarity || 0) > 0.3) {
-                return generateResponseFromChunks(query, chunks, 'media');
+            // 4. SE TEM CHUNKS COM ALTA SIMILARIDADE, USA ELES
+            if (highSimChunks.length >= 2) {
+                const answer = buildAnswerFromChunks(query, highSimChunks);
+                return {
+                    answer: answer,
+                    confidence: 'high',
+                    confidenceText: '✅ Resposta baseada na base de conhecimento (alta similaridade)',
+                    sources: [...new Set(highSimChunks.map(c => c.fonte || 'knowledge-base').filter(Boolean))],
+                    tags: extractTags(highSimChunks),
+                    fromFallback: false
+                };
             }
             
-            // Se há fallback no conhecimento geral
-            if (fallbackMatches.length > 0) {
-                return generateResponseFromFallback(query, fallbackMatches);
+            // 5. SE TEM CHUNKS COM MÉDIA SIMILARIDADE
+            if (mediumSimChunks.length >= 2) {
+                const answer = buildAnswerFromChunks(query, mediumSimChunks);
+                return {
+                    answer: answer,
+                    confidence: 'medium',
+                    confidenceText: '⚠️ Resposta baseada na base de conhecimento (similaridade média)',
+                    sources: [...new Set(mediumSimChunks.map(c => c.fonte || 'knowledge-base').filter(Boolean))],
+                    tags: extractTags(mediumSimChunks),
+                    fromFallback: false
+                };
             }
             
-            // Resposta genérica com os chunks disponíveis
+            // 6. FALLBACK GENÉRICO - usa os chunks disponíveis
             if (chunks.length > 0) {
-                return generateResponseFromChunks(query, chunks, 'baixa');
+                const answer = buildAnswerFromChunks(query, chunks.slice(0, 3));
+                return {
+                    answer: answer,
+                    confidence: 'low',
+                    confidenceText: 'ℹ️ Resposta baseada em chunks disponíveis (confiança baixa)',
+                    sources: [...new Set(chunks.slice(0, 3).map(c => c.fonte || 'knowledge-base').filter(Boolean))],
+                    tags: extractTags(chunks.slice(0, 3)),
+                    fromFallback: false
+                };
             }
             
+            // 7. NADA ENCONTRADO
             return {
-                answer: `❓ Não encontrei informações específicas sobre "${query}" na base de conhecimento nem no meu conhecimento geral.`,
-                confidence: 'baixa',
-                sources: []
+                answer: `❓ Não encontrei informações específicas sobre "${query}" na base de conhecimento. Tente reformular a pergunta ou perguntar sobre: tamanho de partícula, pressão, resolução, Van Deemter, core-shell.`,
+                confidence: 'low',
+                confidenceText: '❌ Nenhuma informação encontrada',
+                sources: [],
+                tags: [],
+                fromFallback: true
             };
         }
 
-        function generateResponseFromChunks(query, chunks, confidence) {
-            let answer = '';
-            const sources = [];
+        function buildAnswerFromChunks(query, chunks) {
+            // Extrai os conteúdos mais relevantes
+            const contents = chunks.map(c => c.conteudo || '').filter(t => t.length > 0);
             
-            // Extrai informações relevantes dos chunks
-            const contentPieces = chunks.map(c => c.conteudo || '').filter(t => t.length > 0);
-            const tags = new Set();
-            chunks.forEach(c => (c.tags || []).forEach(t => tags.add(t)));
-            
-            // Tenta extrair a informação mais relevante
-            const combinedContent = contentPieces.join(' ');
-            
-            // Busca por palavras-chave específicas na pergunta
+            // Tenta encontrar frases que respondem diretamente à pergunta
             const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            let bestSentences = [];
             
-            // Encontra frases que contêm as palavras-chave
-            let relevantSentences = [];
-            contentPieces.forEach(text => {
+            contents.forEach(text => {
                 const sentences = text.split(/[.!?]+/);
                 sentences.forEach(sent => {
                     const sentLower = sent.toLowerCase();
                     const matchCount = queryTokens.filter(t => sentLower.includes(t)).length;
                     if (matchCount > 0) {
-                        relevantSentences.push({ text: sent.trim(), score: matchCount / queryTokens.length });
+                        bestSentences.push({ text: sent.trim(), score: matchCount / queryTokens.length });
                     }
                 });
             });
             
-            relevantSentences.sort((a, b) => b.score - a.score);
+            bestSentences.sort((a, b) => b.score - a.score);
             
-            // Constrói resposta
-            if (relevantSentences.length > 0) {
-                const topSentences = relevantSentences.slice(0, 3).map(s => s.text);
-                answer = topSentences.join('. ') + '.';
+            let answer = '';
+            if (bestSentences.length > 0) {
+                // Pega as melhores frases e monta um parágrafo coerente
+                const topTexts = bestSentences.slice(0, 5).map(s => s.text);
+                answer = topTexts.join('. ') + '.';
             } else {
-                // Pega os primeiros 200 caracteres de cada chunk
-                const previews = contentPieces.map(t => t.substring(0, 300));
-                answer = previews.join(' ... ');
+                // Fallback: pega os primeiros 500 caracteres
+                answer = contents.join(' ').substring(0, 600) + '...';
             }
             
-            // Adiciona informações das fontes
-            chunks.forEach(c => {
-                if (c.fonte && !sources.includes(c.fonte)) {
-                    sources.push(c.fonte);
-                }
-            });
-            
-            const confidenceText = {
-                'alta': '✅ Confiança alta - informações diretamente da base',
-                'media': '⚠️ Confiança média - informações relacionadas encontradas',
-                'baixa': 'ℹ️ Confiança baixa - informações parcialmente relacionadas'
-            };
-            
-            return {
-                answer: answer,
-                confidence: confidence,
-                confidenceText: confidenceText[confidence] || confidenceText['baixa'],
-                sources: sources,
-                tags: Array.from(tags).slice(0, 5)
-            };
+            return answer;
         }
 
-        function generateResponseFromFallback(query, matches) {
-            const bestMatch = matches[0];
-            return {
-                answer: `🧠 **Conhecimento geral sobre "${bestMatch.topic}":**\n\n${bestMatch.content}`,
-                confidence: 'media',
-                confidenceText: 'ℹ️ Resposta baseada em conhecimento geral (não está na base JSON)',
-                sources: ['Conhecimento geral do sistema'],
-                tags: ['cromatografia geral', 'conceitos']
-            };
+        function extractTags(chunks) {
+            const tags = new Set();
+            chunks.forEach(c => (c.tags || []).forEach(t => tags.add(t)));
+            return Array.from(tags).slice(0, 8);
         }
 
         // ==================== UI ====================
@@ -590,11 +728,11 @@ Porém, o ganho de resolução com partículas menores tem limite prático devid
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function showTyping() {
+        function showTyping(text = '🧠 processando...') {
             const div = document.createElement('div');
             div.className = 'typing';
             div.id = 'typingIndicator';
-            div.innerHTML = '🧠 processando com RAG inteligente...';
+            div.innerHTML = text;
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
@@ -613,30 +751,50 @@ Porém, o ganho de resolução com partículas menores tem limite prático devid
             userInput.disabled = true;
             addMessage('user', `<strong>${query}</strong>`);
             userInput.value = '';
-            showTyping();
+            showTyping('🔍 buscando na base...');
 
             try {
-                const chunks = await retrieveChunks(query, 5);
+                // Primeiro, detecta tópico para feedback
+                const topicMatch = detectTopic(query);
+                if (topicMatch) {
+                    removeTyping();
+                    showTyping(`📚 tópico detectado: ${topicMatch.topic} (${Math.round(topicMatch.score * 100)}%)`);
+                }
+                
+                const chunks = await retrieveChunks(query, 10);
                 removeTyping();
+                showTyping('🧠 sintetizando resposta...');
 
                 // Sintetiza resposta
                 const result = synthesizeResponse(query, chunks);
+                removeTyping();
                 
                 let response = `🔍 <strong>Pergunta:</strong> ${query}<br><br>`;
-                response += `<div style="background:#f8faff;padding:12px 16px;border-radius:12px;border-left:4px solid #2f6bb0;">`;
+                
+                // Adiciona a resposta
+                response += `<div class="answer-box">`;
                 response += `<strong>📖 Resposta:</strong><br><br>${result.answer}`;
-                response += `<br><br><span class="${result.confidence === 'alta' ? 'confidence-high' : 'confidence-low'}">${result.confidenceText}</span>`;
                 response += `</div>`;
                 
+                // Confiança
+                const confidenceClass = result.confidence === 'high' ? 'confidence-high' : 
+                                       result.confidence === 'medium' ? 'confidence-medium' : 'confidence-low';
+                response += `<div style="margin-top:8px;"><span class="${confidenceClass}">${result.confidenceText}</span></div>`;
+                
+                // Fontes
                 if (result.sources && result.sources.length > 0) {
                     response += `<div class="sources">📄 <strong>Fontes:</strong> ${result.sources.join(', ')}</div>`;
                 }
                 
+                // Tags
                 if (result.tags && result.tags.length > 0) {
-                    response += `<div style="margin-top:8px;font-size:0.8rem;color:#6b7f9c;">🏷️ Tags: ${result.tags.join(', ')}</div>`;
+                    response += `<div style="margin-top:8px;">🏷️ ${result.tags.map(t => `<span class="tag-pill">${t}</span>`).join(' ')}</div>`;
                 }
                 
-                response += `<div class="meta">💡 Resposta sintetizada com RAG local + conhecimento geral</div>`;
+                // Info adicional
+                const sourceType = result.fromFallback ? '🔹 conhecimento geral' : '🔹 base JSON';
+                response += `<div class="meta">💡 ${sourceType} · RAG local</div>`;
+                
                 addMessage('bot', response);
 
             } catch (err) {
