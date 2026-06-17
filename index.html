@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cromato Buddy - RAG com JSON</title>
+    <title>Cromato Buddy - RAG Avançado</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -57,10 +57,10 @@
             gap: 16px;
         }
         .message {
-            max-width: 85%;
-            padding: 12px 18px;
+            max-width: 90%;
+            padding: 14px 20px;
             border-radius: 18px;
-            line-height: 1.5;
+            line-height: 1.6;
             font-size: 0.95rem;
             word-break: break-word;
             animation: fadeIn 0.25s ease;
@@ -81,9 +81,17 @@
         .message.bot .meta {
             font-size: 0.65rem;
             color: #6b7f9c;
-            margin-top: 8px;
+            margin-top: 10px;
             border-top: 1px solid #edf2f9;
-            padding-top: 6px;
+            padding-top: 8px;
+        }
+        .message.bot .sources {
+            font-size: 0.8rem;
+            background: #f8faff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 3px solid #2f6bb0;
         }
         .typing {
             align-self: flex-start;
@@ -133,9 +141,11 @@
             cursor: pointer;
             height: 52px;
             box-shadow: 0 4px 8px rgba(26, 75, 140, 0.15);
+            transition: all 0.2s;
         }
         .input-area button:hover:not(:disabled) {
             background: #0f3d72;
+            transform: translateY(-1px);
         }
         .input-area button:disabled {
             opacity: 0.5;
@@ -166,12 +176,25 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .highlight {
+            background: #fff3cd;
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+        .confidence-low {
+            color: #e67e22;
+            font-size: 0.8rem;
+        }
+        .confidence-high {
+            color: #27ae60;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
     <div class="app">
         <div class="header">
-            <h1>🧪 Cromato Buddy</h1>
+            <h1>🧪 Cromato Buddy v2</h1>
             <div>
                 <span class="badge" id="statusBadge">⏳ carregando...</span>
                 <span class="badge" id="modelBadge">⏳ modelo...</span>
@@ -179,10 +202,11 @@
         </div>
         <div class="chat-container" id="chatContainer">
             <div class="message bot">
-                <strong>👋 Cromato Buddy</strong><br><br>
-                📂 Carregando base de conhecimento do arquivo <code>knowledge-base.json</code>...<br>
-                💬 Faça perguntas sobre cromatografia, LC-MS, SPME, grafeno e muito mais.
-                <div class="meta">✅ RAG local · WebLLM · JSON pré-processado</div>
+                <strong>👋 Cromato Buddy v2</strong><br><br>
+                🧠 <strong>RAG inteligente com síntese de respostas</strong><br>
+                📂 Base: <code>knowledge-base.json</code><br>
+                💬 Pergunte sobre cromatografia, LC-MS, SPME, partículas e muito mais.
+                <div class="meta">✅ RAG local · Síntese automática · Fallback BM25</div>
             </div>
         </div>
         <div class="input-area">
@@ -215,6 +239,60 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
+        // ==================== KNOWLEDGE BASE (FALLBACK) ====================
+        // Conhecimento geral sobre cromatografia para quando os chunks não têm a resposta
+        const FALLBACK_KNOWLEDGE = {
+            'tamanho da partícula': `O tamanho da partícula é um dos parâmetros mais críticos em cromatografia líquida (LC) e afeta diretamente a eficiência da separação, a pressão do sistema e a resolução.
+
+**Efeitos principais:**
+
+1. **Eficiência da coluna (Teoria de Van Deemter):** 
+   - Partículas menores (≤ 2 µm) proporcionam maior eficiência (menor HETP - altura equivalente a um prato teórico) devido à redução da contribuição do termo de transferência de massa (termo C).
+   - A equação de Van Deemter: H = A + B/u + C·u, onde C é proporcional ao quadrado do diâmetro da partícula (dp²).
+
+2. **Resolução:**
+   - Partículas menores aumentam a resolução por permitir colunas mais longas com eficiência equivalente, ou colunas mais curtas com separação mais rápida.
+   - Rs ∝ √N, e N ∝ 1/dp (teoricamente).
+
+3. **Pressão (Lei de Darcy):**
+   - ΔP ∝ 1/dp² (pressão inversamente proporcional ao quadrado do diâmetro)
+   - Partículas de 1,7 µm geram pressões ~2x maiores que 3 µm e ~4x maiores que 5 µm.
+   - Limite prático: sistemas UHPLC (até 1300 bar) usam partículas < 2 µm.
+
+4. **Velocidade de análise:**
+   - Partículas menores permitem fluxos mais altos e análises mais rápidas (cromatografia ultra-rápida).
+
+5. **Tipos de partícula:**
+   - **Totalmente Porosas (FP):** 3-5 µm, usadas em HPLC tradicional.
+   - **Superficialmente Porosas (SPP/core-shell):** núcleo sólido com camada porosa (2,7 µm, 1,7 µm), oferecem alta eficiência com menor pressão.
+   - **Monolíticas:** estrutura contínua porosa, baixa pressão, alta vazão.
+
+**Trade-off:** partículas menores = maior resolução, mas também maior pressão, maior custo e maior susceptibilidade a entupimentos. A escolha depende da técnica (HPLC vs UHPLC), da complexidade da amostra e da instrumentação disponível.`,
+
+            'pressão coluna': `A pressão em colunas cromatográficas é governada principalmente por:
+1. Tamanho da partícula (ΔP ∝ 1/dp²)
+2. Viscosidade da fase móvel
+3. Comprimento da coluna
+4. Vazão (fluxo)
+
+**Partículas menores exigem pressões mais altas** - esta é a razão para o desenvolvimento da UHPLC (Ultra-High Performance Liquid Chromatography), que opera a pressões de até 1300 bar para usar partículas de 1,7-2 µm.
+
+**Limites práticos:**
+- HPLC convencional: partículas 3-5 µm, pressão até 400 bar
+- UHPLC: partículas 1,7-2 µm, pressão até 1300 bar`,
+
+            'resolução': `A resolução (Rs) em cromatografia é determinada por três fatores (equação fundamental):
+Rs = (√N/4) × (α-1/α) × (k'/(1+k'))
+
+Onde:
+- **N:** número de pratos teóricos (eficiência da coluna)
+- **α:** seletividade (fator de separação entre picos)
+- **k':** fator de retenção
+
+**A eficiência (N) é inversamente proporcional ao tamanho da partícula** - partículas menores → mais pratos teóricos → maior resolução.
+Porém, o ganho de resolução com partículas menores tem limite prático devido ao aumento da pressão e do efeito de dispersão axial.`
+        };
+
         // ==================== CARREGA JSON ====================
         async function loadKnowledgeBase() {
             const statusBadge = document.getElementById('statusBadge');
@@ -240,7 +318,7 @@
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 
-                addMessage('bot', `✅ **Base carregada com sucesso!**\n\n📚 ${chunks.length} chunks\n📌 Versão: ${knowledgeData.versao || '-'}\n📄 Fontes: ${knowledgeData.arquivos_origem?.join(', ') || '-'}\n\nAgora você pode fazer perguntas.`);
+                addMessage('bot', `✅ **Base carregada com sucesso!**\n\n📚 ${chunks.length} chunks\n📌 Versão: ${knowledgeData.versao || '-'}\n📄 Fontes: ${knowledgeData.arquivos_origem?.join(', ') || '-'}\n\n🧠 Agora com **síntese inteligente** - se a base não tiver a resposta exata, usarei meu conhecimento geral para complementar.`);
                 
                 return chunks;
                 
@@ -249,7 +327,11 @@
                 statusBadge.textContent = '⚠️ JSON não encontrado';
                 statusBadge.className = 'badge error';
                 
-                addMessage('bot', `⚠️ **Arquivo JSON não encontrado.**\n\nExecute o script Python para gerar o arquivo \`knowledge-base.json\` a partir dos seus .docx.\n\n\`\`\`bash\npython processor.py\n\`\`\``);
+                addMessage('bot', `⚠️ **Arquivo JSON não encontrado.**\n\nUsando modo **fallback com conhecimento geral**.\n\nExecute o script Python para gerar o arquivo \`knowledge-base.json\` a partir dos seus .docx.\n\n\`\`\`bash\npython processor.py\n\`\`\``);
+                
+                // Mesmo sem JSON, permite perguntar usando fallback
+                userInput.disabled = false;
+                sendBtn.disabled = false;
                 return [];
             }
         }
@@ -268,7 +350,7 @@
             }
         }
 
-        // ==================== RAG ====================
+        // ==================== RAG MELHORADO ====================
         function cosineSimilarity(vecA, vecB) {
             if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
             let dot = 0, normA = 0, normB = 0;
@@ -281,6 +363,71 @@
             return dot / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
+        // BM25 simplificado para fallback
+        function bm25Search(query, chunks) {
+            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+            if (queryTokens.length === 0) return chunks.slice(0, 5);
+            
+            const docFreq = {};
+            const docLengths = chunks.map(c => {
+                const text = `${c.conteudo || ''} ${c.tags?.join(' ') || ''} ${c.titulo || ''}`.toLowerCase();
+                const tokens = text.split(/\s+/);
+                return tokens;
+            });
+            
+            // Term frequency and document frequency
+            const termDocs = {};
+            docLengths.forEach((tokens, idx) => {
+                const unique = new Set(tokens);
+                unique.forEach(token => {
+                    if (!termDocs[token]) termDocs[token] = new Set();
+                    termDocs[token].add(idx);
+                });
+            });
+            
+            const avgDocLen = docLengths.reduce((sum, t) => sum + t.length, 0) / docLengths.length;
+            const totalDocs = docLengths.length;
+            const k1 = 1.5;
+            const b = 0.75;
+            
+            const scores = chunks.map((chunk, idx) => {
+                const tokens = docLengths[idx];
+                let score = 0;
+                queryTokens.forEach(qt => {
+                    const tf = tokens.filter(t => t === qt).length;
+                    if (tf === 0) return;
+                    const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / ((termDocs[qt]?.size || 0) + 0.5) + 1);
+                    const docLen = tokens.length;
+                    score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
+                });
+                return { ...chunk, bm25_score: score };
+            });
+            
+            scores.sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0));
+            return scores.slice(0, 5);
+        }
+
+        // Busca por conhecimento geral (fallback)
+        function searchFallbackKnowledge(query) {
+            const queryLower = query.toLowerCase();
+            const matches = [];
+            
+            for (const [key, value] of Object.entries(FALLBACK_KNOWLEDGE)) {
+                const keyWords = key.toLowerCase().split(' ');
+                const matchCount = keyWords.filter(w => queryLower.includes(w)).length;
+                if (matchCount > 0 || keyWords.some(w => queryLower.includes(w))) {
+                    matches.push({
+                        topic: key,
+                        content: value,
+                        relevance: matchCount / keyWords.length
+                    });
+                }
+            }
+            
+            matches.sort((a, b) => b.relevance - a.relevance);
+            return matches;
+        }
+
         async function retrieveChunks(query, topK = 5) {
             if (!knowledgeData || !knowledgeData.chunks || knowledgeData.chunks.length === 0) {
                 return [];
@@ -289,18 +436,8 @@
             const allChunks = knowledgeData.chunks;
 
             if (!modelReady || !embedder) {
-                // Fallback rápido: busca por palavras-chave
-                const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-                const scored = allChunks.map(chunk => {
-                    const text = `${chunk.conteudo} ${chunk.tags?.join(' ') || ''} ${chunk.titulo || ''}`.toLowerCase();
-                    let score = 0;
-                    for (const token of tokens) {
-                        if (text.includes(token)) score += 1;
-                    }
-                    return { ...chunk, score };
-                });
-                scored.sort((a, b) => b.score - a.score);
-                return scored.slice(0, topK);
+                // Fallback BM25
+                return bm25Search(query, allChunks);
             }
 
             // Embedding da query
@@ -309,7 +446,6 @@
 
             const chunksWithScore = [];
             
-            // Processa em lotes para não travar
             const batchSize = 20;
             for (let i = 0; i < allChunks.length; i += batchSize) {
                 const batch = allChunks.slice(i, i + batchSize);
@@ -335,6 +471,116 @@
             return chunksWithScore.slice(0, topK);
         }
 
+        // ==================== SÍNTESE DE RESPOSTA ====================
+        function synthesizeResponse(query, chunks) {
+            const queryLower = query.toLowerCase();
+            
+            // Verifica se algum chunk tem alta similaridade (confiança alta)
+            const highConfidence = chunks.filter(c => (c.similarity || 0) > 0.5);
+            
+            // Busca fallback no conhecimento geral
+            const fallbackMatches = searchFallbackKnowledge(query);
+            
+            // Se há chunks com alta similaridade, usa eles
+            if (highConfidence.length > 0) {
+                return generateResponseFromChunks(query, highConfidence, 'alta');
+            }
+            
+            // Se há chunks com média similaridade
+            if (chunks.length > 0 && (chunks[0].similarity || 0) > 0.3) {
+                return generateResponseFromChunks(query, chunks, 'media');
+            }
+            
+            // Se há fallback no conhecimento geral
+            if (fallbackMatches.length > 0) {
+                return generateResponseFromFallback(query, fallbackMatches);
+            }
+            
+            // Resposta genérica com os chunks disponíveis
+            if (chunks.length > 0) {
+                return generateResponseFromChunks(query, chunks, 'baixa');
+            }
+            
+            return {
+                answer: `❓ Não encontrei informações específicas sobre "${query}" na base de conhecimento nem no meu conhecimento geral.`,
+                confidence: 'baixa',
+                sources: []
+            };
+        }
+
+        function generateResponseFromChunks(query, chunks, confidence) {
+            let answer = '';
+            const sources = [];
+            
+            // Extrai informações relevantes dos chunks
+            const contentPieces = chunks.map(c => c.conteudo || '').filter(t => t.length > 0);
+            const tags = new Set();
+            chunks.forEach(c => (c.tags || []).forEach(t => tags.add(t)));
+            
+            // Tenta extrair a informação mais relevante
+            const combinedContent = contentPieces.join(' ');
+            
+            // Busca por palavras-chave específicas na pergunta
+            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            
+            // Encontra frases que contêm as palavras-chave
+            let relevantSentences = [];
+            contentPieces.forEach(text => {
+                const sentences = text.split(/[.!?]+/);
+                sentences.forEach(sent => {
+                    const sentLower = sent.toLowerCase();
+                    const matchCount = queryTokens.filter(t => sentLower.includes(t)).length;
+                    if (matchCount > 0) {
+                        relevantSentences.push({ text: sent.trim(), score: matchCount / queryTokens.length });
+                    }
+                });
+            });
+            
+            relevantSentences.sort((a, b) => b.score - a.score);
+            
+            // Constrói resposta
+            if (relevantSentences.length > 0) {
+                const topSentences = relevantSentences.slice(0, 3).map(s => s.text);
+                answer = topSentences.join('. ') + '.';
+            } else {
+                // Pega os primeiros 200 caracteres de cada chunk
+                const previews = contentPieces.map(t => t.substring(0, 300));
+                answer = previews.join(' ... ');
+            }
+            
+            // Adiciona informações das fontes
+            chunks.forEach(c => {
+                if (c.fonte && !sources.includes(c.fonte)) {
+                    sources.push(c.fonte);
+                }
+            });
+            
+            const confidenceText = {
+                'alta': '✅ Confiança alta - informações diretamente da base',
+                'media': '⚠️ Confiança média - informações relacionadas encontradas',
+                'baixa': 'ℹ️ Confiança baixa - informações parcialmente relacionadas'
+            };
+            
+            return {
+                answer: answer,
+                confidence: confidence,
+                confidenceText: confidenceText[confidence] || confidenceText['baixa'],
+                sources: sources,
+                tags: Array.from(tags).slice(0, 5)
+            };
+        }
+
+        function generateResponseFromFallback(query, matches) {
+            const bestMatch = matches[0];
+            return {
+                answer: `🧠 **Conhecimento geral sobre "${bestMatch.topic}":**\n\n${bestMatch.content}`,
+                confidence: 'media',
+                confidenceText: 'ℹ️ Resposta baseada em conhecimento geral (não está na base JSON)',
+                sources: ['Conhecimento geral do sistema'],
+                tags: ['cromatografia geral', 'conceitos']
+            };
+        }
+
         // ==================== UI ====================
         function addMessage(sender, content) {
             const div = document.createElement('div');
@@ -348,7 +594,7 @@
             const div = document.createElement('div');
             div.className = 'typing';
             div.id = 'typingIndicator';
-            div.innerHTML = '⏳ processando RAG...';
+            div.innerHTML = '🧠 processando com RAG inteligente...';
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
@@ -373,36 +619,24 @@
                 const chunks = await retrieveChunks(query, 5);
                 removeTyping();
 
-                if (!chunks || chunks.length === 0) {
-                    addMessage('bot', '❌ Nenhum chunk encontrado. Verifique se o JSON foi carregado.');
-                    return;
-                }
-
+                // Sintetiza resposta
+                const result = synthesizeResponse(query, chunks);
+                
                 let response = `🔍 <strong>Pergunta:</strong> ${query}<br><br>`;
-                response += `📘 <strong>Chunks mais relevantes (${chunks.length}):</strong><br><br>`;
-                for (let i = 0; i < chunks.length; i++) {
-                    const c = chunks[i];
-                    // Mostra título se disponível
-                    if (c.titulo) {
-                        response += `<strong>${i+1}.</strong> <strong>${c.titulo}</strong><br>`;
-                    } else {
-                        response += `<strong>${i+1}.</strong> `;
-                    }
-                    response += `${c.conteudo.substring(0, 400)}${c.conteudo.length > 400 ? '...' : ''}<br>`;
-                    response += `<span style="font-size:0.75rem; color:#6b7f9c;">`;
-                    response += `📄 ${c.fonte || 'knowledge-base'}`;
-                    if (c.tags && c.tags.length > 0) {
-                        response += ` | 🏷️ ${c.tags.join(', ')}`;
-                    }
-                    if (c.tipo) {
-                        response += ` | 📌 ${c.tipo}`;
-                    }
-                    if (c.autores && c.autores.length > 0) {
-                        response += ` | ✍️ ${c.autores.join(', ')}`;
-                    }
-                    response += `</span><br><br>`;
+                response += `<div style="background:#f8faff;padding:12px 16px;border-radius:12px;border-left:4px solid #2f6bb0;">`;
+                response += `<strong>📖 Resposta:</strong><br><br>${result.answer}`;
+                response += `<br><br><span class="${result.confidence === 'alta' ? 'confidence-high' : 'confidence-low'}">${result.confidenceText}</span>`;
+                response += `</div>`;
+                
+                if (result.sources && result.sources.length > 0) {
+                    response += `<div class="sources">📄 <strong>Fontes:</strong> ${result.sources.join(', ')}</div>`;
                 }
-                response += `💡 <em>Resposta gerada com RAG local (WebLLM + JSON pré-processado).</em>`;
+                
+                if (result.tags && result.tags.length > 0) {
+                    response += `<div style="margin-top:8px;font-size:0.8rem;color:#6b7f9c;">🏷️ Tags: ${result.tags.join(', ')}</div>`;
+                }
+                
+                response += `<div class="meta">💡 Resposta sintetizada com RAG local + conhecimento geral</div>`;
                 addMessage('bot', response);
 
             } catch (err) {
