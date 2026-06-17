@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChromatoBuddy - Assistente Inteligente de Cromatografia</title>
+    <title>ChromatoBuddy - Assistente de Cromatografia</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -38,28 +38,11 @@
             gap: 10px;
             border-bottom: 2px solid rgba(255,255,255,0.08);
         }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .header h1 {
-            font-size: 1.4rem;
-            color: white;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .header h1 { font-size: 1.4rem; color: white; font-weight: 700; letter-spacing: -0.5px; }
         .header h1 span { color: #6aafff; }
-        .header .subtitle {
-            color: rgba(255,255,255,0.5);
-            font-size: 0.75rem;
-            font-weight: 300;
-        }
-        .badge-group {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
+        .header .subtitle { color: rgba(255,255,255,0.5); font-size: 0.75rem; font-weight: 300; }
+        .badge-group { display: flex; gap: 6px; flex-wrap: wrap; }
         .badge {
             padding: 4px 12px;
             border-radius: 20px;
@@ -72,11 +55,6 @@
         .badge.success { background: rgba(46,213,115,0.2); color: #7ddfa0; border-color: rgba(46,213,115,0.15); }
         .badge.warning { background: rgba(255,193,7,0.15); color: #ffd54f; border-color: rgba(255,193,7,0.1); }
         .badge.info { background: rgba(54,178,255,0.15); color: #6abfff; border-color: rgba(54,178,255,0.1); }
-        .badge.pulse { animation: pulse 2s infinite; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
         
         .chat-container {
             flex: 1;
@@ -132,14 +110,10 @@
             font-size: 1rem;
             background: #eef3fc;
         }
-        .message .msg-header .name {
-            font-weight: 600;
-            color: #1a3a6a;
-        }
+        .message .msg-header .name { font-weight: 600; color: #1a3a6a; }
         .message.user .msg-header .name { color: rgba(255,255,255,0.9); }
         .message.user .msg-header .avatar { background: rgba(255,255,255,0.15); }
         
-        /* Thinking process - Chain of Thought */
         .thinking-process {
             background: #f0f4fc;
             border-radius: 10px;
@@ -173,11 +147,7 @@
             border-left: 4px solid #1a3a6a;
             margin: 6px 0;
         }
-        .answer-box h4 {
-            color: #1a3a6a;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
+        .answer-box h4 { color: #1a3a6a; margin-bottom: 8px; font-size: 0.95rem; }
         
         .sources-box {
             background: #f0f4fc;
@@ -202,7 +172,6 @@
             color: #1a3a6a;
             font-weight: 500;
         }
-        .tag-pill.highlight { background: #1a3a6a; color: white; }
         
         .meta {
             font-size: 0.7rem;
@@ -218,9 +187,7 @@
         .confidence-high { color: #27ae60; font-weight: 600; }
         .confidence-medium { color: #f39c12; font-weight: 600; }
         .confidence-low { color: #e74c3c; font-weight: 600; }
-        .confidence-fallback { color: #7f8c8d; font-weight: 600; }
         
-        /* Suggested questions */
         .suggestions {
             display: flex;
             flex-wrap: wrap;
@@ -360,10 +327,6 @@
             align-items: center;
             gap: 4px;
         }
-        .footer .memory-status {
-            color: #6aafff;
-            font-weight: 500;
-        }
         
         @keyframes fadeSlide {
             from { opacity: 0; transform: translateY(10px); }
@@ -401,7 +364,6 @@
             .input-area textarea { min-height: 44px; font-size: 0.9rem; }
             .input-area button { height: 44px; padding: 8px 18px; font-size: 0.85rem; }
             .footer { padding: 6px 16px 10px; font-size: 0.6rem; }
-            .badge-group .badge { font-size: 0.55rem; padding: 2px 8px; }
             .thinking-process { font-size: 0.75rem; padding: 8px 12px; }
             .suggestion-btn { font-size: 0.7rem; padding: 4px 12px; }
         }
@@ -412,12 +374,11 @@
         <div class="header">
             <div class="header-left">
                 <h1>🧪 Chromato<span>Buddy</span></h1>
-                <span class="subtitle">Assistente Inteligente</span>
+                <span class="subtitle">Assistente de Cromatografia</span>
             </div>
             <div class="badge-group">
                 <span class="badge" id="statusBadge">⏳ carregando...</span>
                 <span class="badge" id="modelBadge">⏳ modelo...</span>
-                <span class="badge info" id="memoryBadge">🧠 0 aprendidos</span>
             </div>
         </div>
         
@@ -428,24 +389,22 @@
                     <span class="name">ChromatoBuddy</span>
                 </div>
                 <div class="welcome-box">
-                    <strong>🧠 Olá! Sou seu assistente inteligente de cromatografia.</strong>
+                    <strong>👋 Olá! Sou seu assistente de cromatografia.</strong>
                     <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-                        💡 <strong>Funcionalidades avançadas:</strong>
+                        🔍 <strong>Busca inteligente com sinônimos</strong>
                     </div>
                     <div class="features">
+                        <span class="feature-item">🔍 Busca hierárquica</span>
+                        <span class="feature-item">📚 Sinônimos integrados</span>
                         <span class="feature-item">🧠 Chain-of-Thought</span>
-                        <span class="feature-item">📚 Memória de longo prazo</span>
-                        <span class="feature-item">🔍 Busca híbrida</span>
-                        <span class="feature-item">💡 Sugestões inteligentes</span>
                         <span class="feature-item">✅ Validação cruzada</span>
                     </div>
                     <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
-                        Pergunte sobre: <strong>tamanho de partícula</strong>, <strong>pressão</strong>, 
-                        <strong>resolução</strong>, <strong>Van Deemter</strong>, <strong>core-shell</strong>
+                        💬 Pergunte sobre cromatografia, LC-MS, SPME, colunas e muito mais.
                     </div>
                 </div>
                 <div class="meta">
-                    <span>✅ Sistema híbrido com raciocínio</span>
+                    <span>✅ Sistema baseado apenas nos chunks do JSON</span>
                     <span id="chunkInfo">📚 0 chunks</span>
                 </div>
             </div>
@@ -463,9 +422,8 @@
             <div class="stats">
                 <span id="versionInfo">📌 versão: -</span>
                 <span id="sourceInfo">📄 origem: -</span>
-                <span id="memoryStats" class="memory-status">🧠 aprendendo...</span>
             </div>
-            <span>🔒 Local · Sem API · Raciocínio em cadeia</span>
+            <span>🔒 Local · Sem API · Apenas chunks do JSON</span>
         </div>
     </div>
 
@@ -484,206 +442,106 @@
         let knowledgeData = null;
         let embedder = null;
         let modelReady = false;
-        let conversationHistory = [];
-        
-        // Memória de longo prazo (IndexDB)
-        let longTermMemory = {
-            learnedTopics: new Map(),
-            queryHistory: [],
-            confidenceScores: new Map()
-        };
         
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
-        // ==================== KNOWLEDGE BASE GERAL ====================
-        const GENERAL_KNOWLEDGE = {
-            'tamanho partícula': {
-                keywords: ['tamanho', 'partícula', 'particula', 'diâmetro', 'diametro', 'dp', 'µm', 'micrometro', 'separação', 'separacao', 'resolução', 'resolucao', 'eficiencia', 'coluna', 'empacotamento'],
-                title: 'Efeito do Tamanho da Partícula na Separação',
-                content: `O **tamanho da partícula** é o parâmetro mais crítico em cromatografia líquida, afetando diretamente eficiência, pressão e resolução.
-
-## 📊 Efeitos Principais:
-
-### 1. Eficiência da Coluna (Van Deemter)
-- Partículas menores (≤ 2 µm) → menor HETP → maior eficiência
-- Termo C (transferência de massa) ∝ dp²
-- Partículas de 1,7 µm podem alcançar ~40.000 pratos/m
-
-### 2. Resolução
-- Rs ∝ √N, N ∝ 1/dp (teoricamente)
-- Partículas menores → mais pratos teóricos → melhor separação
-- Permite separar compostos estruturalmente similares
-
-### 3. Pressão do Sistema (Lei de Darcy)
-- ΔP ∝ 1/dp² (pressão é inversamente proporcional ao quadrado do diâmetro)
-- 5 µm: ~100-200 bar (HPLC)
-- 3 µm: ~250-400 bar (HPLC)
-- 1,7 µm: ~600-1300 bar (UHPLC)
-
-### 4. Velocidade de Análise
-- Partículas menores permitem fluxos mais altos
-- Análises mais rápidas sem perder eficiência
-
-### 5. Tipos de Partícula
-| Tipo | Tamanho | Pressão | Eficiência | Aplicação |
-|------|---------|---------|------------|-----------|
-| Totalmente Porosa (FP) | 3-5 µm | Baixa | Base | HPLC |
-| Superficialmente Porosa (SPP) | 2,7 µm | Média | Alta | HPLC/UHPLC |
-| Superficialmente Porosa (SPP) | 1,7 µm | Alta | Excelente | UHPLC |
-
-### ⚖️ Trade-off
-Partículas menores = maior resolução, mas também:
-- Maior pressão (exige UHPLC)
-- Maior custo
-- Maior susceptibilidade a entupimentos
-- Menor capacidade de carga
-
-### 📈 Exemplo Prático
-- Partícula 5 µm: N ≈ 15.000 pratos/m, P ≈ 150 bar
-- Partícula 3 µm: N ≈ 25.000 pratos/m, P ≈ 300 bar  
-- Partícula 1,7 µm: N ≈ 40.000 pratos/m, P ≈ 700 bar`,
-                tags: ['partículas', 'eficiência', 'resolução', 'pressão', 'Van Deemter', 'UHPLC', 'HPLC'],
-                source: 'Conhecimento geral de cromatografia'
-            },
+        // ==================== LISTA DE SINÔNIMOS ====================
+        // Mapeia termos para suas variações/sinônimos
+        const SYNONYM_MAP = {
+            // Cromatografia em geral
+            'cromatografia': ['cromatográfico', 'cromatográfica', 'cromatográficas', 'cromatográficos', 'lc', 'hplc', 'uhplc'],
+            'lc': ['cromatografia líquida', 'cromatografia liquida', 'hplc', 'uhplc', 'cromatografia'],
+            'hplc': ['cromatografia líquida de alta eficiência', 'cromatografia liquida de alta eficiencia', 'lc', 'cromatografia'],
+            'uhplc': ['cromatografia líquida de ultra eficiência', 'cromatografia liquida de ultra eficiencia', 'lc', 'hplc'],
             
-            'pressão coluna': {
-                keywords: ['pressão', 'pressao', 'bar', 'psi', 'coluna', 'fluxo', 'vazão', 'vazao', 'darcy'],
-                title: 'Pressão em Colunas Cromatográficas',
-                content: `A **pressão** é um dos principais limitadores operacionais em cromatografia.
-
-## 📊 Fatores que Determinam a Pressão:
-
-### 1. Tamanho da Partícula (Fator Dominante)
-- ΔP ∝ 1/dp² (Lei de Darcy modificada)
-- Reduzir dp pela metade → pressão quadruplica!
-
-### 2. Viscosidade da Fase Móvel
-- Água (1,0 cP) → maior pressão
-- Acetonitrila (0,37 cP) → menor pressão
-- Metanol (0,6 cP) → intermediário
-
-### 3. Comprimento da Coluna
-- ΔP ∝ L (pressão proporcional ao comprimento)
-
-### 4. Vazão
-- ΔP ∝ Q (pressão proporcional à vazão)
-
-### ⚠️ Limites Práticos
-- HPLC: até 400 bar (partículas 3-5 µm)
-- UHPLC: até 1300 bar (partículas 1,7-2 µm)
-- Sistemas de ultra-alta pressão: até 1500 bar
-
-### 🔧 Diagnóstico
-- Aumento gradual da pressão → coluna suja
-- Aumento súbito da pressão → coluna entupida
-- Queda de pressão → vazamento no sistema`,
-                tags: ['pressão', 'coluna', 'HPLC', 'UHPLC', 'viscosidade'],
-                source: 'Conhecimento geral de cromatografia'
-            },
-
-            'resolução': {
-                keywords: ['resolução', 'resolucao', 'rs', 'separação', 'separacao', 'picos', 'seletividade', 'alpha'],
-                title: 'Resolução Cromatográfica',
-                content: `A **resolução (Rs)** mede a capacidade da coluna de separar dois picos adjacentes.
-
-## 📊 Equação Fundamental:
-**Rs = (√N/4) × ((α-1)/α) × (k'/(1+k'))**
-
-### Componentes:
-- **N:** Número de pratos teóricos (eficiência)
-- **α:** Seletividade (razão dos fatores de retenção)
-- **k':** Fator de retenção
-
-### 🎯 Como Melhorar:
-
-| Fator | Ação | Impacto |
-|-------|------|---------|
-| N | Partículas menores | ↑ N, ↑ Rs |
-| N | Coluna mais longa | ↑ N, ↑ Rs |
-| α | Mudar fase móvel | ↑ α, ↑ Rs |
-| α | Mudar coluna | ↑ α, ↑ Rs |
-| k' | Ajustar força da fase móvel | ↑ k', ↑ Rs |
-
-### 📈 Valores de Referência
-- Rs > 1,5: Separação completa (linha de base)
-- Rs = 1,0: Separação parcial (picos sobrepostos)
-- Rs < 0,8: Separação inadequada
-
-### 🔬 Relação com Tamanho de Partícula
-- Partículas menores → N maior → Rs maior
-- Limite: ganho é limitado pelo aumento da pressão`,
-                tags: ['resolução', 'seletividade', 'eficiência', 'pratos teóricos'],
-                source: 'Conhecimento geral de cromatografia'
-            },
-
-            'van deemter': {
-                keywords: ['van deemter', 'van deemter', 'hetp', 'curva', 'eficiência', 'eficiencia', 'altura equivalente'],
-                title: 'Equação de Van Deemter',
-                content: `A **equação de Van Deemter** descreve a eficiência da coluna (HETP) em função da velocidade linear da fase móvel.
-
-## 📊 Equação:
-**H = A + B/u + C·u**
-
-### Termos:
-- **A:** Difusão Eddy (empacotamento) - independente de u
-- **B/u:** Difusão longitudinal - domina em baixa velocidade
-- **C·u:** Transferência de massa - domina em alta velocidade
-
-### 🔬 Efeito do Tamanho da Partícula:
-**C ∝ dp²** (termo C é proporcional ao quadrado do diâmetro)
-
-- Partículas menores → C menor → curva mais plana
-- Partículas menores → velocidade ótima mais alta
-
-### 📈 Interpretação da Curva:
-1. **Baixa velocidade:** termo B/u domina, H diminui com u
-2. **Velocidade ótima:** mínimo da curva (máxima eficiência)
-3. **Alta velocidade:** termo C·u domina, H aumenta com u
-
-### 💡 Consequência Prática
-Com partículas menores, a velocidade ótima é maior, permitindo análises mais rápidas sem perda de eficiência.`,
-                tags: ['Van Deemter', 'HETP', 'eficiência', 'transferência de massa'],
-                source: 'Conhecimento geral de cromatografia'
-            },
-
-            'core shell spp': {
-                keywords: ['core-shell', 'core shell', 'spp', 'superficialmente porosa', 'fused core', 'porosa'],
-                title: 'Partículas Core-Shell (SPP)',
-                content: `As **partículas core-shell (SPP - Superficialmente Porosas)** são uma inovação em colunas cromatográficas.
-
-## 🏗️ Estrutura:
-- **Núcleo sólido** (core) - não poroso
-- **Camada externa porosa** (shell) - onde ocorre a separação
-
-## ✅ Vantagens:
-
-### 1. Alta Eficiência com Menor Pressão
-- Transferência de massa mais rápida (difusão mais curta)
-- Eficiência similar a partículas totalmente porosas menores
-- Pressão ~50-70% menor
-
-### 2. Exemplo Prático
-- Core-shell 2,7 µm → eficiência similar a FP 1,8 µm
-- Mas com pressão ~60% menor!
-
-### 📊 Comparação:
-
-| Tipo | Tamanho | Eficiência | Pressão |
-|------|---------|------------|---------|
-| FP 5 µm | 5 µm | Base | Baixa |
-| FP 3 µm | 3 µm | Média | Média |
-| SPP 2,7 µm | 2,7 µm | Alta | Média |
-| FP 1,8 µm | 1,8 µm | Muito alta | Muito alta |
-| SPP 1,7 µm | 1,7 µm | Excelente | Alta |
-
-### 💡 Aplicação
-Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC convencionais.`,
-                tags: ['core-shell', 'SPP', 'partículas', 'eficiência', 'pressão'],
-                source: 'Conhecimento geral de cromatografia'
-            }
+            // Partículas e colunas
+            'partícula': ['particula', 'partículas', 'particulas', 'particle', 'beads', 'esferas', 'sílica', 'silica'],
+            'tamanho': ['tamanho', 'diâmetro', 'diametro', 'dp', 'µm', 'micrometro', 'micron', 'micro'],
+            'coluna': ['colunas', 'column', 'columns', 'empacotamento', 'packing'],
+            
+            // Separação e eficiência
+            'separação': ['separacao', 'separar', 'separa', 'resolução', 'resolucao', 'rs'],
+            'resolução': ['resolucao', 'rs', 'separação', 'separacao', 'eficiencia', 'eficiência'],
+            'eficiência': ['eficiencia', 'pratos teóricos', 'pratos teoricos', 'n', 'hetp'],
+            
+            // Pressão e fluxo
+            'pressão': ['pressao', 'pressões', 'pressoes', 'bar', 'psi', 'pressure', 'backpressure'],
+            'fluxo': ['vazão', 'vazao', 'flow', 'vazões', 'vazoes'],
+            
+            // Van Deemter
+            'van deemter': ['van deemter', 'vandeemter', 'curva de van deemter', 'hetp', 'altura equivalente'],
+            'hetp': ['altura equivalente a um prato teórico', 'altura equivalente a um prato teorico'],
+            
+            // Tipos de partícula
+            'core-shell': ['core shell', 'spp', 'fused core', 'superficialmente porosa', 'núcleo sólido', 'nucleo solido'],
+            'totalmente porosa': ['totalmente poroso', 'fp', 'fully porous', 'porosa'],
+            
+            // Fases e solventes
+            'fase móvel': ['fase movel', 'mobile phase', 'solvente', 'eluente'],
+            'fase estacionária': ['fase estacionaria', 'stationary phase', 'fase fixa'],
+            
+            // Temperatura
+            'temperatura': ['temperaturas', 'thermal', 'térmico', 'termico', 'heat', 'calor', 'aquecimento'],
+            
+            // Técnicas
+            'spme': ['solid phase microextraction', 'microextração', 'microextracao', 'fibra', 'it-spme'],
+            'lc-ms': ['lcms', 'espectrometria de massas', 'mass spectrometry', 'ms'],
+            'gc': ['cromatografia gasosa', 'gas chromatography'],
+            
+            // Validação
+            'validação': ['validacao', 'validate', 'validation', 'anvisa', 'ich', 'rdc'],
+            'linearidade': ['linear', 'correlação', 'correlacao', 'r²', 'r2'],
+            'precisão': ['precisao', 'repetibilidade', 'repetitividade', 'reprodutibilidade'],
+            'exatidão': ['exatidao', 'recuperação', 'recuperacao', 'accuracy'],
+            
+            // Quimiometria
+            'pca': ['componentes principais', 'principal component', 'análise multivariada', 'analise multivariada'],
+            
+            // Métodos
+            'gradiente': ['gradient', 'gradiente de solvente', 'eluição', 'eluição gradiente', 'eluicao'],
+            'isotermico': ['isotérmico', 'isotermico', 'isocratico', 'isocrático'],
+            
+            // Amostras
+            'amostra': ['sample', 'samples', 'preparo', 'preparação', 'preparacao', 'extração', 'extracao'],
+            
+            // Geral
+            'analito': ['analitos', 'composto', 'compostos', 'substância', 'substancia', 'soluto'],
+            'matriz': ['matrizes', 'matrix', 'interferente', 'interferentes'],
         };
+
+        // ==================== EXPANDE SINÔNIMOS ====================
+        function expandWithSynonyms(query) {
+            let expanded = query;
+            const queryLower = query.toLowerCase();
+            
+            for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
+                if (queryLower.includes(term)) {
+                    // Adiciona os sinônimos à query expandida
+                    for (const syn of synonyms) {
+                        if (!expanded.includes(syn)) {
+                            expanded += ' ' + syn;
+                        }
+                    }
+                }
+                // Verifica sinônimos na query
+                for (const syn of synonyms) {
+                    if (queryLower.includes(syn)) {
+                        if (!expanded.includes(term)) {
+                            expanded += ' ' + term;
+                        }
+                        for (const otherSyn of synonyms) {
+                            if (otherSyn !== syn && !expanded.includes(otherSyn)) {
+                                expanded += ' ' + otherSyn;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return expanded;
+        }
 
         // ==================== CARREGA JSON ====================
         async function loadKnowledgeBase() {
@@ -711,9 +569,9 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
                 
             } catch (err) {
                 console.warn('Erro ao carregar JSON:', err);
-                statusBadge.textContent = '📚 Modo Geral';
-                statusBadge.className = 'badge info';
-                document.getElementById('chunkInfo').textContent = '📚 Modo conhecimento geral';
+                statusBadge.textContent = '⚠️ JSON não encontrado';
+                statusBadge.className = 'badge warning';
+                document.getElementById('chunkInfo').textContent = '📚 0 chunks';
                 
                 userInput.disabled = false;
                 sendBtn.disabled = false;
@@ -750,12 +608,14 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
             return dot / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
-        // ===== BUSCA HIERÁRQUICA AVANÇADA =====
+        // ===== BUSCA HIERÁRQUICA COM SINÔNIMOS =====
         function hierarchicalSearch(query, chunks) {
-            const queryLower = query.toLowerCase();
+            // Expande a query com sinônimos
+            const expandedQuery = expandWithSynonyms(query);
+            const queryLower = expandedQuery.toLowerCase();
             const queryTokens = queryLower.split(/\s+/).filter(w => w.length > 2);
             
-            // Extrai bigramas e trigramas para melhor matching
+            // Extrai bigramas e trigramas
             const ngrams = [];
             for (let i = 0; i < queryTokens.length - 1; i++) {
                 ngrams.push(queryTokens[i] + ' ' + queryTokens[i+1]);
@@ -775,7 +635,6 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
                         matchInfo.push(`título:${token}`);
                     }
                 }
-                // Bigramas no título
                 for (const ngram of ngrams) {
                     if (title.includes(ngram)) {
                         score += 6;
@@ -815,9 +674,10 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
             return scored;
         }
 
-        // ===== BM25 MELHORADO =====
+        // ===== BM25 =====
         function bm25Search(query, chunks, topK = 10) {
-            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+            const expandedQuery = expandWithSynonyms(query);
+            const queryTokens = expandedQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
             if (queryTokens.length === 0) return chunks.slice(0, topK);
             
             const docLengths = chunks.map(c => {
@@ -864,17 +724,16 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
 
             const allChunks = knowledgeData.chunks;
             
-            // 1. BUSCA HIERÁRQUICA
+            // 1. BUSCA HIERÁRQUICA COM SINÔNIMOS
             const hierarchicalResults = hierarchicalSearch(query, allChunks);
             const topHierarchical = hierarchicalResults.slice(0, topK * 2);
             
-            // 2. BM25
+            // 2. BM25 COM SINÔNIMOS
             const bm25Results = bm25Search(query, allChunks, topK * 2);
             
-            // 3. Combina resultados (dedup)
+            // 3. Combina resultados
             const combinedMap = new Map();
             
-            // Adiciona resultados hierárquicos (peso maior)
             topHierarchical.forEach(c => {
                 const key = c.id || c.conteudo?.substring(0, 50);
                 if (!combinedMap.has(key)) {
@@ -885,7 +744,6 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
                 }
             });
             
-            // Adiciona resultados BM25
             bm25Results.forEach(c => {
                 const key = c.id || c.conteudo?.substring(0, 50);
                 if (!combinedMap.has(key)) {
@@ -898,13 +756,12 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
             
             let results = Array.from(combinedMap.values());
             
-            // 4. Reranking com embedding (se disponível)
+            // 4. Reranking com embedding
             if (modelReady && embedder && results.length > 0) {
                 try {
                     const queryEmbed = await embedder(query, { pooling: 'mean', normalize: true });
                     const queryVec = queryEmbed.data;
                     
-                    // Processa em lotes
                     const batchSize = 10;
                     for (let i = 0; i < results.length; i += batchSize) {
                         const batch = results.slice(i, i + batchSize);
@@ -930,111 +787,48 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
             return results.slice(0, topK);
         }
 
-        // ==================== DETECÇÃO DE TÓPICOS ====================
-        function detectTopic(query) {
-            const queryLower = query.toLowerCase();
-            let bestTopic = null;
-            let bestScore = 0;
-            let matchedKeywords = [];
-            
-            // Verifica memória primeiro
-            for (const [topicKey, data] of longTermMemory.learnedTopics) {
-                if (queryLower.includes(topicKey)) {
-                    const score = data.count / 10;
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestTopic = topicKey;
-                        matchedKeywords = [topicKey];
-                    }
-                }
-            }
-            
-            // Depois verifica conhecimento geral
-            for (const [topicKey, topicData] of Object.entries(GENERAL_KNOWLEDGE)) {
-                let score = 0;
-                const matched = [];
-                for (const keyword of topicData.keywords) {
-                    if (queryLower.includes(keyword)) {
-                        score += 1;
-                        matched.push(keyword);
-                    }
-                }
-                const normalizedScore = score / topicData.keywords.length;
-                if (normalizedScore > bestScore) {
-                    bestScore = normalizedScore;
-                    bestTopic = topicKey;
-                    matchedKeywords = matched;
-                }
-            }
-            
-            if (bestScore > 0.1) {
-                return { 
-                    topic: bestTopic, 
-                    score: bestScore, 
-                    keywords: matchedKeywords,
-                    data: GENERAL_KNOWLEDGE[bestTopic]
-                };
-            }
-            return null;
-        }
-
         // ==================== CHAIN OF THOUGHT ====================
-        function generateChainOfThought(query, topicMatch, chunks) {
+        function generateChainOfThought(query, chunks) {
             const steps = [];
             
-            // Passo 1: Análise da pergunta
             steps.push({
                 emoji: '🔍',
                 text: `Analisando a pergunta: "${query}"`,
                 badge: 'entrada'
             });
             
-            // Passo 2: Detecção de tópico
-            if (topicMatch && topicMatch.score > 0.15) {
+            // Mostra expansão de sinônimos
+            const expanded = expandWithSynonyms(query);
+            if (expanded !== query) {
                 steps.push({
-                    emoji: '🎯',
-                    text: `Tópico detectado: "${topicMatch.topic}" com ${Math.round(topicMatch.score * 100)}% de confiança`,
-                    badge: 'tópico'
-                });
-                if (topicMatch.keywords.length > 0) {
-                    steps.push({
-                        emoji: '🔑',
-                        text: `Palavras-chave encontradas: ${topicMatch.keywords.slice(0, 5).join(', ')}`,
-                        badge: 'keywords'
-                    });
-                }
-            } else {
-                steps.push({
-                    emoji: '🤔',
-                    text: 'Nenhum tópico específico detectado, buscando na base...',
-                    badge: 'busca'
+                    emoji: '📚',
+                    text: `Sinônimos expandidos: ${expanded}`,
+                    badge: 'sinônimos'
                 });
             }
             
-            // Passo 3: Busca na base
             if (chunks && chunks.length > 0) {
                 const topChunk = chunks[0];
                 steps.push({
                     emoji: '📚',
-                    text: `${chunks.length} chunks encontrados. O mais relevante tem score ${Math.round((topChunk.combinedScore || topChunk.score || 0) * 10) / 10}`,
+                    text: `${chunks.length} chunks encontrados. Score: ${Math.round((topChunk.combinedScore || topChunk.score || 0) * 10) / 10}`,
                     badge: 'resultados'
                 });
                 if (topChunk.titulo) {
                     steps.push({
                         emoji: '📖',
-                        text: `Título do chunk principal: "${topChunk.titulo}"`,
+                        text: `Título: "${topChunk.titulo}"`,
                         badge: 'fonte'
                     });
                 }
             } else {
                 steps.push({
                     emoji: '⚠️',
-                    text: 'Nenhum chunk encontrado na base, usando conhecimento geral',
-                    badge: 'fallback'
+                    text: 'Nenhum chunk encontrado na base',
+                    badge: 'vazio'
                 });
             }
             
-            // Passo 4: Validação cruzada
             if (chunks && chunks.length >= 2) {
                 const simCheck = chunks.filter(c => (c.similarity || 0) > 0.3);
                 if (simCheck.length >= 2) {
@@ -1046,10 +840,9 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
                 }
             }
             
-            // Passo 5: Síntese
             steps.push({
                 emoji: '🧠',
-                text: 'Sintetizando resposta com base nas informações mais relevantes...',
+                text: 'Sintetizando resposta...',
                 badge: 'síntese'
             });
             
@@ -1057,24 +850,7 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
         }
 
         // ==================== SÍNTESE DE RESPOSTA ====================
-        function synthesizeResponse(query, chunks, topicMatch, chainSteps) {
-            // 1. SE DETECTOU TÓPICO COM ALTA CONFIANÇA
-            if (topicMatch && topicMatch.score > 0.2) {
-                const data = topicMatch.data;
-                return {
-                    answer: data.content,
-                    title: data.title || 'Conhecimento Geral',
-                    confidence: 'medium',
-                    confidenceLabel: '📚 Conhecimento geral (tópico detectado)',
-                    sources: [data.source || 'Conhecimento geral'],
-                    tags: data.tags || [],
-                    fromFallback: true,
-                    topicDetected: topicMatch.topic,
-                    chainSteps: chainSteps
-                };
-            }
-            
-            // 2. FILTRA CHUNKS RELEVANTES
+        function synthesizeResponse(query, chunks, chainSteps) {
             const relevantChunks = chunks.filter(c => (c.combinedScore || c.score || 0) > 0.5);
             
             if (relevantChunks.length >= 2) {
@@ -1112,151 +888,42 @@ Ideal para laboratórios que querem performance de UHPLC em sistemas HPLC conven
                     answer: answer,
                     title: topChunks[0]?.titulo || 'Informações da Base',
                     confidence: 'high',
-                    confidenceLabel: '✅ Base de conhecimento (alta relevância)',
-                    sources: sources.length > 0 ? sources : ['Base de conhecimento'],
+                    confidenceLabel: '✅ Base de conhecimento',
+                    sources: sources.length > 0 ? sources : ['knowledge-base.json'],
                     tags: tags,
-                    fromFallback: false,
                     chainSteps: chainSteps
                 };
             }
             
-            // 3. FALLBACK - tenta tópico mesmo com baixa confiança
-            if (topicMatch) {
-                const data = topicMatch.data;
+            // Fallback: mostra o que encontrou
+            if (chunks.length > 0) {
+                const topChunk = chunks[0];
+                const content = topChunk.conteudo || '';
                 return {
-                    answer: data.content,
-                    title: data.title || 'Conhecimento Geral',
+                    answer: content.substring(0, 600) + (content.length > 600 ? '...' : ''),
+                    title: topChunk.titulo || 'Informação encontrada',
                     confidence: 'low',
-                    confidenceLabel: 'ℹ️ Conhecimento geral (confiança baixa)',
-                    sources: [data.source || 'Conhecimento geral'],
-                    tags: data.tags || [],
-                    fromFallback: true,
-                    topicDetected: topicMatch.topic,
+                    confidenceLabel: 'ℹ️ Pouca informação disponível',
+                    sources: [topChunk.fonte || 'knowledge-base.json'],
+                    tags: topChunk.tags || [],
                     chainSteps: chainSteps
                 };
             }
             
-            // 4. NADA ENCONTRADO
             return {
-                answer: `❓ Não encontrei informações específicas sobre "${query}" na base de conhecimento.
+                answer: `❓ Não encontrei informações sobre "${query}" na base de conhecimento.
 
-💡 Tente perguntar sobre:
-- tamanho de partícula
-- pressão em colunas
-- resolução cromatográfica
-- Van Deemter
-- core-shell
-- SPME
-- LC-MS
-
-Ou reformule sua pergunta com mais detalhes.`,
+💡 Dicas:
+- Use sinônimos: "partícula" → "particula", "dp", "micro"
+- Seja mais específico
+- A base tem ${knowledgeData?.chunks?.length || 0} chunks disponíveis`,
                 title: 'Nenhuma informação encontrada',
                 confidence: 'none',
                 confidenceLabel: '❌ Sem informações',
                 sources: [],
                 tags: [],
-                fromFallback: true,
                 chainSteps: chainSteps
             };
-        }
-
-        // ==================== SUGESTÕES INTELIGENTES ====================
-        function generateSuggestions(query, result) {
-            const suggestions = [];
-            
-            // Baseado no tópico detectado
-            if (result.topicDetected) {
-                const relatedTopics = {
-                    'tamanho partícula': ['pressão coluna', 'resolução', 'van deemter', 'core shell spp'],
-                    'pressão coluna': ['tamanho partícula', 'van deemter', 'resolução'],
-                    'resolução': ['tamanho partícula', 'van deemter', 'pressão coluna'],
-                    'van deemter': ['tamanho partícula', 'resolução', 'core shell spp'],
-                    'core shell spp': ['tamanho partícula', 'pressão coluna', 'van deemter']
-                };
-                
-                const related = relatedTopics[result.topicDetected] || [];
-                for (const topic of related) {
-                    const data = GENERAL_KNOWLEDGE[topic];
-                    if (data) {
-                        suggestions.push(`Qual o efeito da ${topic} na separação?`);
-                    }
-                }
-            }
-            
-            // Baseado nas tags
-            if (result.tags && result.tags.length > 0) {
-                const tagQuestions = {
-                    'partículas': 'Como escolher o tamanho ideal de partícula?',
-                    'pressão': 'Como reduzir a pressão na coluna?',
-                    'resolução': 'Como melhorar a resolução entre picos?',
-                    'Van Deemter': 'O que é a equação de Van Deemter?',
-                    'eficiência': 'Como aumentar a eficiência da coluna?',
-                    'UHPLC': 'Qual a diferença entre HPLC e UHPLC?'
-                };
-                
-                for (const tag of result.tags) {
-                    if (tagQuestions[tag] && !suggestions.includes(tagQuestions[tag])) {
-                        suggestions.push(tagQuestions[tag]);
-                    }
-                }
-            }
-            
-            // Sugestões genéricas se não houver outras
-            if (suggestions.length === 0) {
-                suggestions.push(
-                    'Qual o efeito do tamanho da partícula na separação?',
-                    'Como funciona a equação de Van Deemter?',
-                    'Qual a diferença entre partículas core-shell e totalmente porosas?',
-                    'Como melhorar a resolução cromatográfica?'
-                );
-            }
-            
-            return suggestions.slice(0, 4);
-        }
-
-        // ==================== APRENDIZADO DE LONGO PRAZO ====================
-        function learnFromInteraction(query, result) {
-            const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-            
-            for (const token of tokens) {
-                if (!longTermMemory.learnedTopics.has(token)) {
-                    longTermMemory.learnedTopics.set(token, { 
-                        count: 1, 
-                        queries: [query],
-                        lastSeen: Date.now()
-                    });
-                } else {
-                    const data = longTermMemory.learnedTopics.get(token);
-                    data.count += 1;
-                    if (!data.queries.includes(query)) {
-                        data.queries.push(query);
-                    }
-                    data.lastSeen = Date.now();
-                }
-            }
-            
-            // Atualiza histórico
-            longTermMemory.queryHistory.push({
-                query: query,
-                timestamp: Date.now(),
-                confidence: result.confidence
-            });
-            
-            // Mantém histórico com tamanho limitado
-            if (longTermMemory.queryHistory.length > 50) {
-                longTermMemory.queryHistory = longTermMemory.queryHistory.slice(-50);
-            }
-            
-            // Mantém aprendizado com tamanho limitado
-            if (longTermMemory.learnedTopics.size > 100) {
-                const sorted = Array.from(longTermMemory.learnedTopics.entries())
-                    .sort((a, b) => b[1].count - a[1].count);
-                longTermMemory.learnedTopics = new Map(sorted.slice(0, 80));
-            }
-            
-            // Atualiza UI
-            document.getElementById('memoryBadge').textContent = `🧠 ${longTermMemory.learnedTopics.size} aprendidos`;
-            document.getElementById('memoryStats').textContent = `🧠 ${longTermMemory.learnedTopics.size} termos aprendidos`;
         }
 
         // ==================== UI ====================
@@ -1291,16 +958,15 @@ Ou reformule sua pergunta com mais detalhes.`,
             if (el) el.remove();
         }
 
-        function formatResponse(query, result, suggestions) {
+        function formatResponse(query, result) {
             const confidenceClass = result.confidence === 'high' ? 'confidence-high' : 
-                                   result.confidence === 'medium' ? 'confidence-medium' : 
-                                   result.confidence === 'low' ? 'confidence-low' : 'confidence-fallback';
+                                   result.confidence === 'medium' ? 'confidence-medium' : 'confidence-low';
             
             let html = `<div class="msg-header">
                 <span class="avatar">🧪</span>
                 <span class="name">ChromatoBuddy</span>
                 <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
-                    ${result.fromFallback ? '🔹 Geral' : '🔹 Base'}
+                    🔹 Base JSON
                 </span>
             </div>`;
             
@@ -1336,23 +1002,11 @@ Ou reformule sua pergunta com mais detalhes.`,
                 html += `<div class="sources-box">📄 <strong>Fontes:</strong> ${result.sources.join(', ')}</div>`;
             }
             
-            // Sugestões
-            if (suggestions && suggestions.length > 0) {
-                html += `<div class="suggestions">
-                    <span style="font-size:0.75rem; color:#8899b0; display:block; width:100%; margin-bottom:4px;">
-                        💡 Perguntas relacionadas:
-                    </span>`;
-                for (const sug of suggestions) {
-                    html += `<button class="suggestion-btn" data-question="${sug}">${sug}</button>`;
-                }
-                html += `</div>`;
-            }
-            
             // Meta
             html += `<div class="meta">
                 <span class="${confidenceClass}">${result.confidenceLabel}</span>
                 <span>⚡ Local · Sem API</span>
-                <span>🧠 ${longTermMemory.learnedTopics.size} termos aprendidos</span>
+                <span>📚 Apenas chunks do JSON</span>
             </div>`;
             
             return html;
@@ -1372,47 +1026,23 @@ Ou reformule sua pergunta com mais detalhes.`,
             showTyping('🔍 analisando pergunta...');
             
             try {
-                // 1. DETECTA TÓPICO
-                const topicMatch = detectTopic(query);
-                
-                if (topicMatch && topicMatch.score > 0.15) {
-                    removeTyping();
-                    showTyping(`🎯 tópico: ${topicMatch.topic} (${Math.round(topicMatch.score * 100)}%)`);
-                }
-                
-                // 2. BUSCA NA BASE
+                // Busca na base
                 const chunks = await retrieveChunks(query, 8);
                 
                 removeTyping();
                 showTyping('🧠 raciocinando...');
                 
-                // 3. CHAIN OF THOUGHT
-                const chainSteps = generateChainOfThought(query, topicMatch, chunks);
+                // Chain of Thought
+                const chainSteps = generateChainOfThought(query, chunks);
                 
-                // 4. SINTETIZA RESPOSTA
-                const result = synthesizeResponse(query, chunks, topicMatch, chainSteps);
-                
-                // 5. GERA SUGESTÕES
-                const suggestions = generateSuggestions(query, result);
-                
-                // 6. APRENDE COM A INTERAÇÃO
-                learnFromInteraction(query, result);
+                // Sintetiza resposta
+                const result = synthesizeResponse(query, chunks, chainSteps);
                 
                 removeTyping();
                 
-                // 7. EXIBE RESPOSTA
-                const html = formatResponse(query, result, suggestions);
+                const html = formatResponse(query, result);
                 addMessage('bot', html, true);
                 
-                // 8. ADICIONA EVENTOS AOS BOTÕES DE SUGESTÃO
-                document.querySelectorAll('.suggestion-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        userInput.value = btn.dataset.question;
-                        handleUserQuery();
-                    });
-                });
-                
-                // Atualiza estatísticas
                 if (chunks.length > 0) {
                     document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks relevantes`;
                 }
@@ -1454,35 +1084,6 @@ Ou reformule sua pergunta com mais detalhes.`,
         async function init() {
             await initEmbedder();
             await loadKnowledgeBase();
-            
-            // Carrega memória do localStorage
-            try {
-                const saved = localStorage.getItem('chromatobuddy_memory');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.learnedTopics) {
-                        longTermMemory.learnedTopics = new Map(Object.entries(parsed.learnedTopics));
-                        document.getElementById('memoryBadge').textContent = `🧠 ${longTermMemory.learnedTopics.size} aprendidos`;
-                    }
-                    if (parsed.queryHistory) {
-                        longTermMemory.queryHistory = parsed.queryHistory;
-                    }
-                }
-            } catch (e) {
-                console.warn('Erro ao carregar memória:', e);
-            }
-            
-            // Salva memória periodicamente
-            setInterval(() => {
-                try {
-                    localStorage.setItem('chromatobuddy_memory', JSON.stringify({
-                        learnedTopics: Object.fromEntries(longTermMemory.learnedTopics),
-                        queryHistory: longTermMemory.queryHistory.slice(-20)
-                    }));
-                } catch (e) {
-                    // Ignora
-                }
-            }, 30000);
             
             if (!userInput.disabled) {
                 userInput.focus();
