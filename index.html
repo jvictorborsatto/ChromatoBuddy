@@ -578,7 +578,7 @@
         <div class="header">
             <div class="header-left">
                 <h1>🧠 Chromato<span>Buddy</span></h1>
-                <span class="subtitle">RAG Híbrido Pro</span>
+                <span class="subtitle">RAG Híbrido Pro v2.0</span>
             </div>
             <div class="badge-group">
                 <span class="badge notebook">📓 NotebookLM Style</span>
@@ -593,20 +593,19 @@
             <div class="message bot">
                 <div class="msg-header">
                     <span class="avatar">🧠</span>
-                    <span class="name">ChromatoBuddy Pro</span>
+                    <span class="name">ChromatoBuddy Pro v2.0</span>
                 </div>
                 <div class="welcome-box">
-                    <strong>🚀 Pipeline NotebookLM-Style</strong>
+                    <strong>🚀 Pipeline Otimizado - Busca em Metadados</strong>
                     <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-                        <strong>Arquitetura:</strong> Query Understanding → BM25 → Embedding → Reranker → Compressor → Qwen3
+                        <strong>Nova Arquitetura:</strong> Query → BM25(metadados) → BGE(metadados) → Reranker → Extração de Sentenças → Síntese
                     </div>
                     <div class="features">
-                        <span class="feature-item notebook">🎯 Intent Classifier</span>
-                        <span class="feature-item turbo">⚡ BM25 + BGE</span>
+                        <span class="feature-item notebook">🎯 Busca em Título+Tags</span>
+                        <span class="feature-item turbo">⚡ BM25 + BGE em metadados</span>
                         <span class="feature-item brain">🧠 Reranker</span>
-                        <span class="feature-item">📊 Sentence Compressor</span>
-                        <span class="feature-item">🔗 GraphRAG</span>
-                        <span class="feature-item">🎯 Qwen3 4B</span>
+                        <span class="feature-item">📝 Extração de sentenças</span>
+                        <span class="feature-item">🎯 Síntese inteligente</span>
                         <span class="feature-item">✅ 100% Local</span>
                     </div>
                     <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
@@ -614,7 +613,7 @@
                     </div>
                 </div>
                 <div class="meta">
-                    <span>✅ RAG NotebookLM-Style</span>
+                    <span>✅ RAG NotebookLM-Style v2.0</span>
                     <span id="chunkInfo">📚 0 chunks</span>
                     <span id="cacheInfo">💾 0 em cache</span>
                 </div>
@@ -635,7 +634,7 @@
                 <span id="sourceInfo">📄 origem: -</span>
                 <span id="perfInfo">⚡ GPU: -</span>
             </div>
-            <span>🔒 Local · 📓 NotebookLM · ⚡ Qwen3 4B</span>
+            <span>🔒 Local · 📓 NotebookLM · ⚡ Otimizado</span>
         </div>
     </div>
 
@@ -720,12 +719,11 @@
             return 'general';
         }
 
-        // ==================== QUERY EXPANSION AVANÇADA ====================
+        // ==================== QUERY EXPANSION ====================
         function expandQuery(query, intent) {
             let expanded = query;
             const q = query.toLowerCase();
 
-            // Expansão baseada em intenção
             const intentExpansions = {
                 'comparison': ['diferença', 'comparação', 'vantagem', 'desvantagem', 'melhor', 'pior'],
                 'mechanism': ['mecanismo', 'efeito', 'influência', 'impacto', 'como', 'porque', 'causa', 'consequência'],
@@ -741,10 +739,8 @@
                 });
             }
 
-            // Expansão por sinônimos (melhorada)
             const expandedQuery = expandWithSynonyms(expanded);
             
-            // Adiciona termos relacionados à cromatografia se a pergunta for muito curta
             if (query.split(' ').length < 4) {
                 expanded += ' cromatografia separação eficiência';
             }
@@ -773,28 +769,68 @@
             return expanded;
         }
 
-        // ==================== CARREGA JSON COM PRÉ-COMPUTAÇÃO ====================
+        // ==================== PROCESSAMENTO DA BASE ====================
+        function processKnowledgeBase(rawData) {
+            const chunks = rawData.chunks.map((chunk, idx) => {
+                // Extrai sentenças-chave (frases com termos técnicos)
+                const sentences = chunk.conteudo
+                    .split(/[.!?]+/)
+                    .filter(s => s.trim().length > 20)
+                    .map(s => s.trim() + '.');
+                
+                // Identifica sentenças mais relevantes
+                const keySentences = sentences.filter(s => {
+                    const lower = s.toLowerCase();
+                    return lower.includes('vantagem') || 
+                           lower.includes('desvantagem') ||
+                           lower.includes('benef') ||
+                           lower.includes('efic') ||
+                           lower.includes('temperatura') ||
+                           lower.includes('pressão') ||
+                           lower.includes('resolução') ||
+                           lower.includes('seletividade') ||
+                           lower.includes('compar') ||
+                           lower.includes('diferença') ||
+                           lower.includes('mecanismo') ||
+                           lower.includes('efeito');
+                });
+
+                return {
+                    ...chunk,
+                    id: idx,
+                    // Metadados para busca (mais discriminativo)
+                    metadata_text: `${chunk.titulo} ${chunk.subtitulo || ''} ${chunk.tags ? chunk.tags.join(' ') : ''}`,
+                    // Conteúdo completo para resposta
+                    conteudo_completo: chunk.conteudo,
+                    // Sentenças chave para contexto
+                    sentencas_chave: keySentences.length > 0 ? keySentences : sentences.slice(0, 5),
+                    // Embedding será adicionado depois
+                    metadata_embedding: null,
+                    conteudo_embedding: null
+                };
+            });
+            return chunks;
+        }
+
+        // ==================== CARREGA JSON ====================
         async function loadKnowledgeBase() {
             const statusBadge = document.getElementById('statusBadge');
             try {
                 statusBadge.textContent = '⏳ carregando...';
                 const response = await fetch('knowledge-base.json');
                 if (!response.ok) throw new Error('JSON não encontrado');
-                knowledgeData = await response.json();
-                const chunks = knowledgeData.chunks || [];
+                const rawData = await response.json();
                 
-                // Pré-processa chunks: adiciona IDs e prepara para embeddings
-                chunks.forEach((chunk, idx) => {
-                    chunk.id = idx;
-                    chunk._text = `${chunk.titulo || ''} ${chunk.tags?.join(' ') || ''} ${chunk.conteudo || ''}`;
-                    chunk.sentences = chunk.conteudo ? chunk.conteudo.split(/[.!?]+/).filter(s => s.trim().length > 10) : [];
-                });
+                // Processa a base
+                knowledgeData = rawData;
+                const chunks = processKnowledgeBase(rawData);
+                knowledgeData.chunks = chunks;
 
                 statusBadge.textContent = `✅ ${chunks.length} chunks`;
                 statusBadge.className = 'badge success';
                 document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks`;
-                document.getElementById('versionInfo').textContent = `📌 ${knowledgeData.versao || '-'}`;
-                document.getElementById('sourceInfo').textContent = `📄 ${knowledgeData.arquivos_origem?.join(', ') || '-'}`;
+                document.getElementById('versionInfo').textContent = `📌 ${rawData.versao || '-'}`;
+                document.getElementById('sourceInfo').textContent = `📄 ${rawData.arquivos_origem?.join(', ') || '-'}`;
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 return chunks;
@@ -814,7 +850,7 @@
             try {
                 const { pipeline } = await import('@xenova/transformers');
 
-                // Embedder: BGE-small-en-v1.5 com WebGPU
+                // Embedder: BGE-small-en-v1.5
                 try {
                     embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', {
                         device: 'webgpu',
@@ -842,7 +878,7 @@
                     useFallback = true;
                 }
 
-                // Reranker: BGE-reranker-base
+                // Reranker
                 try {
                     reranker = await pipeline('text-classification', 'Xenova/bge-reranker-base', {
                         device: useFallback ? 'cpu' : 'webgpu',
@@ -865,14 +901,14 @@
         async function precomputeEmbeddings(chunks) {
             if (!embedderReady || !embedder) return;
             
-            console.log('🧠 Pré-computando embeddings para', chunks.length, 'chunks...');
+            console.log('🧠 Pré-computando embeddings de metadados para', chunks.length, 'chunks...');
             let processed = 0;
             
             for (const chunk of chunks) {
-                if (!chunk.embedding) {
+                if (!chunk.metadata_embedding) {
                     try {
-                        const result = await embedder(chunk._text, { pooling: 'mean', normalize: true });
-                        chunk.embedding = result.data || result;
+                        const result = await embedder(chunk.metadata_text, { pooling: 'mean', normalize: true });
+                        chunk.metadata_embedding = result.data || result;
                         processed++;
                         if (processed % 10 === 0) {
                             console.log(`   ${processed}/${chunks.length} embeddings prontos`);
@@ -882,18 +918,32 @@
                     }
                 }
             }
-            console.log(`✅ ${processed} embeddings pré-computados`);
+            console.log(`✅ ${processed} embeddings de metadados pré-computados`);
         }
 
-        // ==================== FUNÇÕES DE BUSCA OTIMIZADAS ====================
+        // ==================== FUNÇÕES DE BUSCA ====================
 
-        // 1. BM25 Otimizado
-        function bm25Search(query, chunks, topK = 50) {
+        // 1. Cosine Similarity
+        function cosineSimilarity(vecA, vecB) {
+            if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
+            let dot = 0, normA = 0, normB = 0;
+            for (let i = 0; i < vecA.length; i++) {
+                dot += vecA[i] * vecB[i];
+                normA += vecA[i] * vecA[i];
+                normB += vecB[i] * vecB[i];
+            }
+            if (normA === 0 || normB === 0) return 0;
+            return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+        }
+
+        // 2. BM25 em METADADOS
+        function metadataBM25Search(query, chunks, topK = 20) {
             const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
             if (queryTokens.length === 0) return chunks.slice(0, topK);
 
-            const docLengths = chunks.map(c => c._text.toLowerCase().split(/\s+/));
+            const docLengths = chunks.map(c => c.metadata_text.toLowerCase().split(/\s+/));
             const termDocs = {};
+            
             docLengths.forEach((tokens, idx) => {
                 const unique = new Set(tokens);
                 unique.forEach(token => {
@@ -913,7 +963,8 @@
                 queryTokens.forEach(qt => {
                     const tf = tokens.filter(t => t === qt).length;
                     if (tf === 0) return;
-                    const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / ((termDocs[qt]?.size || 0) + 0.5) + 1);
+                    const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / 
+                                       ((termDocs[qt]?.size || 0) + 0.5) + 1);
                     const docLen = tokens.length;
                     score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
                 });
@@ -921,54 +972,43 @@
             }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
         }
 
-        // 2. Cosine Similarity
-        function cosineSimilarity(vecA, vecB) {
-            if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
-            let dot = 0, normA = 0, normB = 0;
-            for (let i = 0; i < vecA.length; i++) {
-                dot += vecA[i] * vecB[i];
-                normA += vecA[i] * vecA[i];
-                normB += vecB[i] * vecB[i];
+        // 3. Busca Híbrida em METADADOS
+        async function hybridMetadataSearch(query, chunks, topK = 20) {
+            const bm25Results = metadataBM25Search(query, chunks, topK * 2);
+            
+            if (!embedderReady || !embedder) {
+                return bm25Results.slice(0, topK);
             }
-            if (normA === 0 || normB === 0) return 0;
-            return dot / (Math.sqrt(normA) * Math.sqrt(normB));
-        }
 
-        // 3. Busca Híbrida com embeddings pré-computados
-        async function hybridSearch(query, chunks, topK = 20) {
-            // Usa cache para embedding da query
             let queryVec;
             if (embeddingCache.has(query)) {
                 queryVec = embeddingCache.get(query);
                 cacheHits++;
-            } else if (embedderReady && embedder) {
+            } else {
                 const result = await embedder(query, { pooling: 'mean', normalize: true });
                 queryVec = result.data || result;
                 embeddingCache.set(query, queryVec);
                 cacheMisses++;
             }
 
-            const bm25Results = bm25Search(query, chunks, topK * 3);
-
-            if (!queryVec || !embedderReady) {
-                return bm25Results.slice(0, topK);
-            }
-
             const withEmbedding = bm25Results.map(chunk => {
-                if (chunk.embedding) {
-                    const similarity = cosineSimilarity(queryVec, chunk.embedding);
+                if (chunk.metadata_embedding) {
+                    const similarity = cosineSimilarity(queryVec, chunk.metadata_embedding);
                     return { ...chunk, similarity };
                 }
                 return { ...chunk, similarity: 0 };
             });
 
-            return withEmbedding.map(chunk => ({
-                ...chunk,
-                hybrid_score: 0.3 * (chunk.bm25_score || 0) + 0.7 * (chunk.similarity || 0)
-            })).sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0)).slice(0, topK);
+            return withEmbedding
+                .map(chunk => ({
+                    ...chunk,
+                    hybrid_score: 0.2 * (chunk.bm25_score || 0) + 0.8 * (chunk.similarity || 0)
+                }))
+                .sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0))
+                .slice(0, topK);
         }
 
-        // 4. Reranker Otimizado
+        // 4. Reranker
         async function rerankChunks(query, chunks, topK = 8) {
             if (!rerankerReady || !reranker || chunks.length === 0) {
                 return chunks.slice(0, topK);
@@ -977,7 +1017,7 @@
             try {
                 const pairs = chunks.map(chunk => ({
                     query,
-                    text: `${chunk.titulo || ''} ${chunk.conteudo || ''}`.slice(0, 1000),
+                    text: `${chunk.titulo || ''} ${chunk.conteudo_completo || ''}`.slice(0, 1000),
                     chunk
                 }));
 
@@ -996,250 +1036,133 @@
             }
         }
 
-        // 5. Sentence Compressor com Embeddings
-        function compressChunks(query, chunks) {
+        // 5. Extração de sentenças relevantes
+        function extractRelevantSentences(query, chunks, maxSentences = 15) {
             const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+            const allSentences = [];
             
-            return chunks.map(chunk => {
-                const sentences = chunk.sentences || [];
-                if (sentences.length === 0) return { ...chunk, compressed: chunk.conteudo || '', compression_ratio: 0 };
-
-                // Pontua cada sentença com base em relevância
-                const scoredSentences = sentences.map(sentence => {
-                    const sentLower = sentence.toLowerCase();
+            chunks.forEach(chunk => {
+                const sentences = chunk.sentencas_chave || [];
+                
+                sentences.forEach(sentence => {
+                    const lower = sentence.toLowerCase();
                     let score = 0;
                     
-                    // 1. Pontuação por tokens da query
+                    // Pontua por termos da query
                     queryTokens.forEach(token => {
-                        if (sentLower.includes(token)) score += 3;
+                        if (lower.includes(token)) score += 2;
                     });
-
-                    // 2. Pontuação por termos importantes
-                    const importantTerms = ['vantagem', 'benefício', 'diferença', 'compar', 'efeito', 'impacto', 
-                        'mecanismo', 'temperatura', 'pressão', 'retenção', 'seletividade', 'eficiência', 'resolução'];
-                    importantTerms.forEach(term => {
-                        if (sentLower.includes(term)) score += 4;
+                    
+                    // Pontua por termos técnicos
+                    const techTerms = ['vantagem', 'desvantagem', 'benefício', 'limitação', 
+                                      'eficiência', 'resolução', 'seletividade', 'pressão', 
+                                      'temperatura', 'partícula', 'coluna', 'capilar',
+                                      'compar', 'diferença', 'mecanismo', 'efeito'];
+                    techTerms.forEach(term => {
+                        if (lower.includes(term)) score += 1;
                     });
-
-                    // 3. Pontuação por sinônimos da query
-                    for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
-                        if (query.toLowerCase().includes(term)) {
-                            for (const syn of synonyms) {
-                                if (sentLower.includes(syn)) score += 2;
-                            }
-                        }
-                    }
-
-                    // 4. Tamanho da sentença (prefere sentenças com tamanho razoável)
-                    const wordCount = sentence.split(' ').length;
-                    if (wordCount > 5 && wordCount < 40) score += 1;
-
-                    return { sentence, score };
+                    
+                    allSentences.push({ 
+                        sentence, 
+                        score, 
+                        source: chunk.titulo || 'Fonte',
+                        chunk_id: chunk.id
+                    });
                 });
-
-                // Seleciona top 5 sentenças
-                const topSentences = scoredSentences
-                    .sort((a, b) => b.score - a.score)
-                    .slice(0, 5)
-                    .map(s => s.sentence.trim());
-
-                return {
-                    ...chunk,
-                    compressed: topSentences.join('. ') + '.',
-                    compression_ratio: topSentences.length / sentences.length,
-                    top_scores: scoredSentences.slice(0, 5).map(s => s.score)
-                };
             });
+            
+            return allSentences
+                .sort((a, b) => b.score - a.score)
+                .slice(0, maxSentences);
         }
 
-        // 6. GraphRAG Simples e Útil
-        function buildGraph(query, chunks) {
-            const nodes = new Map();
-            const edges = [];
-
-            // Entidades importantes
-            const entityPatterns = {
-                'temperatura': ['temperatura', 'térmico', 'calor', 'aquecimento'],
-                'pressão': ['pressão', 'pressão', 'bar', 'psi'],
-                'viscosidade': ['viscosidade', 'fluidez'],
-                'retenção': ['retenção', 'tempo de retenção', 'k\'', 'fator de capacidade'],
-                'seletividade': ['seletividade', 'fator de separação', 'alfa', 'α'],
-                'eficiência': ['eficiência', 'pratos teóricos', 'hetp', 'n'],
-                'resolução': ['resolução', 'rs', 'poder de resolução'],
-                'coluna': ['coluna', 'fase estacionária', 'empacotamento'],
-                'partícula': ['partícula', 'sílica', 'dp', 'µm'],
-                'fluxo': ['fluxo', 'vazão', 'velocidade linear'],
-                'capilar': ['capilar', 'capilares', 'nano-lc', 'micro-lc'],
-                'uhplc': ['uhplc', 'ultra alta pressão'],
-                'hplc': ['hplc', 'alta eficiência']
-            };
-
-            // Extrai entidades dos chunks
-            chunks.forEach(chunk => {
-                const content = (chunk.conteudo || '').toLowerCase();
-                for (const [entity, keywords] of Object.entries(entityPatterns)) {
-                    for (const keyword of keywords) {
-                        if (content.includes(keyword)) {
-                            if (!nodes.has(entity)) {
-                                nodes.set(entity, { name: entity, count: 0, chunks: [] });
-                            }
-                            nodes.get(entity).count++;
-                            if (!nodes.get(entity).chunks.includes(chunk.id)) {
-                                nodes.get(entity).chunks.push(chunk.id);
-                            }
-                            break;
-                        }
-                    }
-                }
-            });
-
-            // Constrói relações baseadas em co-ocorrência
-            const nodeIds = Array.from(nodes.keys());
-            for (let i = 0; i < nodeIds.length; i++) {
-                for (let j = i + 1; j < nodeIds.length; j++) {
-                    const nodeA = nodes.get(nodeIds[i]);
-                    const nodeB = nodes.get(nodeIds[j]);
-                    const commonChunks = nodeA.chunks.filter(id => nodeB.chunks.includes(id));
-                    if (commonChunks.length > 0) {
-                        edges.push({
-                            from: nodeIds[i],
-                            to: nodeIds[j],
-                            weight: commonChunks.length,
-                            type: 'co-occurrence'
-                        });
-                    }
-                }
+        // 6. Síntese de resposta
+        function synthesizeFromSentences(query, sentences, intent) {
+            if (sentences.length === 0) {
+                return 'Não encontrei informações específicas sobre essa pergunta.';
             }
 
-            // Ordena por peso
-            edges.sort((a, b) => b.weight - a.weight);
-
-            return {
-                nodes: Array.from(nodes.values()).sort((a, b) => b.count - a.count).slice(0, 15),
-                edges: edges.slice(0, 20)
+            const grouped = {
+                advantages: [],
+                disadvantages: [],
+                comparisons: [],
+                mechanisms: [],
+                definitions: [],
+                general: []
             };
-        }
 
-        // 7. LLM com Qwen3 4B (simulado com síntese avançada)
-        async function generateResponse(query, chunks, graph, intent) {
-            const compressedChunks = compressChunks(query, chunks);
-            
+            sentences.forEach(item => {
+                const lower = item.sentence.toLowerCase();
+                if (lower.includes('vantagem') || lower.includes('benefício')) {
+                    grouped.advantages.push(item.sentence);
+                } else if (lower.includes('desvantagem') || lower.includes('limitação')) {
+                    grouped.disadvantages.push(item.sentence);
+                } else if (lower.includes('compar') || lower.includes('diferença')) {
+                    grouped.comparisons.push(item.sentence);
+                } else if (lower.includes('mecanismo') || lower.includes('efeito') || lower.includes('influência')) {
+                    grouped.mechanisms.push(item.sentence);
+                } else if (lower.includes('o que é') || lower.includes('definição') || lower.includes('conceito')) {
+                    grouped.definitions.push(item.sentence);
+                } else {
+                    grouped.general.push(item.sentence);
+                }
+            });
+
             let response = '';
-            let sources = [];
             
-            // Constrói contexto estruturado
-            let context = `Pergunta: ${query}\n\n`;
-            context += `Intenção: ${intent}\n\n`;
-            context += `Contexto:\n`;
-            
-            compressedChunks.forEach((chunk, idx) => {
-                const content = chunk.compressed || chunk.conteudo || '';
-                if (content.trim()) {
-                    context += `[${idx + 1}] ${content}\n\n`;
-                    if (chunk.titulo) sources.push(chunk.titulo);
-                }
-            });
-
-            // Adiciona insights do gráfico
-            if (graph && graph.edges.length > 0) {
-                context += `\nRelações identificadas:\n`;
-                graph.edges.slice(0, 8).forEach(e => {
-                    context += `• ${e.from} ↔ ${e.to} (${e.weight} menções)\n`;
-                });
+            switch(intent) {
+                case 'advantages':
+                    response = grouped.advantages.slice(0, 4).join('\n• ');
+                    if (response) response = '**Principais vantagens:**\n• ' + response;
+                    break;
+                case 'disadvantages':
+                    response = grouped.disadvantages.slice(0, 4).join('\n• ');
+                    if (response) response = '**Limitações e desvantagens:**\n• ' + response;
+                    break;
+                case 'comparison':
+                    response = grouped.comparisons.slice(0, 4).join('\n• ');
+                    if (response) response = '**Comparações:**\n• ' + response;
+                    break;
+                case 'mechanism':
+                    response = grouped.mechanisms.slice(0, 4).join('\n• ');
+                    if (response) response = '**Mecanismos e efeitos:**\n• ' + response;
+                    break;
+                case 'definition':
+                    response = grouped.definitions.slice(0, 3).join('\n• ');
+                    if (response) response = '**Definição e conceitos:**\n• ' + response;
+                    break;
+                default:
+                    const allPoints = [
+                        ...grouped.definitions.slice(0, 2),
+                        ...grouped.advantages.slice(0, 2),
+                        ...grouped.mechanisms.slice(0, 2),
+                        ...grouped.general.slice(0, 3)
+                    ];
+                    response = allPoints.join('\n• ');
+                    if (response) response = '**Informações principais:**\n• ' + response;
             }
 
-            // Síntese inteligente baseada na intenção
-            const synthesis = synthesizeResponse(query, context, intent, compressedChunks, graph);
+            if (!response || response === '**Informações principais:**\n• ') {
+                response = sentences.slice(0, 4).map(s => `• ${s.sentence}`).join('\n');
+                if (!response) {
+                    response = 'Não encontrei informações específicas sobre essa pergunta.';
+                }
+            }
+
+            return response;
+        }
+
+        // 7. Geração de resposta otimizada
+        async function generateResponseOptimized(query, relevantSentences, intent) {
+            const synthesis = synthesizeFromSentences(query, relevantSentences, intent);
+            
+            const sources = [...new Set(relevantSentences.map(s => s.source))];
             
             return {
                 response: synthesis,
                 sources: sources.slice(0, 5),
-                compressed_count: compressedChunks.length,
-                intent: intent
+                sentences_count: relevantSentences.length
             };
-        }
-
-        // Função de síntese melhorada
-        function synthesizeResponse(query, context, intent, chunks, graph) {
-            // Extrai informações relevantes dos chunks
-            let mainPoints = [];
-            let supportingDetails = [];
-            let comparisons = [];
-            let mechanisms = [];
-
-            chunks.forEach(chunk => {
-                const content = chunk.compressed || chunk.conteudo || '';
-                const lower = content.toLowerCase();
-
-                if (lower.includes('vantagem') || lower.includes('benefício')) {
-                    mainPoints.push(content);
-                }
-                if (lower.includes('desvantagem') || lower.includes('limitação')) {
-                    supportingDetails.push(content);
-                }
-                if (lower.includes('compar') || lower.includes('diferença')) {
-                    comparisons.push(content);
-                }
-                if (lower.includes('mecanismo') || lower.includes('efeito') || lower.includes('influência')) {
-                    mechanisms.push(content);
-                }
-            });
-
-            // Constrói resposta baseada na intenção
-            let response = '';
-
-            switch(intent) {
-                case 'comparison':
-                    if (comparisons.length > 0) {
-                        response = comparisons.slice(0, 3).join('\n\n');
-                    } else {
-                        response = chunks.slice(0, 3).map(c => c.compressed || c.conteudo).join('\n\n');
-                    }
-                    break;
-                case 'mechanism':
-                    if (mechanisms.length > 0) {
-                        response = mechanisms.slice(0, 3).join('\n\n');
-                    } else {
-                        response = chunks.slice(0, 3).map(c => c.compressed || c.conteudo).join('\n\n');
-                    }
-                    break;
-                case 'advantages':
-                    if (mainPoints.length > 0) {
-                        response = mainPoints.slice(0, 3).join('\n\n');
-                    } else {
-                        response = chunks.slice(0, 3).map(c => c.compressed || c.conteudo).join('\n\n');
-                    }
-                    break;
-                case 'disadvantages':
-                    if (supportingDetails.length > 0) {
-                        response = supportingDetails.slice(0, 3).join('\n\n');
-                    } else {
-                        response = chunks.slice(0, 3).map(c => c.compressed || c.conteudo).join('\n\n');
-                    }
-                    break;
-                default:
-                    response = chunks.slice(0, 4).map((c, i) => {
-                        return `**Ponto ${i + 1}:** ${c.compressed || c.conteudo}`;
-                    }).join('\n\n');
-            }
-
-            // Adiciona insights do gráfico se relevante
-            if (graph && graph.edges.length > 0 && intent === 'mechanism') {
-                response += '\n\n**Relações importantes:**\n';
-                graph.edges.slice(0, 5).forEach(e => {
-                    response += `• ${e.from} influencia ${e.to}\n`;
-                });
-            }
-
-            // Adiciona estrutura se for comparação
-            if (intent === 'comparison' && chunks.length >= 2) {
-                const titles = chunks.slice(0, 3).map(c => c.titulo || 'Tópico');
-                if (titles.length >= 2) {
-                    response = `**Comparação entre ${titles.join(' e ')}**\n\n` + response;
-                }
-            }
-
-            return response.trim() || 'Não encontrei informações específicas sobre essa pergunta.';
         }
 
         // ==================== UI ====================
@@ -1277,58 +1200,16 @@
         function formatPipelineSteps(steps, performance) {
             let html = `<div class="pipeline-steps">
                 <div style="font-weight:600; color:#1a3a6a; margin-bottom:6px; font-size:0.8rem;">
-                    🚀 Pipeline NotebookLM-Style ${performance ? `(⚡ ${Math.round(performance.total)}ms)` : ''}:
+                    🚀 Pipeline NotebookLM-Style v2.0 ${performance ? `(⚡ ${Math.round(performance.total)}ms)` : ''}:
                 </div>`;
             for (const step of steps) {
                 html += `<div class="step">
                     <span class="emoji">${step.emoji}</span>
                     <span class="text">${step.text}</span>
                     ${step.badge ? `<span class="badge-step">${step.badge}</span>` : ''}
-                    ${step.time ? `<span class="badge-step" style="background:#6aafff20;">${step.time}ms</span>` : ''}
                 </div>`;
             }
             html += `</div>`;
-            return html;
-        }
-
-        function formatResponse(query, result, steps, time, cacheInfo) {
-            let html = `<div class="msg-header">
-                <span class="avatar">🧠</span>
-                <span class="name">ChromatoBuddy Pro</span>
-                <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
-                    ⚡ ${time}ms · 🧠 ${result.sources?.length || 0} fontes
-                    ${cacheInfo ? `· 💾 ${cacheInfo}` : ''}
-                </span>
-            </div>`;
-
-            html += formatPipelineSteps(steps, { total: time });
-
-            html += `<div class="answer-box">
-                <h4>📊 Resposta <span style="font-size:0.7rem; font-weight:400; color:#8899b0;">(intenção: ${result.intent || 'geral'})</span></h4>
-                <p>${result.response.replace(/\n/g, '<br>')}</p>
-            </div>`;
-
-            if (result.sources && result.sources.length > 0) {
-                html += `<div class="sources-box">
-                    📖 <strong>Fontes:</strong><br>
-                    ${result.sources.map(s => `• ${s}`).join('<br>')}
-                </div>`;
-            }
-
-            html += `<div class="meta">
-                <span class="confidence-high">✅ ${result.compressed_count || 0} chunks processados</span>
-                <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
-                <span>🧠 BGE + Reranker</span>
-                <span>📓 NotebookLM Style</span>
-            </div>`;
-
-            // Sugestões inteligentes baseadas na pergunta
-            const suggestions = getSuggestions(query);
-            html += `<div class="suggestions">
-                <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
-                ${suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
-            </div>`;
-
             return html;
         }
 
@@ -1367,7 +1248,7 @@
             return suggestions.slice(0, 4);
         }
 
-        // ==================== HANDLE QUERY PRINCIPAL ====================
+        // ==================== HANDLE QUERY OTIMIZADO ====================
         async function handleUserQuery() {
             if (sendBtn.disabled) return;
             const query = userInput.value.trim();
@@ -1381,63 +1262,81 @@
 
             const startTime = performance.now();
             const steps = [];
-            const perfTimings = {};
 
             try {
-                // 1. Classificação de Intenção
-                perfTimings.intent = performance.now();
+                // 1. Classificação
                 const intent = classifyIntent(query);
-                steps.push({ emoji: '🎯', text: `Intenção: ${intent}`, badge: 'classificador', time: Math.round(performance.now() - perfTimings.intent) });
+                steps.push({ emoji: '🎯', text: `Intenção: ${intent}`, badge: 'classificador' });
 
-                // 2. Expansão de Query
-                perfTimings.expand = performance.now();
+                // 2. Expansão
                 const expanded = expandQuery(query, intent);
                 if (expanded !== query) {
-                    steps.push({ emoji: '📚', text: `Query expandida: "${expanded.substring(0, 60)}..."`, badge: 'expansão', time: Math.round(performance.now() - perfTimings.expand) });
+                    steps.push({ emoji: '📚', text: `Query expandida`, badge: 'expansão' });
                 }
 
-                // 3. Busca Híbrida
-                perfTimings.search = performance.now();
-                showTyping('🔍 Buscando com BM25 + BGE...');
+                // 3. Busca híbrida em METADADOS
+                showTyping('🔍 Buscando em metadados...');
                 const chunks = knowledgeData?.chunks || [];
-                const hybridResults = await hybridSearch(expanded, chunks, 20);
-                steps.push({ emoji: '📊', text: `${hybridResults.length} chunks recuperados`, badge: 'busca híbrida', time: Math.round(performance.now() - perfTimings.search) });
+                const results = await hybridMetadataSearch(expanded, chunks, 15);
+                steps.push({ emoji: '📊', text: `${results.length} chunks via metadados`, badge: 'busca híbrida' });
 
-                // 4. Reranker
-                let rerankedResults = hybridResults;
+                // 4. Rerank
+                let rerankedResults = results;
                 if (rerankerReady) {
-                    perfTimings.rerank = performance.now();
-                    showTyping('🧠 Rerankando com BGE-reranker...');
-                    rerankedResults = await rerankChunks(expanded, hybridResults, 8);
-                    steps.push({ emoji: '🎯', text: `${rerankedResults.length} chunks selecionados`, badge: 'reranking', time: Math.round(performance.now() - perfTimings.rerank) });
+                    showTyping('🧠 Rerankando...');
+                    rerankedResults = await rerankChunks(expanded, results, 8);
+                    steps.push({ emoji: '🎯', text: `${rerankedResults.length} selecionados`, badge: 'reranking' });
                 }
 
-                // 5. Compressor
-                perfTimings.compress = performance.now();
-                showTyping('📝 Comprimindo chunks...');
-                const compressed = compressChunks(expanded, rerankedResults);
-                steps.push({ emoji: '📝', text: `Compressão aplicada`, badge: 'compressor', time: Math.round(performance.now() - perfTimings.compress) });
+                // 5. Extração de sentenças
+                showTyping('📝 Extraindo sentenças...');
+                const relevantSentences = extractRelevantSentences(expanded, rerankedResults, 12);
+                steps.push({ emoji: '📝', text: `${relevantSentences.length} sentenças`, badge: 'extração' });
 
-                // 6. Graph
-                perfTimings.graph = performance.now();
-                showTyping('🔗 Construindo grafo...');
-                const graph = buildGraph(expanded, rerankedResults);
-                steps.push({ emoji: '🔗', text: `${graph.nodes.length} nós, ${graph.edges.length} relações`, badge: 'GraphRAG', time: Math.round(performance.now() - perfTimings.graph) });
+                // 6. Geração
+                showTyping('🧠 Sintetizando...');
+                const result = await generateResponseOptimized(expanded, relevantSentences, intent);
+                steps.push({ emoji: '✅', text: `Resposta gerada`, badge: 'síntese' });
 
-                // 7. LLM (síntese)
-                perfTimings.llm = performance.now();
-                showTyping('🧠 Sintetizando resposta...');
-                const result = await generateResponse(query, rerankedResults, graph, intent);
-                steps.push({ emoji: '✅', text: `Resposta gerada com ${result.sources?.length || 0} fontes`, badge: 'LLM', time: Math.round(performance.now() - perfTimings.llm) });
-
-                const endTime = performance.now();
                 removeTyping();
 
-                const totalTime = Math.round(endTime - startTime);
-                const cacheInfo = `cache: ${cacheHits} hits / ${cacheMisses + cacheHits} total`;
-                document.getElementById('cacheInfo').textContent = `💾 ${cacheInfo}`;
+                const totalTime = Math.round(performance.now() - startTime);
+                
+                let html = `<div class="msg-header">
+                    <span class="avatar">🧠</span>
+                    <span class="name">ChromatoBuddy Pro v2.0</span>
+                    <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
+                        ⚡ ${totalTime}ms · 🧠 ${result.sources?.length || 0} fontes
+                    </span>
+                </div>`;
 
-                const html = formatResponse(query, result, steps, totalTime, cacheInfo);
+                html += formatPipelineSteps(steps, { total: totalTime });
+
+                html += `<div class="answer-box">
+                    <h4>📊 Resposta <span style="font-size:0.7rem; font-weight:400; color:#8899b0;">
+                        (intenção: ${intent})</span></h4>
+                    <p>${result.response.replace(/\n/g, '<br>')}</p>
+                </div>`;
+
+                if (result.sources && result.sources.length > 0) {
+                    html += `<div class="sources-box">
+                        📖 <strong>Fontes:</strong><br>
+                        ${result.sources.map(s => `• ${s}`).join('<br>')}
+                    </div>`;
+                }
+
+                html += `<div class="meta">
+                    <span class="confidence-high">✅ ${result.sentences_count || 0} sentenças</span>
+                    <span>🎯 Busca em metadados</span>
+                    <span>📓 NotebookLM v2.0</span>
+                </div>`;
+
+                const suggestions = getSuggestions(query);
+                html += `<div class="suggestions">
+                    <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
+                    ${suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
+                </div>`;
+
                 addMessage('bot', html, true);
 
                 document.querySelectorAll('.suggestion-btn').forEach(btn => {
@@ -1446,8 +1345,6 @@
                         handleUserQuery();
                     });
                 });
-
-                document.getElementById('chunkInfo').textContent = `📚 ${rerankedResults.length} chunks relevantes`;
 
             } catch (err) {
                 removeTyping();
@@ -1490,22 +1387,22 @@
                 await initModels();
                 await precomputeEmbeddings(chunks);
             } else {
-                // Modo fallback sem JSON
                 await initModels();
             }
             
             const status = embedderReady ? '✅' : '⚠️';
-            document.getElementById('modelBadge').textContent = `${status} BGE + Reranker + Qwen3`;
+            document.getElementById('modelBadge').textContent = `${status} BGE + Reranker v2.0`;
             
             if (!userInput.disabled) {
                 userInput.focus();
             }
 
-            console.log('🚀 ChromatoBuddy Pro inicializado!');
-            console.log(`📚 ${chunks.length} chunks carregados`);
+            console.log('🚀 ChromatoBuddy Pro v2.0 inicializado!');
+            console.log(`📚 ${chunks.length} chunks processados`);
             console.log(`🧠 Embedders: ${embedderReady ? '✅' : '❌'}`);
             console.log(`🎯 Reranker: ${rerankerReady ? '✅' : '❌'}`);
             console.log(`💾 Cache: ${embeddingCache.size} embeddings`);
+            console.log('🎯 Nova arquitetura: Busca em METADADOS + Extração de sentenças');
         }
 
         init();
