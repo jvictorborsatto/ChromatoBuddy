@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChromatoBuddy Turbo - IA Local Acelerada</title>
+    <title>ChromatoBuddy - Turbo Inteligente</title>
     <style>
         * {
             box-sizing: border-box;
@@ -96,12 +96,17 @@
             border: none;
             font-weight: 700;
         }
+        .badge.brain {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            font-weight: 700;
+        }
         .badge.turbo {
             background: linear-gradient(135deg, #3498db, #2ecc71);
             color: white;
             border: none;
             font-weight: 700;
-            animation: pulse 2s infinite;
         }
         @keyframes pulse {
             0%,
@@ -111,6 +116,9 @@
             50% {
                 transform: scale(1.05);
             }
+        }
+        .badge.turbo {
+            animation: pulse 2s infinite;
         }
 
         .chat-container {
@@ -243,6 +251,20 @@
             padding: 2px 6px;
             border-radius: 4px;
             font-weight: 500;
+        }
+        .answer-box .insight {
+            background: #e8f5e9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #2e7d32;
+        }
+        .answer-box .warning {
+            background: #ffebee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            color: #c62828;
         }
 
         .sources-box {
@@ -478,8 +500,8 @@
             border: 1px solid #e8edf5;
             color: #1a3a6a;
         }
-        .welcome-box .feature-item.premium {
-            background: linear-gradient(135deg, #f39c12, #e74c3c);
+        .welcome-box .feature-item.brain {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
             color: white;
             border: none;
         }
@@ -489,27 +511,34 @@
             border: none;
         }
 
-        .knowledge-graph {
-            background: #f8faff;
+        .reasoning-box {
+            background: #f3e5f5;
             border-radius: 10px;
             padding: 12px 16px;
             margin: 6px 0;
-            border: 1px solid #e8edf5;
+            border-left: 4px solid #9b59b6;
         }
-        .knowledge-graph .node {
-            display: inline-block;
-            background: #e8edf5;
-            padding: 2px 12px;
+        .reasoning-box .reason-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 4px 0;
+            font-size: 0.85rem;
+        }
+        .reasoning-box .reason-step .icon {
+            font-size: 1rem;
+            min-width: 24px;
+        }
+        .reasoning-box .reason-step .content {
+            flex: 1;
+        }
+        .reasoning-box .reason-step .tag {
+            background: rgba(155, 89, 182, 0.15);
+            padding: 0px 10px;
             border-radius: 12px;
-            margin: 3px;
-            font-size: 0.75rem;
-            color: #1a3a6a;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .knowledge-graph .node:hover {
-            background: #1a3a6a;
-            color: white;
+            font-size: 0.6rem;
+            color: #7b1fa2;
+            font-weight: 600;
         }
 
         .perf-box {
@@ -594,12 +623,12 @@
     <div class="app">
         <div class="header">
             <div class="header-left">
-                <h1>🧪 Chromato<span>Buddy</span></h1>
-                <span class="subtitle">Turbo ⚡</span>
+                <h1>🧠 Chromato<span>Buddy</span></h1>
+                <span class="subtitle">Turbo + Raciocínio</span>
             </div>
             <div class="badge-group">
-                <span class="badge turbo">⚡ WebGPU</span>
-                <span class="badge premium">🧠 Web Worker</span>
+                <span class="badge turbo">⚡ Turbo</span>
+                <span class="badge brain">🧠 Raciocínio</span>
                 <span class="badge" id="statusBadge">⏳ carregando...</span>
                 <span class="badge" id="modelBadge">⏳ modelo...</span>
             </div>
@@ -608,37 +637,37 @@
         <div class="chat-container" id="chatContainer">
             <div class="message bot">
                 <div class="msg-header">
-                    <span class="avatar">🧪</span>
+                    <span class="avatar">🧠</span>
                     <span class="name">ChromatoBuddy Turbo</span>
                 </div>
                 <div class="welcome-box">
-                    <strong>🚀 Olá! Sou seu assistente TURBO de cromatografia.</strong>
+                    <strong>🚀 O MELHOR DOS DOIS MUNDOS!</strong>
                     <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-                        ⚡ <strong>Raciocínio 10x mais rápido com WebGPU + Web Worker</strong>
+                        ⚡ <strong>Velocidade Turbo + Raciocínio Inteligente</strong>
                     </div>
                     <div class="features">
-                        <span class="feature-item turbo">⚡ WebGPU (GPU)</span>
-                        <span class="feature-item premium">🧠 Web Worker</span>
-                        <span class="feature-item">🔍 Busca Semântica</span>
-                        <span class="feature-item">📚 Sinônimos Dinâmicos</span>
-                        <span class="feature-item">🕸️ Grafo de Conhecimento</span>
-                        <span class="feature-item">🎯 Detecção de Intenção</span>
-                        <span class="feature-item">✅ Validação Automática</span>
-                        <span class="feature-item">📊 Análise de Sentimento</span>
+                        <span class="feature-item turbo">⚡ WebGPU + Worker</span>
+                        <span class="feature-item brain">🧠 Raciocínio Lógico</span>
+                        <span class="feature-item">📊 Síntese Multi-fonte</span>
+                        <span class="feature-item">🔗 Conexões Causais</span>
+                        <span class="feature-item">🎯 Extração de Insights</span>
+                        <span class="feature-item">✅ Validação Cruzada</span>
+                        <span class="feature-item">📈 Análise de Tendências</span>
+                        <span class="feature-item">💡 Geração de Hipóteses</span>
                     </div>
                     <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
-                        💬 Pergunte sobre cromatografia, LC-MS, SPME, colunas e muito mais.
+                        💬 Pergunte sobre vantagens, comparações, efeitos e mecanismos.
                     </div>
                 </div>
                 <div class="meta">
-                    <span>✅ Sistema baseado apenas nos chunks do JSON</span>
+                    <span>✅ Turbo + Raciocínio</span>
                     <span id="chunkInfo">📚 0 chunks</span>
                 </div>
             </div>
         </div>
 
         <div class="input-area">
-            <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito do tamanho da partícula na separação?" disabled></textarea>
+            <textarea id="userInput" rows="1" placeholder="Ex: quais as vantagens da cromatografia capilar?" disabled></textarea>
             <button id="sendBtn" disabled>
                 Enviar
                 <span class="shortcut">⌘↵</span>
@@ -651,7 +680,7 @@
                 <span id="sourceInfo">📄 origem: -</span>
                 <span id="perfInfo">⚡ GPU: -</span>
             </div>
-            <span>🔒 Local · WebGPU · Web Worker · 🚀 Turbo</span>
+            <span>🔒 Local · ⚡ Turbo · 🧠 Raciocínio</span>
         </div>
     </div>
 
@@ -665,25 +694,15 @@
 
     <!-- ===== WEB WORKER ===== -->
     <script id="workerScript" type="javascript/worker">
-        // Worker code
-        self.importScripts = self.importScripts || ((url) => {
-            importScripts(url);
-        });
-
-        // Carrega Transformers.js no Worker
         self.onmessage = async function(e) {
             if (e.data.type === 'init') {
                 try {
-                    // Usa import dinâmico no Worker
                     const { pipeline } = await import('@xenova/transformers');
 
-                    // Detecta suporte a WebGPU
                     let device = 'cpu';
                     let dtype = 'fp32';
 
-                    // Tenta usar WebGPU (mais rápido)
                     try {
-                        // Verifica se o navegador suporta WebGPU
                         const adapter = await navigator.gpu?.requestAdapter();
                         if (adapter) {
                             device = 'webgpu';
@@ -696,15 +715,11 @@
                         self.postMessage({ type: 'status', message: 'ℹ️ Usando WASM (CPU)' });
                     }
 
-                    // Inicializa o pipeline com as otimizações
                     const embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
                         device: device,
                         dtype: dtype,
                         progress_callback: (progress) => {
-                            self.postMessage({
-                                type: 'progress',
-                                progress: progress
-                            });
+                            self.postMessage({ type: 'progress', progress: progress });
                         }
                     });
 
@@ -713,34 +728,21 @@
                     self.dtype = dtype;
                     self.ready = true;
 
-                    self.postMessage({
-                        type: 'ready',
-                        device: device,
-                        dtype: dtype
-                    });
+                    self.postMessage({ type: 'ready', device: device, dtype: dtype });
                 } catch (err) {
-                    self.postMessage({
-                        type: 'error',
-                        error: err.message
-                    });
+                    self.postMessage({ type: 'error', error: err.message });
                 }
             }
 
             if (e.data.type === 'embed') {
                 if (!self.ready) {
-                    self.postMessage({
-                        type: 'error',
-                        error: 'Modelo não está pronto'
-                    });
+                    self.postMessage({ type: 'error', error: 'Modelo não está pronto' });
                     return;
                 }
 
                 try {
                     const startTime = performance.now();
-                    const result = await self.embedder(e.data.text, {
-                        pooling: 'mean',
-                        normalize: true
-                    });
+                    const result = await self.embedder(e.data.text, { pooling: 'mean', normalize: true });
                     const endTime = performance.now();
 
                     self.postMessage({
@@ -750,39 +752,77 @@
                         text: e.data.text
                     });
                 } catch (err) {
-                    self.postMessage({
-                        type: 'error',
-                        error: err.message
-                    });
+                    self.postMessage({ type: 'error', error: err.message });
                 }
             }
         };
 
-        // Notifica que o worker está pronto
         self.postMessage({ type: 'worker_ready' });
     </script>
 
     <script type="module">
         // ==================== IMPORTAÇÕES ====================
-        // O Transformers.js é carregado apenas no Worker
-        // O código principal fica leve e rápido
-
-        // ==================== ESTADO ====================
         let knowledgeData = null;
         let worker = null;
         let workerReady = false;
         let embedderReady = false;
         let pendingQueries = [];
+        let embedderFallback = null;
+        let fallbackMode = false;
 
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
+        // ==================== SINÔNIMOS ====================
+        const SYNONYM_MAP = {
+            'cromatografia': ['cromatográfico', 'cromatográfica', 'lc', 'hplc', 'uhplc', 'cromatografia liquida',
+                'cromatografia líquida'
+            ],
+            'lc': ['cromatografia líquida', 'cromatografia liquida', 'hplc', 'uhplc'],
+            'hplc': ['cromatografia líquida de alta eficiência', 'lc', 'uhplc'],
+            'uhplc': ['cromatografia líquida de ultra eficiência', 'lc', 'hplc', 'ultra alta pressão'],
+            'capilar': ['capilares', 'capillary', 'CLC', 'cromatografia líquida capilar', 'nano-LC', 'micro-LC'],
+            'partícula': ['particula', 'partículas', 'particulas', 'particle', 'beads', 'esferas', 'sílica', 'silica', 'dp',
+                'µm'
+            ],
+            'coluna': ['colunas', 'column', 'columns', 'empacotamento', 'packing', 'fase estacionária'],
+            'separação': ['separacao', 'separar', 'resolução', 'resolucao', 'rs', 'eficiencia', 'eficiência'],
+            'pressão': ['pressao', 'pressões', 'pressoes', 'bar', 'psi', 'pressure', 'backpressure'],
+            'fluxo': ['vazão', 'vazao', 'flow', 'vazões', 'vazoes'],
+            'vantagem': ['vantagens', 'benefício', 'benefícios', 'beneficio', 'beneficios', 'por que usar'],
+            'desvantagem': ['desvantagens', 'limitação', 'limitações', 'limitacao', 'limitacoes', 'problema', 'desafio'],
+            'eficiência': ['eficiencia', 'pratos teóricos', 'pratos teoricos', 'n', 'hetp'],
+            'resolução': ['resolucao', 'rs', 'poder de resolução', 'poder de resolucao'],
+            'lc-ms': ['lcms', 'espectrometria de massas', 'mass spectrometry', 'ms'],
+            'spme': ['solid phase microextraction', 'microextração', 'microextracao', 'fibra', 'it-spme'],
+        };
+
+        function expandWithSynonyms(query) {
+            let expanded = query;
+            const queryLower = query.toLowerCase();
+            for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
+                if (queryLower.includes(term)) {
+                    for (const syn of synonyms) {
+                        if (!expanded.includes(syn)) expanded += ' ' + syn;
+                    }
+                }
+                for (const syn of synonyms) {
+                    if (queryLower.includes(syn)) {
+                        if (!expanded.includes(term)) expanded += ' ' + term;
+                        for (const otherSyn of synonyms) {
+                            if (otherSyn !== syn && !expanded.includes(otherSyn)) expanded += ' ' + otherSyn;
+                        }
+                    }
+                }
+            }
+            return expanded;
+        }
+
         // ==================== INICIALIZA WEB WORKER ====================
         function initWorker() {
             return new Promise((resolve, reject) => {
                 try {
-                    // Cria o worker a partir do script inline
                     const workerCode = document.getElementById('workerScript').textContent;
                     const blob = new Blob([workerCode], { type: 'application/javascript' });
                     const workerUrl = URL.createObjectURL(blob);
@@ -792,7 +832,6 @@
                         const data = e.data;
 
                         if (data.type === 'worker_ready') {
-                            // Worker está pronto, inicia o modelo
                             worker.postMessage({ type: 'init' });
                         }
 
@@ -810,7 +849,6 @@
                             document.getElementById('perfInfo').textContent =
                                 `⚡ ${data.device.toUpperCase()} (${data.dtype})`;
 
-                            // Processa queries pendentes
                             pendingQueries.forEach(q => {
                                 worker.postMessage({ type: 'embed', text: q });
                             });
@@ -820,69 +858,73 @@
                         }
 
                         if (data.type === 'embed_result') {
-                            // Processa o resultado do embedding
                             handleEmbedResult(data.text, data.data, data.time);
                         }
 
                         if (data.type === 'error') {
                             console.error('Worker error:', data.error);
+                            // Fallback: tenta carregar diretamente
+                            if (!fallbackMode) {
+                                fallbackMode = true;
+                                initFallbackEmbedder().then(resolve).catch(reject);
+                            }
                             reject(new Error(data.error));
-                        }
-
-                        if (data.type === 'progress') {
-                            // Atualiza progresso se necessário
                         }
                     };
 
                     worker.onerror = (error) => {
                         console.error('Worker error:', error);
+                        if (!fallbackMode) {
+                            fallbackMode = true;
+                            initFallbackEmbedder().then(resolve).catch(reject);
+                        }
                         reject(error);
                     };
 
                 } catch (err) {
                     console.error('Erro ao iniciar worker:', err);
+                    if (!fallbackMode) {
+                        fallbackMode = true;
+                        initFallbackEmbedder().then(resolve).catch(reject);
+                    }
                     reject(err);
                 }
             });
         }
 
+        // ==================== FALLBACK EMBEDDER ====================
+        async function initFallbackEmbedder() {
+            try {
+                const { pipeline } = await import('@xenova/transformers');
+                embedderFallback = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+                embedderReady = true;
+                document.getElementById('modelBadge').textContent = '⚠️ Fallback (CPU)';
+                document.getElementById('modelBadge').className = 'badge warning';
+                document.getElementById('perfInfo').textContent = '⚡ CPU (fallback)';
+                return true;
+            } catch (err) {
+                console.error('Fallback também falhou:', err);
+                return false;
+            }
+        }
+
         // ==================== EMBEDDING VIA WORKER ====================
         function getEmbedding(text) {
             return new Promise((resolve, reject) => {
+                if (fallbackMode && embedderFallback) {
+                    // Usa fallback diretamente
+                    embedderFallback(text, { pooling: 'mean', normalize: true })
+                        .then(result => resolve({ data: result, time: 0 }))
+                        .catch(reject);
+                    return;
+                }
+
                 if (!workerReady || !embedderReady) {
-                    // Aguarda o worker ficar pronto
-                    const checkReady = () => {
-                        if (workerReady && embedderReady) {
-                            worker.postMessage({ type: 'embed', text });
-                            // A resposta virá via onmessage
-                            const handler = (e) => {
-                                if (e.data.type === 'embed_result' && e.data.text === text) {
-                                    worker.removeEventListener('message', handler);
-                                    resolve({
-                                        data: e.data.data,
-                                        time: e.data.time
-                                    });
-                                }
-                                if (e.data.type === 'error') {
-                                    worker.removeEventListener('message', handler);
-                                    reject(new Error(e.data.error));
-                                }
-                            };
-                            worker.addEventListener('message', handler);
-                        } else {
-                            setTimeout(checkReady, 100);
-                        }
-                    };
-                    // Adiciona à fila de pendentes
                     pendingQueries.push(text);
-                    // O resultado virá via onmessage principal
                     const handler = (e) => {
                         if (e.data.type === 'embed_result' && e.data.text === text) {
                             worker.removeEventListener('message', handler);
-                            resolve({
-                                data: e.data.data,
-                                time: e.data.time
-                            });
+                            resolve({ data: e.data.data, time: e.data.time });
                         }
                         if (e.data.type === 'error') {
                             worker.removeEventListener('message', handler);
@@ -895,10 +937,7 @@
                     const handler = (e) => {
                         if (e.data.type === 'embed_result' && e.data.text === text) {
                             worker.removeEventListener('message', handler);
-                            resolve({
-                                data: e.data.data,
-                                time: e.data.time
-                            });
+                            resolve({ data: e.data.data, time: e.data.time });
                         }
                         if (e.data.type === 'error') {
                             worker.removeEventListener('message', handler);
@@ -912,25 +951,22 @@
 
         // ==================== HANDLE EMBED RESULT ====================
         async function handleEmbedResult(text, embedding, time) {
-            // O embedding já está pronto, processa a busca
             try {
-                // Recupera a pergunta original da fila de contexto
                 const query = text;
                 const chunks = await retrieveChunks(query, embedding, 10);
 
                 removeTyping();
-                showTyping('🧠 raciocinando com IA...');
+                showTyping('🧠 raciocinando...');
 
-                const chainSteps = generateChainOfThought(query, chunks);
-                const result = synthesizeResponse(query, chunks, chainSteps);
+                const reasoning = synthesizeWithReasoning(query, chunks);
 
                 removeTyping();
 
-                const html = formatResponse(query, result, time);
+                const html = formatResponse(query, chunks, reasoning, time);
                 addMessage('bot', html, true);
 
                 if (chunks.length > 0) {
-                    document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks relevantes`;
+                    document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks analisados`;
                 }
 
                 document.querySelectorAll('.suggestion-btn').forEach(btn => {
@@ -947,128 +983,34 @@
             } catch (err) {
                 removeTyping();
                 console.error(err);
-                addMessage('bot', `❌ Ops! Algo deu errado: ${err.message || 'tente novamente'}`);
+                addMessage('bot', `❌ Erro: ${err.message || 'tente novamente'}`);
                 sendBtn.disabled = false;
                 userInput.disabled = false;
             }
-        }
-
-        // ==================== LISTA DE SINÔNIMOS ====================
-        const SYNONYM_MAP = {
-            'cromatografia': ['cromatográfico', 'cromatográfica', 'lc', 'hplc', 'uhplc', 'cromatografia liquida', 'cromatografia líquida',
-                'separação cromatográfica', 'separacao cromatografica'
-            ],
-            'lc': ['cromatografia líquida', 'cromatografia liquida', 'hplc', 'uhplc', 'cromatografia'],
-            'hplc': ['cromatografia líquida de alta eficiência', 'lc', 'uhplc', 'alta eficiência', 'alta eficiencia'],
-            'uhplc': ['cromatografia líquida de ultra eficiência', 'lc', 'hplc', 'ultra eficiência', 'ultra eficiencia'],
-            'partícula': ['particula', 'partículas', 'particulas', 'particle', 'beads', 'esferas', 'sílica', 'silica', 'dp', 'µm',
-                'micrometro', 'tamanho de partícula', 'tamanho de particula'
-            ],
-            'coluna': ['colunas', 'column', 'columns', 'empacotamento', 'packing', 'fase estacionária', 'fase estacionaria'],
-            'separação': ['separacao', 'separar', 'resolução', 'resolucao', 'rs', 'eficiencia', 'eficiência'],
-            'pressão': ['pressao', 'pressões', 'pressoes', 'bar', 'psi', 'pressure', 'backpressure'],
-            'fluxo': ['vazão', 'vazao', 'flow', 'vazões', 'vazoes'],
-            'van deemter': ['vandeemter', 'curva de van deemter', 'hetp', 'altura equivalente'],
-            'core-shell': ['core shell', 'spp', 'fused core', 'superficialmente porosa', 'núcleo sólido'],
-            'totalmente porosa': ['totalmente poroso', 'fp', 'fully porous'],
-            'fase móvel': ['fase movel', 'mobile phase', 'solvente', 'eluente'],
-            'fase estacionária': ['fase estacionaria', 'stationary phase'],
-            'temperatura': ['temperaturas', 'thermal', 'térmico', 'termico'],
-            'spme': ['solid phase microextraction', 'microextração', 'microextracao', 'fibra', 'it-spme'],
-            'lc-ms': ['lcms', 'espectrometria de massas', 'mass spectrometry', 'ms'],
-            'gc': ['cromatografia gasosa', 'gas chromatography'],
-            'validação': ['validacao', 'validate', 'validation', 'anvisa', 'ich', 'rdc'],
-            'linearidade': ['linear', 'correlação', 'correlacao', 'r²', 'r2'],
-            'precisão': ['precisao', 'repetibilidade', 'repetitividade', 'reprodutibilidade'],
-            'exatidão': ['exatidao', 'recuperação', 'recuperacao', 'accuracy'],
-            'pca': ['componentes principais', 'principal component', 'análise multivariada', 'analise multivariada'],
-            'gradiente': ['gradient', 'gradiente de solvente', 'eluição', 'eluição gradiente', 'eluicao'],
-            'isotermico': ['isotérmico', 'isotermico', 'isocratico', 'isocrático'],
-            'amostra': ['sample', 'samples', 'preparo', 'preparação', 'preparacao', 'extração', 'extracao'],
-            'analito': ['analitos', 'composto', 'compostos', 'substância', 'substancia', 'soluto'],
-            'matriz': ['matrizes', 'matrix', 'interferente', 'interferentes'],
-            'válvula': ['válvulas', 'valvula', 'valvulas', 'column-switching', 'comutação', 'commutação', 'forward-flush',
-                'back-flush'
-            ],
-            'monolítica': ['monoliticas', 'monolith', 'monolithic', 'colunas monolíticas', 'colunas monoliticas'],
-            'capilar': ['capilares', 'capillary', 'CLC', 'cromatografia líquida capilar', 'nano-LC', 'micro-LC'],
-            'empacotada': ['empacotadas', 'packed', 'partículas empacotadas', 'particulas empacotadas'],
-            'tubular': ['tubulares', 'open tubular', 'OT', 'colunas tubulares abertas'],
-            'fase reversa': ['fase reversa', 'reverse phase', 'RP', 'RP-LC', 'C18', 'octadecilsilano'],
-            'fase normal': ['fase normal', 'normal phase', 'NP', 'NP-LC'],
-            'hilic': ['HILIC', 'hidrofilica', 'hidrofílica', 'interação hidrofílica', 'hydrophilic interaction'],
-            'troca iônica': ['troca ionica', 'ion exchange', 'IEX', 'cromatografia de troca iônica'],
-            'dessorção': ['dessorcao', 'desorption', 'eluicao', 'eluição', 'extração térmica', 'extracao termica'],
-            'espectrometria de massas': ['espectrometria', 'massas', 'mass spectrometry', 'MS', 'ESI', 'ionização', 'ionizacao'],
-            'resolução': ['resolucao', 'rs', 'poder de resolução', 'poder de resolucao'],
-            'eficiência': ['eficiencia', 'pratos teóricos', 'pratos teoricos', 'n', 'hetp'],
-            'seletividade': ['seletividade', 'seletividade cromatográfica', 'fator de seletividade', 'alfa', 'α'],
-            'retenção': ['retencao', 'tempo de retenção', 'tempo de retencao', 'tr', 'fator de retenção', 'fator de retencao',
-                'k'
-            ],
-            'detector': ['detectores', 'detection', 'UV', 'DAD', 'MS', 'espectrometria', 'detecção', 'detecao'],
-        };
-
-        // ==================== EXPANDE SINÔNIMOS ====================
-        function expandWithSynonyms(query) {
-            let expanded = query;
-            const queryLower = query.toLowerCase();
-
-            for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
-                if (queryLower.includes(term)) {
-                    for (const syn of synonyms) {
-                        if (!expanded.includes(syn)) {
-                            expanded += ' ' + syn;
-                        }
-                    }
-                }
-                for (const syn of synonyms) {
-                    if (queryLower.includes(syn)) {
-                        if (!expanded.includes(term)) {
-                            expanded += ' ' + term;
-                        }
-                        for (const otherSyn of synonyms) {
-                            if (otherSyn !== syn && !expanded.includes(otherSyn)) {
-                                expanded += ' ' + otherSyn;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return expanded;
         }
 
         // ==================== CARREGA JSON ====================
         async function loadKnowledgeBase() {
             const statusBadge = document.getElementById('statusBadge');
-
             try {
                 statusBadge.textContent = '⏳ carregando...';
                 const response = await fetch('knowledge-base.json');
-
                 if (!response.ok) throw new Error('JSON não encontrado');
-
                 knowledgeData = await response.json();
                 const chunks = knowledgeData.chunks || [];
-
                 statusBadge.textContent = `✅ ${chunks.length} chunks`;
                 statusBadge.className = 'badge success';
-
                 document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks`;
                 document.getElementById('versionInfo').textContent = `📌 ${knowledgeData.versao || '-'}`;
                 document.getElementById('sourceInfo').textContent = `📄 ${knowledgeData.arquivos_origem?.join(', ') || '-'}`;
-
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 return chunks;
-
             } catch (err) {
                 console.warn('Erro ao carregar JSON:', err);
                 statusBadge.textContent = '⚠️ JSON não encontrado';
                 statusBadge.className = 'badge warning';
                 document.getElementById('chunkInfo').textContent = '📚 0 chunks';
-
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 return [];
@@ -1094,57 +1036,29 @@
             const expandedQuery = expandWithSynonyms(query);
             const queryLower = expandedQuery.toLowerCase();
             const queryTokens = queryLower.split(/\s+/).filter(w => w.length > 2);
-
             const ngrams = [];
             for (let i = 0; i < queryTokens.length - 1; i++) {
                 ngrams.push(queryTokens[i] + ' ' + queryTokens[i + 1]);
             }
-
             const scored = chunks.map(chunk => {
                 let score = 0;
-                let matchInfo = [];
                 const title = (chunk.titulo || '').toLowerCase();
                 const tags = (chunk.tags || []).join(' ').toLowerCase();
                 const content = (chunk.conteudo || '').toLowerCase();
-
                 for (const token of queryTokens) {
-                    if (title.includes(token)) {
-                        score += 4;
-                        matchInfo.push(`título:${token}`);
-                    }
-                }
-                for (const ngram of ngrams) {
-                    if (title.includes(ngram)) {
-                        score += 6;
-                        matchInfo.push(`título-frase:${ngram}`);
-                    }
-                }
-
-                for (const token of queryTokens) {
-                    if (tags.includes(token)) {
-                        score += 3;
-                        matchInfo.push(`tags:${token}`);
-                    }
-                }
-
-                for (const token of queryTokens) {
+                    if (title.includes(token)) score += 4;
+                    if (tags.includes(token)) score += 3;
                     if (content.includes(token)) {
                         const count = (content.match(new RegExp(token, 'g')) || []).length;
                         score += 1 + Math.min(count, 3) * 0.5;
-                        matchInfo.push(`conteúdo:${token}(${count})`);
                     }
                 }
-
                 for (const ngram of ngrams) {
-                    if (content.includes(ngram)) {
-                        score += 3;
-                        matchInfo.push(`conteúdo-frase:${ngram}`);
-                    }
+                    if (title.includes(ngram)) score += 6;
+                    if (content.includes(ngram)) score += 3;
                 }
-
-                return { ...chunk, score, matchInfo };
+                return { ...chunk, score };
             });
-
             scored.sort((a, b) => b.score - a.score);
             return scored;
         }
@@ -1153,12 +1067,10 @@
             const expandedQuery = expandWithSynonyms(query);
             const queryTokens = expandedQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
             if (queryTokens.length === 0) return chunks.slice(0, topK);
-
             const docLengths = chunks.map(c => {
                 const text = `${c.titulo || ''} ${c.tags?.join(' ') || ''} ${c.conteudo || ''}`.toLowerCase();
                 return text.split(/\s+/);
             });
-
             const termDocs = {};
             docLengths.forEach((tokens, idx) => {
                 const unique = new Set(tokens);
@@ -1167,12 +1079,10 @@
                     termDocs[token].add(idx);
                 });
             });
-
             const avgDocLen = docLengths.reduce((sum, t) => sum + t.length, 0) / docLengths.length;
             const totalDocs = docLengths.length;
             const k1 = 1.5;
             const b = 0.75;
-
             const scores = chunks.map((chunk, idx) => {
                 const tokens = docLengths[idx];
                 let score = 0;
@@ -1186,7 +1096,6 @@
                 });
                 return { ...chunk, bm25_score: score };
             });
-
             scores.sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0));
             return scores.slice(0, topK);
         }
@@ -1195,16 +1104,11 @@
             if (!knowledgeData || !knowledgeData.chunks || knowledgeData.chunks.length === 0) {
                 return [];
             }
-
             const allChunks = knowledgeData.chunks;
-
             const hierarchicalResults = hierarchicalSearch(query, allChunks);
             const topHierarchical = hierarchicalResults.slice(0, topK * 2);
-
             const bm25Results = bm25Search(query, allChunks, topK * 2);
-
             const combinedMap = new Map();
-
             topHierarchical.forEach(c => {
                 const key = c.id || c.conteudo?.substring(0, 50);
                 if (!combinedMap.has(key)) {
@@ -1214,7 +1118,6 @@
                     existing.combinedScore += c.score * 1.5;
                 }
             });
-
             bm25Results.forEach(c => {
                 const key = c.id || c.conteudo?.substring(0, 50);
                 if (!combinedMap.has(key)) {
@@ -1224,28 +1127,19 @@
                     existing.combinedScore += (c.bm25_score || 0) * 2;
                 }
             });
-
             let results = Array.from(combinedMap.values());
 
-            // Reranking com embedding (já processado pelo Worker)
+            // Reranking com embedding
             if (embedding && results.length > 0) {
                 const queryVec = embedding.data;
-
-                const batchSize = 10;
-                for (let i = 0; i < results.length; i += batchSize) {
-                    const batch = results.slice(i, i + batchSize);
-                    for (const chunk of batch) {
-                        try {
-                            // Simula embedding do chunk (na prática seria feito no Worker também)
-                            // Como já temos o embedding da query, usamos apenas a similaridade textual
-                            const text = `${chunk.titulo || ''} ${chunk.tags?.join(' ') || ''} ${chunk.conteudo || ''}`;
-                            // Aqui poderíamos enviar para o Worker também, mas por simplicidade
-                            // usamos uma heurística baseada no score existente
-                            chunk.similarity = Math.min(chunk.score / 100, 1);
-                            chunk.combinedScore = (chunk.combinedScore || 0) * 0.5 + chunk.score * 0.5;
-                        } catch (e) {
-                            chunk.similarity = 0;
-                        }
+                for (const chunk of results) {
+                    try {
+                        const text = `${chunk.titulo || ''} ${chunk.tags?.join(' ') || ''} ${chunk.conteudo || ''}`;
+                        // Usa score baseado na similaridade textual como proxy
+                        chunk.similarity = Math.min(chunk.score / 100, 1);
+                        chunk.combinedScore = (chunk.combinedScore || 0) * 0.5 + chunk.score * 0.5;
+                    } catch (e) {
+                        chunk.similarity = 0;
                     }
                 }
             }
@@ -1254,400 +1148,364 @@
             return results.slice(0, topK);
         }
 
+        // ==================== SISTEMA DE RACIOCÍNIO ====================
+
+        function extractEntities(text) {
+            const entities = {
+                conceitos: [],
+                propriedades: [],
+                relacoes: [],
+                numeros: [],
+                comparacoes: []
+            };
+
+            const numPattern = /\b(\d+(?:[.,]\d+)?)\s*(µm|μm|nm|mm|cm|bar|psi|MPa|kPa|°C|K|min|s|mL|µL|L|g|mg|µg|ng|pg)\b/gi;
+            let match;
+            while ((match = numPattern.exec(text)) !== null) {
+                entities.numeros.push({ valor: parseFloat(match[1].replace(',', '.')), unidade: match[2] });
+            }
+
+            const compPatterns = [
+                /\b(maior|menor|melhor|pior|superior|inferior|mais|menos)\s+([a-zA-Zçãõáéíóúâêô]+)/gi,
+                /\b(aumenta|diminui|reduz|eleva|melhora|piora)\s+([a-zA-Zçãõáéíóúâêô]+)/gi
+            ];
+            compPatterns.forEach(pattern => {
+                let m;
+                while ((m = pattern.exec(text)) !== null) {
+                    entities.comparacoes.push({ tipo: m[1], alvo: m[2] });
+                }
+            });
+
+            const causalPatterns = [
+                /(?:devido a|por causa de|em função de|graças a)\s+([a-zA-Zçãõáéíóúâêô\s]+)/gi,
+                /(?:leva a|resulta em|provoca|causa)\s+([a-zA-Zçãõáéíóúâêô\s]+)/gi
+            ];
+            causalPatterns.forEach(pattern => {
+                let m;
+                while ((m = pattern.exec(text)) !== null) {
+                    entities.relacoes.push({ tipo: 'causal', descricao: m[1].trim() });
+                }
+            });
+
+            const words = text.toLowerCase().split(/\s+/);
+            const freq = {};
+            words.forEach(w => {
+                if (w.length > 4 && !['como', 'para', 'com', 'sem', 'uma', 'duas', 'três'].includes(w)) {
+                    freq[w] = (freq[w] || 0) + 1;
+                }
+            });
+            const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+            entities.conceitos = sorted.slice(0, 10).map(([word]) => word);
+
+            return entities;
+        }
+
+        function detectContradictions(chunks) {
+            const contradictions = [];
+            const statements = [];
+
+            chunks.forEach(chunk => {
+                const text = chunk.conteudo || '';
+                const sentences = text.split(/[.!?]+/);
+                sentences.forEach(s => {
+                    if (s.includes('vantagem') || s.includes('benefício') || s.includes('melhor')) {
+                        statements.push({ type: 'positive', text: s.trim(), source: chunk.titulo });
+                    }
+                    if (s.includes('desvantagem') || s.includes('limitação') || s.includes('pior')) {
+                        statements.push({ type: 'negative', text: s.trim(), source: chunk.titulo });
+                    }
+                    if (s.includes('porém') || s.includes('mas') || s.includes('entretanto')) {
+                        statements.push({ type: 'contrast', text: s.trim(), source: chunk.titulo });
+                    }
+                });
+            });
+
+            for (let i = 0; i < statements.length; i++) {
+                for (let j = i + 1; j < statements.length; j++) {
+                    if (statements[i].type !== statements[j].type) {
+                        const words1 = new Set(statements[i].text.toLowerCase().split(/\s+/));
+                        const words2 = new Set(statements[j].text.toLowerCase().split(/\s+/));
+                        const common = [...words1].filter(w => words2.has(w) && w.length > 4);
+                        if (common.length > 0) {
+                            contradictions.push({
+                                statement1: statements[i],
+                                statement2: statements[j],
+                                commonTerms: common
+                            });
+                        }
+                    }
+                }
+            }
+
+            return contradictions;
+        }
+
+        function synthesizeWithReasoning(query, chunks) {
+            const queryLower = query.toLowerCase();
+            const isVantagem = queryLower.includes('vantagem') || queryLower.includes('benefício');
+            const isComparacao = queryLower.includes('compar') || queryLower.includes('diferença') || queryLower.includes('vs');
+            const isEfeito = queryLower.includes('efeito') || queryLower.includes('impacto') || queryLower.includes('afeta');
+            const isMecanismo = queryLower.includes('como funciona') || queryLower.includes('mecanismo') || queryLower.includes(
+                'princípio');
+
+            const allEntities = [];
+            chunks.forEach(chunk => {
+                const entities = extractEntities(chunk.conteudo || '');
+                allEntities.push({ ...entities, source: chunk.titulo });
+            });
+
+            const contradictions = detectContradictions(chunks);
+
+            const commonConceitos = {};
+            allEntities.forEach(e => {
+                e.conceitos.forEach(c => {
+                    commonConceitos[c] = (commonConceitos[c] || 0) + 1;
+                });
+            });
+            const topConceitos = Object.entries(commonConceitos)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([c]) => c);
+
+            const allNumeros = [];
+            allEntities.forEach(e => {
+                e.numeros.forEach(n => {
+                    allNumeros.push(n);
+                });
+            });
+
+            let insights = [];
+            let raciocinio = [];
+
+            if (isVantagem) {
+                const vantagens = [];
+                chunks.forEach(chunk => {
+                    const text = chunk.conteudo || '';
+                    const sentencas = text.split(/[.!?]+/);
+                    sentencas.forEach(s => {
+                        if (s.includes('vantagem') || s.includes('benefício') || s.includes('melhor') ||
+                            s.includes('permite') || s.includes('oferece') || s.includes('proporciona')) {
+                            vantagens.push({ text: s.trim(), source: chunk.titulo });
+                        }
+                    });
+                });
+
+                if (vantagens.length > 0) {
+                    const grupos = {};
+                    vantagens.forEach(v => {
+                        const palavras = v.text.toLowerCase().split(/\s+/);
+                        let grupo = 'outras';
+                        if (palavras.some(p => ['eficiência', 'eficiencia', 'rápido', 'velocidade'].includes(p)))
+                            grupo = 'eficiência';
+                        else if (palavras.some(p => ['resolução', 'resolucao', 'separação', 'separacao'].includes(p)))
+                            grupo = 'resolução';
+                        else if (palavras.some(p => ['sensibilidade', 'sensivel', 'detecção', 'detecao'].includes(p)))
+                            grupo = 'sensibilidade';
+                        else if (palavras.some(p => ['pressão', 'pressao', 'alta', 'ultra'].includes(p))) grupo =
+                            'pressão';
+                        else if (palavras.some(p => ['miniaturização', 'miniaturizacao', 'capilar', 'volume'].includes(
+                            p))) grupo = 'miniaturização';
+                        if (!grupos[grupo]) grupos[grupo] = [];
+                        grupos[grupo].push(v);
+                    });
+
+                    insights.push('📊 **Principais Vantagens Identificadas:**');
+                    for (const [grupo, items] of Object.entries(grupos)) {
+                        const unique = [...new Set(items.map(i => i.text))];
+                        insights.push(`  • **${grupo.charAt(0).toUpperCase() + grupo.slice(1)}**: ${unique.slice(0, 3).join('; ')}`);
+                    }
+
+                    raciocinio.push({
+                        icon: '💡',
+                        text: `Encontrei ${vantagens.length} menções a vantagens em ${chunks.length} fontes`,
+                        tag: 'síntese'
+                    });
+                }
+
+                if (contradictions.length > 0) {
+                    insights.push('⚖️ **Trade-offs identificados:**');
+                    contradictions.slice(0, 3).forEach(c => {
+                        insights.push(
+                            `  • ${c.statement1.text.substring(0, 80)}... vs ${c.statement2.text.substring(0, 80)}...`);
+                    });
+                    raciocinio.push({
+                        icon: '⚖️',
+                        text: `Detectei ${contradictions.length} possíveis trade-offs ou contradições`,
+                        tag: 'análise'
+                    });
+                }
+
+            } else if (isComparacao) {
+                const comparacoes = [];
+                chunks.forEach(chunk => {
+                    const text = chunk.conteudo || '';
+                    const sentencas = text.split(/[.!?]+/);
+                    sentencas.forEach(s => {
+                        if (s.includes('vs') || s.includes('versus') || s.includes('compar') ||
+                            s.includes('diferença') || s.includes('diferença') || s.includes('melhor que')) {
+                            comparacoes.push({ text: s.trim(), source: chunk.titulo });
+                        }
+                    });
+                });
+
+                if (comparacoes.length > 0) {
+                    insights.push('📊 **Comparações Encontradas:**');
+                    comparacoes.slice(0, 5).forEach(c => {
+                        insights.push(`  • ${c.text}`);
+                    });
+                }
+
+                const melhorMencoes = chunks.filter(c =>
+                    c.conteudo?.includes('melhor') || c.conteudo?.includes('superior')
+                );
+                if (melhorMencoes.length > 0) {
+                    insights.push('🏆 **Indicações de Superioridade:**');
+                    melhorMencoes.slice(0, 3).forEach(c => {
+                        const sentencas = c.conteudo.split(/[.!?]+/);
+                        sentencas.forEach(s => {
+                            if (s.includes('melhor') || s.includes('superior')) {
+                                insights.push(`  • ${s.trim()}`);
+                            }
+                        });
+                    });
+                }
+
+            } else if (isEfeito) {
+                const efeitos = [];
+                chunks.forEach(chunk => {
+                    const text = chunk.conteudo || '';
+                    const sentencas = text.split(/[.!?]+/);
+                    sentencas.forEach(s => {
+                        if (s.includes('efeito') || s.includes('impacto') || s.includes('afeta') ||
+                            s.includes('influência') || s.includes('influencia') || s.includes('resulta')) {
+                            efeitos.push({ text: s.trim(), source: chunk.titulo });
+                        }
+                    });
+                });
+
+                if (efeitos.length > 0) {
+                    insights.push('📊 **Efeitos e Impactos Identificados:**');
+                    const uniqueEfeitos = [...new Set(efeitos.map(e => e.text))];
+                    uniqueEfeitos.slice(0, 6).forEach(e => {
+                        insights.push(`  • ${e}`);
+                    });
+                }
+
+                const causas = [];
+                chunks.forEach(chunk => {
+                    const text = chunk.conteudo || '';
+                    const matches = text.match(/(?:devido a|por causa de|em função de|graças a)\s+([^.!?]+)/gi);
+                    if (matches) {
+                        matches.forEach(m => causas.push(m));
+                    }
+                });
+                if (causas.length > 0) {
+                    insights.push('🔗 **Relações Causais Encontradas:**');
+                    causas.slice(0, 4).forEach(c => {
+                        insights.push(`  • ${c}`);
+                    });
+                }
+
+            } else if (isMecanismo) {
+                const mecanismos = [];
+                chunks.forEach(chunk => {
+                    const text = chunk.conteudo || '';
+                    const sentencas = text.split(/[.!?]+/);
+                    sentencas.forEach(s => {
+                        if (s.includes('mecanismo') || s.includes('princípio') || s.includes('principio') ||
+                            s.includes('fundamento') || s.includes('base') || s.includes('como funciona')) {
+                            mecanismos.push({ text: s.trim(), source: chunk.titulo });
+                        }
+                    });
+                });
+
+                if (mecanismos.length > 0) {
+                    insights.push('⚙️ **Mecanismos e Princípios:**');
+                    const uniqueMec = [...new Set(mecanismos.map(m => m.text))];
+                    uniqueMec.slice(0, 5).forEach(m => {
+                        insights.push(`  • ${m}`);
+                    });
+                }
+            }
+
+            if (allNumeros.length > 0) {
+                const numerosUnicos = [...new Set(allNumeros.map(n => `${n.valor} ${n.unidade}`))];
+                if (numerosUnicos.length > 0) {
+                    insights.push('📈 **Dados Numéricos Relevantes:**');
+                    numerosUnicos.slice(0, 5).forEach(n => {
+                        insights.push(`  • ${n}`);
+                    });
+                }
+            }
+
+            if (topConceitos.length > 0) {
+                insights.push('🔑 **Conceitos-chave identificados:**');
+                topConceitos.slice(0, 6).forEach(c => {
+                    insights.push(`  • ${c}`);
+                });
+            }
+
+            let conclusao = '';
+            if (isVantagem) {
+                conclusao =
+                    `✅ **Conclusão:** A análise revela vantagens significativas em ${topConceitos.slice(0, 4).join(', ')}. ${contradictions.length > 0 ? 'No entanto, há trade-offs a considerar.' : 'As fontes são consistentes quanto aos benefícios.'}`;
+            } else if (isComparacao) {
+                conclusao =
+                    `✅ **Conclusão:** As comparações indicam diferenças importantes em ${topConceitos.slice(0, 3).join(', ')}. A escolha depende das necessidades específicas da aplicação.`;
+            } else if (isEfeito) {
+                conclusao =
+                    `✅ **Conclusão:** Os principais efeitos observados estão relacionados a ${topConceitos.slice(0, 4).join(', ')}. ${allNumeros.length > 0 ? `Valores típicos: ${allNumeros.slice(0, 3).map(n => `${n.valor} ${n.unidade}`).join(', ')}` : ''}`;
+            } else {
+                conclusao =
+                    `✅ **Conclusão:** A análise de ${chunks.length} fontes revela que ${topConceitos.slice(0, 3).join(', ')} são aspectos fundamentais. Os dados sugerem consistência nas informações.`;
+            }
+
+            return {
+                insights: insights,
+                raciocinio: raciocinio,
+                conclusao: conclusao,
+                conceitosPrincipais: topConceitos,
+                numerosEncontrados: allNumeros,
+                contradicoes: contradictions,
+                fontes: [...new Set(chunks.map(c => c.titulo).filter(Boolean))].slice(0, 5)
+            };
+        }
+
         // ==================== DETECÇÃO DE INTENÇÃO ====================
         function detectIntent(query) {
             const q = query.toLowerCase();
-
-            if (q.includes('o que é') || q.includes('definição') || q.includes('conceito') || q.includes('significa') ||
-                q.includes('o que são') || q.includes('defina')) {
-                return 'definicao';
-            }
-
-            if (q.includes('diferença') || q.includes('comparação') || q.includes('comparar') || q.includes('versus') || q
-                .includes('vs') || q.includes('melhor que') || q.includes('diferenças')) {
-                return 'comparacao';
-            }
-
-            if (q.includes('como funciona') || q.includes('como é') || q.includes('mecanismo') || q.includes('princípio') ||
-                q.includes('fundamento') || q.includes('base')) {
-                return 'mecanismo';
-            }
-
-            if (q.includes('aplicação') || q.includes('usado') || q.includes('utilizado') || q.includes('para que serve') ||
-                q.includes('onde') || q.includes('quando usar')) {
-                return 'aplicacao';
-            }
-
-            if (q.includes('vantagem') || q.includes('benefício') || q.includes('por que usar') || q.includes('melhor') ||
-                q.includes('benefícios') || q.includes('vantagens')) {
-                return 'vantagem';
-            }
-
-            if (q.includes('efeito') || q.includes('impacto') || q.includes('influência') || q.includes('afeta') ||
-                q.includes('influencia') || q.includes('consequência') || q.includes('consequencia')) {
-                return 'efeito';
-            }
-
-            if (q.includes('como fazer') || q.includes('como otimizar') || q.includes('como melhorar') ||
-                q.includes('dicas') || q.includes('sugestão') || q.includes('sugestao')) {
-                return 'pratica';
-            }
-
-            if (q.includes('problema') || q.includes('solução') || q.includes('solucao') || q.includes('erro') ||
-                q.includes('dificuldade') || q.includes('como resolver')) {
-                return 'problema';
-            }
-
+            if (q.includes('vantagem') || q.includes('benefício') || q.includes('beneficio')) return 'vantagem';
+            if (q.includes('compar') || q.includes('diferença') || q.includes('diferença') || q.includes('vs')) return 'comparacao';
+            if (q.includes('efeito') || q.includes('impacto') || q.includes('afeta')) return 'efeito';
+            if (q.includes('como funciona') || q.includes('mecanismo') || q.includes('princípio')) return 'mecanismo';
+            if (q.includes('o que é') || q.includes('definição') || q.includes('definicao')) return 'definicao';
             return 'geral';
-        }
-
-        // ==================== ANÁLISE DE SENTIMENTO ====================
-        function analyzeSentiment(query) {
-            const positive = ['bom', 'ótimo', 'excelente', 'melhor', 'benefício', 'vantagem', 'eficiente', 'rápido', 'simples',
-                'fácil', 'facil'
-            ];
-            const negative = ['ruim', 'péssimo', 'problema', 'dificuldade', 'lento', 'caro', 'complexo', 'difícil', 'dificil',
-                'erro'
-            ];
-
-            const words = query.toLowerCase().split(/\s+/);
-            let score = 0;
-            for (const word of words) {
-                if (positive.includes(word)) score++;
-                if (negative.includes(word)) score--;
-            }
-            return score;
         }
 
         // ==================== CHAIN OF THOUGHT ====================
         function generateChainOfThought(query, chunks) {
             const steps = [];
             const intent = detectIntent(query);
-            const sentiment = analyzeSentiment(query);
 
-            steps.push({
-                emoji: '🔍',
-                text: `Analisando a pergunta: "${query}"`,
-                badge: 'entrada'
-            });
-
-            steps.push({
-                emoji: '🎯',
-                text: `Intenção: ${intent === 'definicao' ? 'Definição' : intent === 'comparacao' ? 'Comparação' : intent === 'mecanismo' ? 'Mecanismo' : intent === 'aplicacao' ? 'Aplicação' : intent === 'vantagem' ? 'Vantagem' : intent === 'efeito' ? 'Efeito' : intent === 'pratica' ? 'Dicas' : intent === 'problema' ? 'Solução' : 'Geral'}`,
-                badge: 'intenção'
-            });
-
-            if (sentiment > 0) {
-                steps.push({
-                    emoji: '😊',
-                    text: 'Tom positivo detectado',
-                    badge: 'sentimento'
-                });
-            } else if (sentiment < 0) {
-                steps.push({
-                    emoji: '😟',
-                    text: 'Tom negativo detectado',
-                    badge: 'sentimento'
-                });
-            }
+            steps.push({ emoji: '🔍', text: `Analisando: "${query}"`, badge: 'entrada' });
+            steps.push({ emoji: '🎯', text: `Intenção: ${intent}`, badge: 'intenção' });
 
             const expanded = expandWithSynonyms(query);
             if (expanded !== query) {
-                steps.push({
-                    emoji: '📚',
-                    text: `Sinônimos: ${expanded.substring(0, 80)}${expanded.length > 80 ? '...' : ''}`,
-                    badge: 'sinônimos'
-                });
+                steps.push({ emoji: '📚', text: `Sinônimos: ${expanded.substring(0, 80)}...`, badge: 'sinônimos' });
             }
 
             if (chunks && chunks.length > 0) {
-                const topChunk = chunks[0];
-                steps.push({
-                    emoji: '📚',
-                    text: `${chunks.length} chunks encontrados. Score: ${Math.round((topChunk.combinedScore || topChunk.score || 0) * 10) / 10}`,
-                    badge: 'resultados'
-                });
-                if (topChunk.titulo) {
-                    steps.push({
-                        emoji: '📖',
-                        text: `Fonte: "${topChunk.titulo}"`,
-                        badge: 'fonte'
-                    });
+                steps.push({ emoji: '📚', text: `${chunks.length} chunks encontrados`, badge: 'busca' });
+                if (chunks[0]?.titulo) {
+                    steps.push({ emoji: '📖', text: `Fonte principal: "${chunks[0].titulo}"`, badge: 'fonte' });
                 }
-            } else {
-                steps.push({
-                    emoji: '⚠️',
-                    text: 'Nenhum chunk encontrado',
-                    badge: 'vazio'
-                });
             }
 
-            if (chunks && chunks.length >= 2) {
-                steps.push({
-                    emoji: '✅',
-                    text: `${chunks.length} fontes analisadas`,
-                    badge: 'validação'
-                });
-            }
-
-            steps.push({
-                emoji: '🧠',
-                text: 'Sintetizando resposta...',
-                badge: 'síntese'
-            });
+            steps.push({ emoji: '🧠', text: 'Aplicando raciocínio lógico...', badge: 'raciocínio' });
+            steps.push({ emoji: '📊', text: 'Sintetizando informações...', badge: 'síntese' });
 
             return steps;
-        }
-
-        // ==================== SÍNTESE DE RESPOSTA ====================
-        function synthesizeResponse(query, chunks, chainSteps) {
-            const intent = detectIntent(query);
-            const relevantChunks = chunks.filter(c => (c.combinedScore || c.score || 0) > 0.5);
-
-            if (relevantChunks.length >= 1) {
-                const topChunks = relevantChunks.slice(0, 5);
-                const contents = topChunks.map(c => c.conteudo || '').filter(t => t.length > 0);
-
-                const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-                const expandedTokens = expandWithSynonyms(query).toLowerCase().split(/\s+/).filter(w => w.length > 3);
-                const allTokens = [...new Set([...queryTokens, ...expandedTokens])];
-
-                let bestSentences = [];
-
-                contents.forEach(text => {
-                    const sentences = text.split(/[.!?]+/);
-                    sentences.forEach(sent => {
-                        const sentLower = sent.toLowerCase();
-                        let score = 0;
-                        for (const token of allTokens) {
-                            if (sentLower.includes(token)) {
-                                score += 1;
-                            }
-                        }
-                        const len = sent.length;
-                        if (len < 10) score *= 0.5;
-                        if (len > 300) score *= 0.7;
-                        if (score > 0) {
-                            bestSentences.push({ text: sent.trim(), score: score / allTokens.length });
-                        }
-                    });
-                });
-
-                const uniqueSentences = [];
-                const seen = new Set();
-                for (const s of bestSentences) {
-                    const key = s.text.substring(0, 50);
-                    if (!seen.has(key)) {
-                        seen.add(key);
-                        uniqueSentences.push(s);
-                    }
-                }
-                bestSentences = uniqueSentences;
-                bestSentences.sort((a, b) => b.score - a.score);
-
-                let answer = '';
-                let title = '';
-
-                const topSentences = bestSentences.slice(0, 6);
-
-                if (intent === 'definicao') {
-                    title = `📖 Definição`;
-                    const defSentences = topSentences.filter(s => s.text.length > 20 && s.text.length < 200);
-                    if (defSentences.length > 0) {
-                        answer = defSentences.map(s => s.text).join('. ') + '.';
-                    } else {
-                        answer = topSentences.map(s => s.text).join('. ') + '.';
-                    }
-                } else if (intent === 'comparacao') {
-                    title = `⚖️ Comparação`;
-                    const compSentences = topSentences.filter(s =>
-                        s.text.includes('vs') || s.text.includes('compar') ||
-                        s.text.includes('diferença') || s.text.includes('melhor') || s.text.includes('superior')
-                    );
-                    if (compSentences.length > 0) {
-                        answer = compSentences.map(s => s.text).join('. ') + '.';
-                    } else {
-                        answer = topSentences.map(s => s.text).join('. ') + '.';
-                    }
-                } else if (intent === 'mecanismo') {
-                    title = `⚙️ Mecanismo/Princípio`;
-                    const mechSentences = topSentences.filter(s =>
-                        s.text.includes('mecanismo') || s.text.includes('princip') ||
-                        s.text.includes('fundamento') || s.text.includes('base')
-                    );
-                    if (mechSentences.length > 0) {
-                        answer = mechSentences.map(s => s.text).join('. ') + '.';
-                    } else {
-                        answer = topSentences.map(s => s.text).join('. ') + '.';
-                    }
-                } else if (intent === 'aplicacao') {
-                    title = `🔬 Aplicações`;
-                    const appSentences = topSentences.filter(s =>
-                        s.text.includes('aplicaç') || s.text.includes('usado') ||
-                        s.text.includes('utilizado') || s.text.includes('emprega')
-                    );
-                    if (appSentences.length > 0) {
-                        answer = appSentences.map(s => s.text).join('. ') + '.';
-                    } else {
-                        answer = topSentences.map(s => s.text).join('. ') + '.';
-                    }
-                } else if (intent === 'vantagem') {
-                    title = `✨ Vantagens`;
-                    const advSentences = topSentences.filter(s =>
-                        s.text.includes('vantagem') || s.text.includes('benef') ||
-                        s.text.includes('melhor') || s.text.includes('superior')
-                    );
-                    if (advSentences.length > 0) {
-                        answer = advSentences.map(s => s.text).join('. ') + '.';
-                    } else {
-                        answer = topSentences.map(s => s.text).join('. ') + '.';
-                    }
-                } else if (intent === 'efeito') {
-                    title = `📊 Efeito/Impacto`;
-                    const effSentences = topSentences.filter(s =>
-                        s.text.includes('efeito') || s.text.includes('impacto') ||
-                        s.text.includes('influência') || s.text.includes('afeta')
-                    );
-                    if (effSentences.length > 0) {
-                        answer = effSentences.map(s => s.text).join('. ') + '.';
-                    } else {
-                        answer = topSentences.map(s => s.text).join('. ') + '.';
-                    }
-                } else if (intent === 'pratica') {
-                    title = `💡 Dicas Práticas`;
-                    const pracSentences = topSentences.filter(s =>
-                        s.text.includes('dica') || s.text.includes('sugest') ||
-                        s.text.includes('recomend') || s.text.includes('otimiz')
-                    );
-                    if (pracSentences.length > 0) {
-                        answer = pracSentences.map(s => s.text).join('. ') + '.';
-                    } else {
-                        answer = topSentences.map(s => s.text).join('. ') + '.';
-                    }
-                } else if (intent === 'problema') {
-                    title = `🔧 Solução de Problemas`;
-                    const probSentences = topSentences.filter(s =>
-                        s.text.includes('problema') || s.text.includes('soluç') ||
-                        s.text.includes('erro') || s.text.includes('dificuldade')
-                    );
-                    if (probSentences.length > 0) {
-                        answer = probSentences.map(s => s.text).join('. ') + '.';
-                    } else {
-                        answer = topSentences.map(s => s.text).join('. ') + '.';
-                    }
-                } else {
-                    title = `📝 Sobre: ${query.substring(0, 30)}...`;
-                    answer = topSentences.map(s => s.text).join('. ') + '.';
-                }
-
-                if (!answer || answer.length < 20) {
-                    const fullContent = contents.join(' ');
-                    let bestStart = 0;
-                    let bestScore = 0;
-                    const contentLower = fullContent.toLowerCase();
-                    for (const token of allTokens) {
-                        const idx = contentLower.indexOf(token);
-                        if (idx !== -1) {
-                            const contextStart = Math.max(0, idx - 50);
-                            const contextEnd = Math.min(fullContent.length, idx + 250);
-                            const context = fullContent.substring(contextStart, contextEnd);
-                            const score = context.split(token).length - 1;
-                            if (score > bestScore) {
-                                bestScore = score;
-                                bestStart = contextStart;
-                            }
-                        }
-                    }
-                    if (bestScore > 0) {
-                        const context = fullContent.substring(bestStart, Math.min(fullContent.length, bestStart + 500));
-                        answer = context + '...';
-                    } else {
-                        answer = fullContent.substring(0, 500) + '...';
-                    }
-                }
-
-                answer = answer.replace(/\s+/g, ' ').trim();
-
-                if (answer.includes(';') || answer.includes(',')) {
-                    const parts = answer.split(/[.;,]\s*/).filter(p => p.length > 10);
-                    if (parts.length >= 3) {
-                        answer = '<ul>' + parts.map(p => `<li>${p}</li>`).join('') + '</ul>';
-                    }
-                }
-
-                const sources = [...new Set(topChunks.map(c => c.fonte || 'knowledge-base').filter(Boolean))];
-                const allTags = [...new Set(topChunks.flatMap(c => c.tags || []))];
-
-                const relatedTerms = allTags.slice(0, 4);
-                const suggestions = relatedTerms.map(term =>
-                    `Como ${term} afeta a cromatografia?`
-                );
-
-                if (intent === 'definicao') {
-                    suggestions.push('Quais são os tipos de cromatografia?');
-                    suggestions.push('Como funciona a cromatografia líquida?');
-                } else if (intent === 'comparacao') {
-                    suggestions.push('Qual é melhor para minha aplicação?');
-                }
-
-                return {
-                    answer: answer,
-                    title: title,
-                    confidence: relevantChunks.length >= 2 ? 'high' : 'medium',
-                    confidenceLabel: relevantChunks.length >= 2 ? '✅ Múltiplas fontes confirmam' :
-                        'ℹ️ Informação disponível',
-                    sources: sources.length > 0 ? sources : ['knowledge-base.json'],
-                    tags: allTags.slice(0, 8),
-                    chainSteps: chainSteps,
-                    suggestions: suggestions.slice(0, 5),
-                    chunksUsed: topChunks.slice(0, 5).map(c => ({
-                        titulo: c.titulo || 'Sem título',
-                        score: Math.round((c.combinedScore || c.score || 0) * 10) / 10
-                    })),
-                    intent: intent
-                };
-            }
-
-            if (chunks.length > 0) {
-                const topChunk = chunks[0];
-                const content = topChunk.conteudo || '';
-                return {
-                    answer: content.substring(0, 500) + (content.length > 500 ? '...' : ''),
-                    title: topChunk.titulo || 'Informação encontrada',
-                    confidence: 'low',
-                    confidenceLabel: 'ℹ️ Pouca informação disponível',
-                    sources: [topChunk.fonte || 'knowledge-base.json'],
-                    tags: topChunk.tags || [],
-                    chainSteps: chainSteps,
-                    suggestions: ['Como isso se aplica na prática?', 'Quais são as limitações?'],
-                    chunksUsed: [{ titulo: topChunk.titulo || 'Sem título', score: Math.round((topChunk.score || 0) *
-                            10) / 10 }],
-                    intent: 'geral'
-                };
-            }
-
-            return {
-                answer: `❓ Não encontrei informações sobre "${query}" na base de conhecimento.
-
-💡 Dicas:
-- Use sinônimos: "partícula" → "particula", "dp", "micro"
-- Seja mais específico
-- A base tem ${knowledgeData?.chunks?.length || 0} chunks disponíveis
-
-🔍 Perguntas sugeridas:
-• O que é cromatografia?
-• Como funciona uma coluna?
-• Tipos de cromatografia`,
-                title: 'Nenhuma informação encontrada',
-                confidence: 'none',
-                confidenceLabel: '❌ Sem informações',
-                sources: [],
-                tags: [],
-                chainSteps: chainSteps,
-                suggestions: ['O que é cromatografia?', 'Como funciona uma coluna?', 'Tipos de cromatografia'],
-                chunksUsed: [],
-                intent: 'geral'
-            };
         }
 
         // ==================== UI ====================
@@ -1663,7 +1521,7 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function showTyping(text = '🧠 processando...') {
+        function showTyping(text = '🧠 raciocinando...') {
             const div = document.createElement('div');
             div.className = 'typing';
             div.id = 'typingIndicator';
@@ -1682,91 +1540,126 @@
             if (el) el.remove();
         }
 
-        function formatResponse(query, result, embedTime) {
-            const confidenceClass = result.confidence === 'high' ? 'confidence-high' :
-                result.confidence === 'medium' ? 'confidence-medium' : 'confidence-low';
+        function formatResponse(query, chunks, reasoning, embedTime) {
+            const intent = detectIntent(query);
 
             let html = `<div class="msg-header">
-                        <span class="avatar">🧪</span>
+                        <span class="avatar">🧠</span>
                         <span class="name">ChromatoBuddy Turbo</span>
                         <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
-                            ⚡ ${embedTime ? Math.round(embedTime) + 'ms' : 'rápido'}
+                            ⚡ ${embedTime ? Math.round(embedTime) + 'ms' : 'rápido'} · 🧠 ${chunks.length} fontes
                         </span>
                     </div>`;
 
             // Performance metrics
             html += `<div class="perf-box">
                         <span class="perf-item">
-                            <span class="label">🔍 Embedding:</span>
+                            <span class="label">⚡ Embedding:</span>
                             <span class="value">${embedTime ? Math.round(embedTime) + 'ms' : '⚡'}</span>
                         </span>
                         <span class="perf-item">
                             <span class="label">📚 Chunks:</span>
-                            <span class="value">${result.chunksUsed?.length || 0}</span>
+                            <span class="value">${chunks.length}</span>
                         </span>
                         <span class="perf-item">
                             <span class="label">🎯 Intenção:</span>
-                            <span class="value">${result.intent || 'geral'}</span>
+                            <span class="value">${intent}</span>
                         </span>
                         <span class="perf-item">
                             <span class="label">⚡ Engine:</span>
-                            <span class="value">WebGPU + Worker</span>
+                            <span class="value">${fallbackMode ? 'CPU (fallback)' : 'WebGPU + Worker'}</span>
                         </span>
                     </div>`;
 
             // Chain of Thought
-            if (result.chainSteps && result.chainSteps.length > 0) {
-                html += `<div class="thinking-process">
-                            <div style="font-weight:600; color:#1a3a6a; margin-bottom:6px; font-size:0.8rem;">
-                                🧠 Processo de raciocínio:
+            const steps = generateChainOfThought(query, chunks);
+            html += `<div class="thinking-process">
+                        <div style="font-weight:600; color:#1a3a6a; margin-bottom:6px; font-size:0.8rem;">
+                            🧠 Processo de raciocínio:
+                        </div>`;
+            for (const step of steps) {
+                html += `<div class="step">
+                            <span class="emoji">${step.emoji}</span>
+                            <span class="text">${step.text}</span>
+                            ${step.badge ? `<span class="badge-step">${step.badge}</span>` : ''}
+                        </div>`;
+            }
+            html += `</div>`;
+
+            // Raciocínio detalhado
+            if (reasoning.raciocinio && reasoning.raciocinio.length > 0) {
+                html += `<div class="reasoning-box">
+                            <div style="font-weight:600; color:#7b1fa2; margin-bottom:6px; font-size:0.8rem;">
+                                🧠 Raciocínio Aplicado:
                             </div>`;
-                for (const step of result.chainSteps) {
-                    html += `<div class="step">
-                                <span class="emoji">${step.emoji}</span>
-                                <span class="text">${step.text}</span>
-                                ${step.badge ? `<span class="badge-step">${step.badge}</span>` : ''}
+                for (const step of reasoning.raciocinio) {
+                    html += `<div class="reason-step">
+                                <span class="icon">${step.icon}</span>
+                                <span class="content">${step.text}</span>
+                                ${step.tag ? `<span class="tag">${step.tag}</span>` : ''}
                             </div>`;
                 }
                 html += `</div>`;
             }
 
-            // Resposta
+            // Resposta principal com insights
             html += `<div class="answer-box">
-                        <h4>${result.title || 'Resposta'}</h4>
-                        ${result.answer}
-                    </div>`;
+                        <h4>📊 Análise Sintetizada</h4>`;
 
-            // Tags
-            if (result.tags && result.tags.length > 0) {
-                html += `<div class="tags-box">${result.tags.map(t => `<span class="tag-pill">#${t}</span>`).join('')}</div>`;
+            if (reasoning.insights && reasoning.insights.length > 0) {
+                for (const insight of reasoning.insights) {
+                    if (insight.startsWith('📊') || insight.startsWith('⚖️') || insight.startsWith('🏆') ||
+                        insight.startsWith('🔗') || insight.startsWith('⚙️') || insight.startsWith('📈') ||
+                        insight.startsWith('🔑')) {
+                        html += `<p style="margin-top:8px; font-weight:600; color:#1a3a6a;">${insight}</p>`;
+                    } else if (insight.startsWith('  •')) {
+                        html += `<p style="margin-left:16px; font-size:0.9rem;">${insight}</p>`;
+                    } else {
+                        html += `<p>${insight}</p>`;
+                    }
+                }
+            }
+
+            // Conclusão
+            if (reasoning.conclusao) {
+                html += `<div style="margin-top:12px; padding:10px; background:#e8f5e9; border-radius:8px; border-left:4px solid #2e7d32;">
+                            ${reasoning.conclusao}
+                        </div>`;
+            }
+
+            html += `</div>`;
+
+            // Conceitos principais
+            if (reasoning.conceitosPrincipais && reasoning.conceitosPrincipais.length > 0) {
+                html += `<div class="tags-box">
+                            <span style="font-size:0.7rem; color:#8899b0; margin-right:6px;">🔑 Conceitos-chave:</span>
+                            ${reasoning.conceitosPrincipais.slice(0, 8).map(c => `<span class="tag-pill">${c}</span>`).join('')}
+                        </div>`;
             }
 
             // Fontes
-            if (result.sources && result.sources.length > 0) {
-                html += `<div class="sources-box">📖 <strong>Referências:</strong><br>${result.sources.map(s => `• ${s}`).join('<br>')}</div>`;
-            }
-
-            // Chunks usados
-            if (result.chunksUsed && result.chunksUsed.length > 0) {
-                html += `<div class="sources-box" style="border-left-color: #9b59b6; margin-top: 6px;">
-                            📚 <strong>Chunks usados (${result.chunksUsed.length}):</strong><br>
-                            ${result.chunksUsed.map(c => `${c.score} - ${c.titulo}`).join('<br>')}
-                        </div>`;
+            if (reasoning.fontes && reasoning.fontes.length > 0) {
+                html += `<div class="sources-box">📖 <strong>Fontes analisadas:</strong><br>${reasoning.fontes.map(s => `• ${s}`).join('<br>')}</div>`;
             }
 
             // Sugestões
-            if (result.suggestions && result.suggestions.length > 0) {
-                html += `<div class="suggestions">
-                            <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
-                            ${result.suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
-                        </div>`;
-            }
+            const suggestions = [
+                'Quais as desvantagens da cromatografia capilar?',
+                'Como a pressão afeta a separação?',
+                'Qual a diferença entre HPLC e UHPLC?',
+                'Como escolher entre coluna capilar e convencional?'
+            ];
+            html += `<div class="suggestions">
+                        <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
+                        ${suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
+                    </div>`;
 
             // Meta
             html += `<div class="meta">
-                        <span class="${confidenceClass}">${result.confidenceLabel}</span>
-                        <span>⚡ Local · WebGPU · Web Worker</span>
-                        <span>📚 ${result.chunksUsed?.length || 0} chunks usados</span>
+                        <span class="confidence-high">✅ Raciocínio aplicado</span>
+                        <span>⚡ ${fallbackMode ? 'CPU' : 'WebGPU'}</span>
+                        <span>🧠 ${chunks.length} chunks analisados</span>
+                        <span>🎯 ${intent}</span>
                     </div>`;
 
             return html;
@@ -1783,19 +1676,15 @@
             addMessage('user', query);
             userInput.value = '';
 
-            showTyping('🔍 processando com WebGPU...');
+            showTyping('⚡ processando com WebGPU...');
 
             try {
-                // Obtém embedding via Worker
                 const embedding = await getEmbedding(query);
-
-                // A resposta virá via handleEmbedResult
-                // O restante do processamento é assíncrono
-
+                // A resposta vem via handleEmbedResult
             } catch (err) {
                 removeTyping();
                 console.error(err);
-                addMessage('bot', `❌ Ops! Erro no processamento: ${err.message}`);
+                addMessage('bot', `❌ Erro: ${err.message || 'tente novamente'}`);
                 sendBtn.disabled = false;
                 userInput.disabled = false;
                 userInput.focus();
@@ -1826,17 +1715,16 @@
 
         // ==================== INICIALIZAÇÃO ====================
         async function init() {
-            // Inicia o Worker primeiro
             try {
                 await initWorker();
             } catch (err) {
-                console.error('Erro ao iniciar Worker:', err);
-                // Fallback: tenta carregar o modelo diretamente
-                document.getElementById('modelBadge').textContent = '⚠️ Fallback CPU';
-                document.getElementById('modelBadge').className = 'badge warning';
+                console.warn('Worker falhou, usando fallback:', err);
+                if (!fallbackMode) {
+                    fallbackMode = true;
+                    await initFallbackEmbedder();
+                }
             }
 
-            // Carrega a base de conhecimento
             await loadKnowledgeBase();
 
             if (!userInput.disabled) {
