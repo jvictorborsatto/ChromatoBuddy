@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChromatoBuddy Pro · Filtros Inteligentes</title>
+  <title>ChromatoBuddy Pro · Domain‑Lock</title>
   <style>
-    /* ===== RESET E BASE ===== */
+    /* ===== RESET E BASE (mesmo estilo anterior) ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -30,7 +30,7 @@
       border: 1px solid rgba(255,255,255,0.3);
     }
 
-    /* ===== HEADER ===== */
+    /* ===== HEADER (igual) ===== */
     .header {
       padding: 14px 28px 10px;
       background: linear-gradient(135deg, #0a1e3d 0%, #1a3a6a 100%);
@@ -86,7 +86,6 @@
     .badge.cpu { background: #fdcb6e; color: #2d3436; border: none; }
     .badge.fallback { background: #e17055; color: white; border: none; }
 
-    /* ===== PROGRESS BAR ===== */
     .progress-wrap {
       width: 100%;
       background: rgba(255,255,255,0.08);
@@ -109,7 +108,6 @@
       margin-top: 2px;
     }
 
-    /* ===== FILTROS ===== */
     .filters-bar {
       display: flex;
       flex-wrap: wrap;
@@ -158,7 +156,7 @@
       color: #6aafff;
     }
 
-    /* ===== CHAT ===== */
+    /* ===== CHAT (mesmo estilo) ===== */
     .chat-container {
       flex: 1;
       overflow-y: auto;
@@ -301,7 +299,6 @@
       40% { transform: scale(1); opacity: 1; }
     }
 
-    /* ===== INPUT ===== */
     .input-area {
       padding: 14px 28px 20px;
       background: white;
@@ -363,7 +360,6 @@
       font-weight: 400;
     }
 
-    /* ===== FOOTER ===== */
     .footer {
       padding: 6px 28px 12px;
       display: flex;
@@ -386,7 +382,6 @@
       gap: 4px;
     }
 
-    /* ===== MODAL ===== */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -453,13 +448,11 @@
       background: #d5ddee;
     }
 
-    /* ===== ANIMAÇÃO ===== */
     @keyframes fadeSlide {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ===== WELCOME ===== */
     .welcome-box {
       background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%);
       border-radius: 14px;
@@ -483,7 +476,6 @@
     .welcome-box .feature-item.turbo { background: linear-gradient(135deg,#3498db,#2ecc71); color: white; border: none; }
     .welcome-box .feature-item.brain { background: linear-gradient(135deg,#9b59b6,#8e44ad); color: white; border: none; }
 
-    /* ===== RESPONSIVO ===== */
     @media (max-width: 640px) {
       .app { max-height: none; height: 96vh; border-radius: 20px; }
       .header { padding: 10px 16px; }
@@ -503,13 +495,12 @@
 <body>
 <div class="app">
 
-  <!-- ===== HEADER COM FILTROS ===== -->
   <div class="header">
     <div class="header-top">
       <div class="header-left">
         <h1>
           <img src="img.png" alt="ChromatoBuddy">
-          <span>Chromato</span>Buddy
+          <span>Chromato</span>Buddy <span style="font-size:0.7rem; color:#6aafff;">Domain‑Lock</span>
         </h1>
       </div>
       <div class="badge-group">
@@ -520,14 +511,11 @@
         <span class="badge" id="modelBadge">⏳ modelo…</span>
       </div>
     </div>
-
-    <!-- Barra de progresso -->
     <div class="progress-wrap">
       <div class="progress-fill" id="progressFill" style="width:0%"></div>
     </div>
     <div class="progress-text" id="progressText">0%</div>
 
-    <!-- ===== FILTROS ===== -->
     <div class="filters-bar">
       <div class="filter-group">
         <input type="checkbox" id="filterTags" checked />
@@ -548,7 +536,6 @@
     </div>
   </div>
 
-  <!-- ===== CHAT ===== -->
   <div class="chat-container" id="chatContainer">
     <div class="message bot">
       <div class="msg-header">
@@ -556,15 +543,15 @@
         <span class="name">ChromatoBuddy Pro</span>
       </div>
       <div class="welcome-box">
-        <strong>🚀 Sistema de Filtros Inteligentes (Longest Match)</strong>
+        <strong>🚀 Domain‑Lock + Ontologia Leve</strong>
         <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-          Marque quais campos usar na busca. A combinação define a prioridade.
+          Detecção de domínio (GC/LC) → lock → expansão contextual → ranking com penalidade.
         </div>
         <div class="features">
           <span class="feature-item turbo">⚡ BM25 + BGE</span>
           <span class="feature-item brain">🧠 Embeddings sob demanda</span>
           <span class="feature-item">📚 100% local</span>
-          <span class="feature-item">🔍 Filtro AND/OR (longest match)</span>
+          <span class="feature-item">🔒 Lock por domínio</span>
         </div>
         <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
           💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
@@ -574,20 +561,19 @@
         <span>✅ Filtros ativos</span>
         <span id="chunkInfo">📚 0 chunks</span>
         <span id="cacheInfo">💾 0 em cache</span>
+        <span id="domainInfo">🌐 Domínio: -</span>
       </div>
     </div>
   </div>
 
-  <!-- ===== INPUT ===== -->
   <div class="input-area">
-    <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito da temperatura na cromatografia?" disabled></textarea>
+    <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito da temperatura na cromatografia gasosa?" disabled></textarea>
     <button id="sendBtn" disabled>
       Enviar
       <span class="shortcut">⌘↵</span>
     </button>
   </div>
 
-  <!-- ===== FOOTER ===== -->
   <div class="footer">
     <div class="stats">
       <span id="versionInfo">📌 versão: -</span>
@@ -598,7 +584,6 @@
   </div>
 </div>
 
-<!-- ===== MODAL ===== -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-content" id="modalContent">
     <h2 id="modalTitle">Detalhes do Chunk</h2>
@@ -607,7 +592,6 @@
   </div>
 </div>
 
-<!-- ===== IMPORTAÇÃO TRANSFORMERS ===== -->
 <script type="importmap">
 {
   "imports": {
@@ -618,7 +602,7 @@
 
 <script type="module">
 // ============================================================
-//  MÓDULO PRINCIPAL – CHROMATOBUDDY PRO COM FILTROS
+//  CHROMATOBUDDY PRO – DOMAIN‑LOCK + ONTOLOGIA LEVE
 // ============================================================
 
 // ---------- ESTADO ----------
@@ -637,9 +621,8 @@ const FILTER_WEIGHTS = {
   content: 1
 };
 
-// ---------- BANCO DE DADOS DE PALAVRAS COMUNS (PORTUGUÊS) ----------
+// ---------- BANCO DE PALAVRAS COMUNS ----------
 const COMMON_WORDS = [
-  // Técnicas
   'cromatografia', 'cromatográfico', 'cromatográfica', 'lc', 'hplc', 'uhplc',
   'cromatografia líquida', 'cromatografia gasosa', 'cg', 'clae', 'cl',
   'separação', 'separar', 'resolução', 'resolucao', 'eficiência', 'eficiencia',
@@ -664,37 +647,69 @@ const COMMON_WORDS = [
   'pré-coluna', 'pre-coluna', 'guard', 'proteção', 'protecao'
 ];
 
+// ---------- DOMÍNIOS (ontologia leve) ----------
+const DOMAINS = {
+  GC: {
+    keywords: ['gasosa', 'cg', 'gas chromatography', 'cromatografia gasosa'],
+    synonyms: ['cromatografia gasosa', 'cg', 'gas chromatography']
+  },
+  LC: {
+    keywords: ['líquida', 'lc', 'hplc', 'uhplc', 'cromatografia líquida', 'liquida'],
+    synonyms: ['cromatografia líquida', 'lc', 'hplc', 'uhplc', 'liquid chromatography']
+  },
+  GENERAL: {
+    keywords: ['cromatografia', 'chromatography'],
+    synonyms: ['cromatografia', 'chromatography']
+  }
+};
+
 // ---------- REFERÊNCIAS DOM ----------
 const chatContainer = document.getElementById('chatContainer');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
-
-// Checkboxes
 const chkTags = document.getElementById('filterTags');
 const chkTitles = document.getElementById('filterTitles');
 const chkContent = document.getElementById('filterContent');
-
-// Elementos de prioridade
 const p1 = document.getElementById('p1');
 const p2 = document.getElementById('p2');
 const p3 = document.getElementById('p3');
-
-// Modal
 const modalOverlay = document.getElementById('modalOverlay');
 const modalContent = document.getElementById('modalContent');
 const modalTitle = document.getElementById('modalTitle');
 const modalFields = document.getElementById('modalFields');
 const modalClose = document.getElementById('modalClose');
+const domainInfo = document.getElementById('domainInfo');
 
-// ---------- ATUALIZA DISPLAY DE PRIORIDADE ----------
+// ---------- SINÔNIMOS (expansão) ----------
+const SYNONYM_MAP = {
+  'cromatografia': ['cromatográfico','cromatográfica','lc','hplc','uhplc','cromatografia liquida','cromatografia líquida','separação cromatográfica'],
+  'lc': ['cromatografia líquida','hplc','uhplc'],
+  'hplc': ['cromatografia líquida de alta eficiência','lc','uhplc'],
+  'uhplc': ['cromatografia líquida de ultra eficiência','lc','hplc','ultra alta pressão'],
+  'capilar': ['capilares','capillary','CLC','cromatografia líquida capilar','nano-LC','micro-LC'],
+  'partícula': ['particula','partículas','particulas','particle','beads','esferas','sílica','silica','dp','µm'],
+  'coluna': ['colunas','column','columns','empacotamento','packing','fase estacionária'],
+  'separação': ['separacao','separar','resolução','resolucao','rs','eficiencia','eficiência'],
+  'pressão': ['pressao','pressões','pressoes','bar','psi','pressure','backpressure'],
+  'fluxo': ['vazão','vazao','flow','vazões','vazoes'],
+  'vantagem': ['vantagens','benefício','benefícios','beneficio','beneficios','por que usar'],
+  'desvantagem': ['desvantagens','limitação','limitações','limitacao','limitacoes','problema','desafio'],
+  'eficiência': ['eficiencia','pratos teóricos','pratos teoricos','n','hetp'],
+  'resolução': ['resolucao','rs','poder de resolução','poder de resolucao'],
+  'lc-ms': ['lcms','espectrometria de massas','mass spectrometry','ms'],
+  'temperatura': ['térmico','termico','calor','aquecimento','thermal',"van't hoff",'termodinâmica','entropia','entalpia'],
+  'viscosidade': ['viscosidade','fluidez','resistência','fricção'],
+  'retenção': ['retention','tempo de retenção','fator de retenção',"k'",'fator de capacidade'],
+  'seletividade': ['selectivity','fator de separação','alfa','α']
+};
+
+// ---------- FUNÇÕES AUXILIARES ----------
 function updatePriorityDisplay() {
   const active = [];
   if (chkTags.checked) active.push({ label: 'Tags', peso: FILTER_WEIGHTS.tags });
   if (chkTitles.checked) active.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
   if (chkContent.checked) active.push({ label: 'Conteúdo', peso: FILTER_WEIGHTS.content });
-
   active.sort((a, b) => b.peso - a.peso);
-
   const badges = [p1, p2, p3];
   badges.forEach((el, i) => {
     if (i < active.length) {
@@ -706,7 +721,6 @@ function updatePriorityDisplay() {
   });
 }
 
-// ---------- CONSTRÓI TEXTO DO CHUNK COM BASE NOS FILTROS ----------
 function buildChunkText(chunk) {
   const parts = [];
   if (chkTags.checked && chunk.tags && Array.isArray(chunk.tags)) {
@@ -722,12 +736,22 @@ function buildChunkText(chunk) {
   return parts.join(' ');
 }
 
-// ---------- CARREGA JSON ----------
+// ---------- DETECÇÃO DE DOMÍNIO ----------
+function detectDomain(query) {
+  const q = query.toLowerCase();
+  // GC
+  if (DOMAINS.GC.keywords.some(k => q.includes(k))) return 'GC';
+  // LC
+  if (DOMAINS.LC.keywords.some(k => q.includes(k))) return 'LC';
+  // GENERAL (fallback)
+  return 'GENERAL';
+}
+
+// ---------- CARREGAR JSON ----------
 async function loadKnowledgeBase() {
   const statusBadge = document.getElementById('statusBadge');
   const fill = document.getElementById('progressFill');
   const text = document.getElementById('progressText');
-
   try {
     statusBadge.textContent = '⏳ carregando JSON…';
     fill.style.width = '5%';
@@ -761,15 +785,13 @@ async function loadKnowledgeBase() {
   }
 }
 
-// ---------- INICIALIZA BGE EM BACKGROUND ----------
+// ---------- INICIALIZAR BGE ----------
 async function initBGE() {
   const fill = document.getElementById('progressFill');
   const text = document.getElementById('progressText');
   const modelBadge = document.getElementById('modelBadge');
-
   try {
     const { pipeline } = await import('@xenova/transformers');
-
     try {
       fill.style.width = '30%';
       text.textContent = '30% – carregando BGE (WebGPU)…';
@@ -807,7 +829,6 @@ async function initBGE() {
       document.getElementById('perfInfo').textContent = '⚡ CPU (BGE)';
       useFallback = true;
     }
-
     fill.style.width = '80%';
     text.textContent = '80% – pronto';
     await new Promise(r => setTimeout(r, 300));
@@ -826,33 +847,26 @@ async function initBGE() {
   }
 }
 
-// ---------- SINÔNIMOS (expansão) ----------
-const SYNONYM_MAP = {
-  'cromatografia': ['cromatográfico','cromatográfica','lc','hplc','uhplc','cromatografia liquida','cromatografia líquida','separação cromatográfica'],
-  'lc': ['cromatografia líquida','hplc','uhplc'],
-  'hplc': ['cromatografia líquida de alta eficiência','lc','uhplc'],
-  'uhplc': ['cromatografia líquida de ultra eficiência','lc','hplc','ultra alta pressão'],
-  'capilar': ['capilares','capillary','CLC','cromatografia líquida capilar','nano-LC','micro-LC'],
-  'partícula': ['particula','partículas','particulas','particle','beads','esferas','sílica','silica','dp','µm'],
-  'coluna': ['colunas','column','columns','empacotamento','packing','fase estacionária'],
-  'separação': ['separacao','separar','resolução','resolucao','rs','eficiencia','eficiência'],
-  'pressão': ['pressao','pressões','pressoes','bar','psi','pressure','backpressure'],
-  'fluxo': ['vazão','vazao','flow','vazões','vazoes'],
-  'vantagem': ['vantagens','benefício','benefícios','beneficio','beneficios','por que usar'],
-  'desvantagem': ['desvantagens','limitação','limitações','limitacao','limitacoes','problema','desafio'],
-  'eficiência': ['eficiencia','pratos teóricos','pratos teoricos','n','hetp'],
-  'resolução': ['resolucao','rs','poder de resolução','poder de resolucao'],
-  'lc-ms': ['lcms','espectrometria de massas','mass spectrometry','ms'],
-  'temperatura': ['térmico','termico','calor','aquecimento','thermal',"van't hoff",'termodinâmica','entropia','entalpia'],
-  'viscosidade': ['viscosidade','fluidez','resistência','fricção'],
-  'retenção': ['retention','tempo de retenção','fator de retenção',"k'",'fator de capacidade'],
-  'seletividade': ['selectivity','fator de separação','alfa','α']
-};
-
-function expandQuery(query) {
+// ---------- EXPANSÃO CONTEXTUAL (respeita domínio) ----------
+function expandQuery(query, domain) {
   const q = query.toLowerCase();
   let expanded = query;
+
+  // Se domínio for GC ou LC, adiciona apenas sinônimos daquele domínio
+  const domainSynonyms = (domain === 'GC') ? DOMAINS.GC.synonyms :
+                         (domain === 'LC') ? DOMAINS.LC.synonyms :
+                         [];
+
+  for (const syn of domainSynonyms) {
+    if (!expanded.includes(syn)) expanded += ' ' + syn;
+  }
+
+  // Adiciona sinônimos gerais (não específicos de domínio)
   for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
+    // Pula se o termo for específico de outro domínio (ex: 'lc' para GC)
+    if (domain === 'GC' && ['lc', 'hplc', 'uhplc'].includes(term)) continue;
+    if (domain === 'LC' && term === 'cromatografia gasosa') continue;
+
     if (q.includes(term)) {
       for (const syn of synonyms) {
         if (!expanded.includes(syn)) expanded += ' ' + syn;
@@ -867,104 +881,110 @@ function expandQuery(query) {
       }
     }
   }
+
+  // Fallback para consultas curtas
   if (query.split(' ').length < 4) expanded += ' cromatografia separação eficiência';
   return expanded;
 }
 
-// ---------- EXTRAI GRUPOS DE SINÓNIMOS (LONGEST MATCH FIRST) ----------
+// ---------- EXTRAI GRUPOS DE SINÓNIMOS (Longest Match) ----------
 function extractSynonymGroups(query) {
-  // 1. Ordenar as chaves do mapa por número de palavras (maior primeiro)
   const sortedKeys = Object.keys(SYNONYM_MAP).sort((a, b) => {
     const wordsA = a.split(/\s+/).length;
     const wordsB = b.split(/\s+/).length;
-    return wordsB - wordsA; // decrescente
+    return wordsB - wordsA;
   });
 
   const lowerQuery = query.toLowerCase();
-  const used = new Array(query.length).fill(false); // marca caracteres já utilizados
+  const used = new Array(query.length).fill(false);
   const groups = [];
   const commonSet = new Set(COMMON_WORDS.map(w => w.toLowerCase()));
 
-  // 2. Tentar casar cada chave (expressão) na query, priorizando as mais longas
   for (const key of sortedKeys) {
     const keyLower = key.toLowerCase();
     let startIdx = lowerQuery.indexOf(keyLower);
     while (startIdx !== -1) {
-      // Verifica se todos os caracteres da ocorrência estão livres
       let available = true;
       for (let i = startIdx; i < startIdx + keyLower.length; i++) {
         if (used[i]) { available = false; break; }
       }
       if (available) {
-        // Marcar como usado
-        for (let i = startIdx; i < startIdx + keyLower.length; i++) {
-          used[i] = true;
-        }
-        // Adicionar o grupo (chave + seus sinônimos)
+        for (let i = startIdx; i < startIdx + keyLower.length; i++) used[i] = true;
         const group = new Set([key, ...SYNONYM_MAP[key]]);
         groups.push(group);
-        break; // para esta chave, usa a primeira ocorrência disponível
+        break;
       }
-      // Procura próxima ocorrência
       startIdx = lowerQuery.indexOf(keyLower, startIdx + 1);
     }
   }
 
-  // 3. Para palavras não cobertas, analisar individualmente (se estiverem no COMMON_WORDS)
   const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
   let currentPos = 0;
   for (const w of words) {
-    // Encontrar a posição da palavra na query (considerando espaços)
-    // Simplificação: percorrer a query e pular espaços
     let pos = lowerQuery.indexOf(w, currentPos);
     if (pos === -1) continue;
-    // Verifica se a palavra não está marcada como usada
     let available = true;
     for (let i = pos; i < pos + w.length; i++) {
       if (used[i]) { available = false; break; }
     }
     if (available && commonSet.has(w)) {
-      // Verifica se essa palavra já não pertence a algum grupo
       let alreadyInGroup = false;
       for (const g of groups) {
         if (g.has(w)) { alreadyInGroup = true; break; }
       }
       if (!alreadyInGroup) {
         groups.push(new Set([w]));
-        // Marca a palavra como usada (opcional, mas evita duplicatas)
-        for (let i = pos; i < pos + w.length; i++) {
-          used[i] = true;
-        }
+        for (let i = pos; i < pos + w.length; i++) used[i] = true;
       }
     }
     currentPos = pos + w.length;
   }
-
   return groups;
 }
 
-// ---------- FILTRO PRÉVIO POR GRUPOS DE SINÓNIMOS (AND entre grupos, OR dentro) ----------
+// ---------- FILTRO POR GRUPOS (AND/OR) ----------
 function filterChunksBySynonymGroups(groups, chunks) {
   if (groups.length === 0) return chunks;
-
   return chunks.filter(chunk => {
     const title = (chunk.titulo || '').toLowerCase();
     const content = (chunk.conteudo || '').toLowerCase();
-    // Para cada grupo, pelo menos um sinónimo deve aparecer no título ou conteúdo
     return groups.every(group => {
       for (const syn of group) {
-        if (title.includes(syn) || content.includes(syn)) {
-          return true;
-        }
+        if (title.includes(syn) || content.includes(syn)) return true;
       }
       return false;
     });
   });
 }
 
-// ---------- FUNÇÕES DE BUSCA (BM25 + BGE) ----------
+// ---------- DOMAIN SCORE (penalidade) ----------
+function domainScore(chunk, domain) {
+  const text = (chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' ');
+  const lower = text.toLowerCase();
 
-function bm25Search(query, chunks, topK = 15) {
+  if (domain === 'GC') {
+    if (chunk.tags?.includes('GC')) return 1.0;
+    if (lower.includes('cromatografia gasosa') || lower.includes('gas chromatography')) return 0.9;
+    if (lower.includes('gc')) return 0.8;
+    if (lower.includes('temperatura') && lower.includes('programação')) return 0.7;
+    if (lower.includes('lc') || lower.includes('hplc') || lower.includes('uhplc')) return 0.2;
+    return 0.5;
+  }
+
+  if (domain === 'LC') {
+    if (chunk.tags?.includes('LC')) return 1.0;
+    if (lower.includes('cromatografia líquida') || lower.includes('liquid chromatography')) return 0.9;
+    if (lower.includes('lc') || lower.includes('hplc') || lower.includes('uhplc')) return 0.8;
+    if (lower.includes('gc') || lower.includes('gasosa') || lower.includes('gas chromatography')) return 0.2;
+    return 0.5;
+  }
+
+  // GENERAL
+  return 0.7;
+}
+
+// ---------- BM25 (com penalidade de domínio) ----------
+function bm25Search(query, chunks, domain, topK = 15) {
   const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
   if (tokens.length === 0) return chunks.slice(0, topK);
 
@@ -994,10 +1014,14 @@ function bm25Search(query, chunks, topK = 15) {
       const docLen = doc.length;
       score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
     });
+    // Aplica penalidade de domínio
+    const dScore = domainScore(chunk, domain);
+    score *= (0.5 + 0.5 * dScore); // penalidade suave (0.5 a 1.0)
     return { ...chunk, bm25_score: score };
   }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
 }
 
+// ---------- COSINE SIMILARITY ----------
 function cosineSimilarity(vecA, vecB) {
   if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
   let dot = 0, normA = 0, normB = 0;
@@ -1010,8 +1034,9 @@ function cosineSimilarity(vecA, vecB) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-async function hybridSearch(query, chunks, topK = 8) {
-  const bm25Results = bm25Search(query, chunks, 15);
+// ---------- BUSCA HÍBRIDA (BM25 + BGE + Domain Score) ----------
+async function hybridSearch(query, chunks, domain, topK = 8) {
+  const bm25Results = bm25Search(query, chunks, domain, 15);
 
   if (!embedderReady || !embedder) {
     return bm25Results.slice(0, topK);
@@ -1044,18 +1069,19 @@ async function hybridSearch(query, chunks, topK = 8) {
 
   return withEmbedding.map(chunk => ({
     ...chunk,
-    hybrid_score: 0.3 * (chunk.bm25_score || 0) + 0.7 * (chunk.similarity || 0)
+    hybrid_score: 0.3 * (chunk.bm25_score || 0) +
+                  0.5 * (chunk.similarity || 0) +
+                  0.2 * domainScore(chunk, domain)
   })).sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0)).slice(0, topK);
 }
 
-// ---------- SÍNTESE DA RESPOSTA (SEM TÍTULOS NO INÍCIO) ----------
+// ---------- SÍNTESE DA RESPOSTA ----------
 function synthesizeResponse(query, chunks) {
   if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
-  let response = chunks.map((c, i) => {
+  return chunks.map((c, i) => {
     const content = c.conteudo || '';
     return `**${i + 1}.** ${content}`;
   }).join('\n\n');
-  return response;
 }
 
 // ---------- UI ----------
@@ -1089,7 +1115,6 @@ function removeTyping() {
 function openModal(chunk) {
   modalTitle.textContent = `📄 ${chunk.titulo || 'Chunk sem título'}`;
   modalFields.innerHTML = '';
-
   const fields = [
     { label: 'ID', value: chunk.id },
     { label: 'Título', value: chunk.titulo },
@@ -1100,7 +1125,6 @@ function openModal(chunk) {
     { label: 'Arquivo de origem', value: chunk.origem || '-' },
     { label: 'Data', value: chunk.data || '-' }
   ];
-
   fields.forEach(f => {
     const div = document.createElement('div');
     div.className = 'field';
@@ -1110,23 +1134,17 @@ function openModal(chunk) {
     `;
     modalFields.appendChild(div);
   });
-
   modalOverlay.classList.add('active');
 }
 
-function closeModal() {
-  modalOverlay.classList.remove('active');
-}
-
-modalClose.addEventListener('click', closeModal);
+modalClose.addEventListener('click', () => modalOverlay.classList.remove('active'));
 modalOverlay.addEventListener('click', (e) => {
-  if (e.target === modalOverlay) closeModal();
+  if (e.target === modalOverlay) modalOverlay.classList.remove('active');
 });
 
-// ---------- FORMATA RESPOSTA (sem sugestões) ----------
-function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
+// ---------- FORMATA RESPOSTA ----------
+function formatResponse(query, chunks, time, cacheInfo, activeFilters, domain) {
   const response = synthesizeResponse(query, chunks);
-
   let html = `<div class="msg-header">
     <span class="avatar"><img src="img.png" alt="ChromatoBuddy"></span>
     <span class="name">ChromatoBuddy Pro</span>
@@ -1135,15 +1153,12 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
       ${cacheInfo ? `· 💾 ${cacheInfo}` : ''}
     </span>
   </div>`;
-
   const filterNames = activeFilters.map(f => `${f.label}(${f.peso})`).join(' + ');
-  html += `<div style="font-size:0.7rem; color:#6aafff; margin-bottom:8px;">🔍 Filtros: ${filterNames}</div>`;
-
+  html += `<div style="font-size:0.7rem; color:#6aafff; margin-bottom:8px;">🔍 Filtros: ${filterNames} · 🌐 Domínio: ${domain}</div>`;
   html += `<div class="answer-box">
     <h4>📊 Resposta</h4>
     <p>${response.replace(/\n/g, '<br>')}</p>
   </div>`;
-
   const sources = chunks.filter(c => c.titulo);
   if (sources.length) {
     html += `<div class="sources-box">
@@ -1153,18 +1168,16 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
       }).join('<br>')}
     </div>`;
   }
-
   html += `<div class="meta">
     <span class="confidence-high">✅ ${chunks.length} chunks selecionados</span>
     <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
     <span>🧠 BGE-small</span>
     <span>📓 NotebookLM</span>
   </div>`;
-
   return html;
 }
 
-// ---------- HANDLE QUERY ----------
+// ---------- HANDLE QUERY (pipeline corrigido) ----------
 async function handleUserQuery() {
   if (sendBtn.disabled) return;
   const query = userInput.value.trim();
@@ -1179,28 +1192,45 @@ async function handleUserQuery() {
   const startTime = performance.now();
 
   try {
-    // Expande para a busca semântica
-    const expanded = expandQuery(query);
+    // 1. DETECTA DOMÍNIO
+    const domain = detectDomain(query);
+    domainInfo.textContent = `🌐 Domínio: ${domain}`;
 
-    // Extrai grupos de sinónimos da consulta ORIGINAL usando Longest Match
-    const groups = extractSynonymGroups(query);
-    const hasGroups = groups.length > 0;
-
-    showTyping(hasGroups
-      ? `🔍 filtrando por ${groups.length} grupos de sinónimos (AND/OR)…`
-      : '🔍 buscando…');
+    showTyping(`🔍 detectado domínio ${domain}…`);
 
     const chunks = knowledgeData?.chunks || [];
 
-    // Filtro por grupos de sinónimos
-    const filteredChunks = hasGroups
-      ? filterChunksBySynonymGroups(groups, chunks)
-      : chunks;
-    const filteredCount = filteredChunks.length;
+    // 2. FILTRO POR DOMÍNIO (sempre aplicado)
+    let filtered = chunks.filter(chunk => {
+      const text = (chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' ');
+      const lower = text.toLowerCase();
+      if (domain === 'GC') {
+        return lower.includes('cromatografia gasosa') || lower.includes('gas chromatography') ||
+               lower.includes('gc') || chunk.tags?.includes('GC');
+      }
+      if (domain === 'LC') {
+        return lower.includes('cromatografia líquida') || lower.includes('liquid chromatography') ||
+               lower.includes('lc') || lower.includes('hplc') || lower.includes('uhplc') ||
+               chunk.tags?.includes('LC') || chunk.tags?.includes('HPLC');
+      }
+      return true; // GENERAL: mantém todos
+    });
 
-    showTyping('🧠 buscando com BM25 + BGE…');
+    // 3. EXTRAI GRUPOS DE SINÔNIMOS (para refinar)
+    const groups = extractSynonymGroups(query);
+    if (groups.length > 0) {
+      filtered = filterChunksBySynonymGroups(groups, filtered);
+    }
 
-    const results = await hybridSearch(expanded, filteredChunks, 8);
+    const filteredCount = filtered.length;
+
+    // 4. EXPANSÃO CONTEXTUAL (respeita domínio)
+    const expanded = expandQuery(query, domain);
+
+    showTyping(`🧠 buscando com BM25 + BGE (${filteredCount} chunks filtrados)…`);
+
+    // 5. BUSCA HÍBRIDA (já aplica domainScore no BM25)
+    const results = await hybridSearch(expanded, filtered, domain, 8);
 
     removeTyping();
 
@@ -1213,10 +1243,9 @@ async function handleUserQuery() {
     if (chkTitles.checked) activeFilters.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
     if (chkContent.checked) activeFilters.push({ label: 'Conteúdo', peso: FILTER_WEIGHTS.content });
 
-    const html = formatResponse(query, results, totalTime, cacheInfo, activeFilters);
+    const html = formatResponse(query, results, totalTime, cacheInfo, activeFilters, domain);
     addMessage('bot', html, true);
 
-    // Event listeners para fontes
     document.querySelectorAll('.source-link').forEach(el => {
       el.addEventListener('click', (e) => {
         const chunkId = parseInt(el.dataset.chunkId);
@@ -1226,7 +1255,7 @@ async function handleUserQuery() {
     });
 
     document.getElementById('chunkInfo').textContent =
-      `📚 ${results.length} chunks (${filteredCount} após filtro de ${groups.length} grupos)`;
+      `📚 ${results.length} chunks (${filteredCount} após lock)`;
   } catch (err) {
     removeTyping();
     console.error(err);
@@ -1269,7 +1298,7 @@ async function init() {
     if (!userInput.disabled) userInput.focus();
   });
   updatePriorityDisplay();
-  console.log(`🚀 ChromatoBuddy Pro (Longest Match) iniciado com ${chunks.length} chunks`);
+  console.log(`🚀 ChromatoBuddy Pro (Domain‑Lock) iniciado com ${chunks.length} chunks`);
 }
 
 init();
