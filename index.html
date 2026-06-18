@@ -1,1044 +1,1076 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChromatoBuddy Pro · RAG Rápido</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #e8edf5 0%, #d5ddee 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .app {
-            max-width: 1200px;
-            width: 100%;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 25px 60px rgba(0, 20, 50, 0.15);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 94vh;
-            max-height: 950px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .header {
-            padding: 18px 28px;
-            background: linear-gradient(135deg, #0a1e3d 0%, #1a3a6a 100%);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.08);
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .header h1 {
-            font-size: 1.4rem;
-            color: white;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-        .header h1 span {
-            color: #6aafff;
-        }
-        .header .subtitle {
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.75rem;
-            font-weight: 300;
-        }
-        .badge-group {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.65rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            font-weight: 500;
-        }
-        .badge.success {
-            background: rgba(46, 213, 115, 0.2);
-            color: #7ddfa0;
-            border-color: rgba(46, 213, 115, 0.15);
-        }
-        .badge.warning {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ffd54f;
-            border-color: rgba(255, 193, 7, 0.1);
-        }
-        .badge.info {
-            background: rgba(54, 178, 255, 0.15);
-            color: #6abfff;
-            border-color: rgba(54, 178, 255, 0.1);
-        }
-        .badge.turbo {
-            background: linear-gradient(135deg, #3498db, #2ecc71);
-            color: white;
-            border: none;
-            font-weight: 700;
-        }
-        .badge.brain {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            color: white;
-            border: none;
-            font-weight: 700;
-        }
-        .badge.notebook {
-            background: linear-gradient(135deg, #e67e22, #f39c12);
-            color: white;
-            border: none;
-            font-weight: 700;
-        }
-        .badge.webgpu {
-            background: #00b894;
-            color: white;
-            border: none;
-        }
-        .badge.cpu {
-            background: #fdcb6e;
-            color: #2d3436;
-            border: none;
-        }
-        .badge.fallback {
-            background: #e17055;
-            color: white;
-            border: none;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChromatoBuddy Pro · Filtros Inteligentes</title>
+  <style>
+    /* ===== RESET E BASE ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #e8edf5 0%, #d5ddee 100%);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .app {
+      max-width: 1200px;
+      width: 100%;
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 25px 60px rgba(0,20,50,0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 94vh;
+      max-height: 950px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
 
-        /* progress bar */
-        .progress-wrap {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.08);
-            height: 4px;
-            border-radius: 4px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #6aafff, #2ecc71);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-        .progress-text {
-            font-size: 0.65rem;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 2px;
-            text-align: right;
-        }
+    /* ===== HEADER ===== */
+    .header {
+      padding: 14px 28px 10px;
+      background: linear-gradient(135deg, #0a1e3d 0%, #1a3a6a 100%);
+      border-bottom: 2px solid rgba(255,255,255,0.08);
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .header h1 {
+      font-size: 1.4rem;
+      color: white;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .header h1 span { color: #6aafff; }
+    .header .subtitle {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.75rem;
+      font-weight: 300;
+    }
+    .badge-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.06);
+      font-weight: 500;
+    }
+    .badge.success { background: rgba(46,213,115,0.2); color: #7ddfa0; border-color: rgba(46,213,115,0.15); }
+    .badge.warning { background: rgba(255,193,7,0.15); color: #ffd54f; border-color: rgba(255,193,7,0.1); }
+    .badge.turbo { background: linear-gradient(135deg,#3498db,#2ecc71); color: white; border: none; }
+    .badge.brain { background: linear-gradient(135deg,#9b59b6,#8e44ad); color: white; border: none; }
+    .badge.notebook { background: linear-gradient(135deg,#e67e22,#f39c12); color: white; border: none; }
+    .badge.webgpu { background: #00b894; color: white; border: none; }
+    .badge.cpu { background: #fdcb6e; color: #2d3436; border: none; }
+    .badge.fallback { background: #e17055; color: white; border: none; }
 
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 28px;
-            background: #f8faff;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .chat-container::-webkit-scrollbar {
-            width: 5px;
-        }
-        .chat-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .chat-container::-webkit-scrollbar-thumb {
-            background: #c5d0e0;
-            border-radius: 10px;
-        }
-        .message {
-            max-width: 92%;
-            padding: 14px 20px;
-            border-radius: 18px;
-            line-height: 1.6;
-            font-size: 0.95rem;
-            word-break: break-word;
-            animation: fadeSlide 0.3s ease;
-        }
-        .message.user {
-            align-self: flex-end;
-            background: #1a3a6a;
-            color: white;
-            border-bottom-right-radius: 6px;
-        }
-        .message.bot {
-            align-self: flex-start;
-            background: white;
-            border: 1px solid #e8edf5;
-            color: #1a2332;
-            border-bottom-left-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            max-width: 95%;
-        }
-        .message .msg-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-            font-size: 0.85rem;
-        }
-        .message .msg-header .avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            background: #eef3fc;
-        }
-        .message .msg-header .name {
-            font-weight: 600;
-            color: #1a3a6a;
-        }
-        .message.user .msg-header .name {
-            color: rgba(255, 255, 255, 0.9);
-        }
-        .message.user .msg-header .avatar {
-            background: rgba(255, 255, 255, 0.15);
-        }
+    /* ===== PROGRESS BAR ===== */
+    .progress-wrap {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      height: 4px;
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #6aafff, #2ecc71);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.6);
+      text-align: right;
+      margin-top: 2px;
+    }
 
-        .answer-box {
-            background: #f8faff;
-            padding: 16px 20px;
-            border-radius: 12px;
-            border-left: 4px solid #1a3a6a;
-            margin: 6px 0;
-        }
-        .answer-box h4 {
-            color: #1a3a6a;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-        .answer-box p {
-            margin-bottom: 8px;
-        }
-        .answer-box ul {
-            padding-left: 20px;
-            margin: 6px 0;
-        }
-        .answer-box ul li {
-            margin-bottom: 4px;
-        }
+    /* ===== FILTROS ===== */
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px 24px;
+      padding: 8px 0 4px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 6px;
+    }
+    .filters-bar .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.8);
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .filters-bar .filter-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #6aafff;
+      cursor: pointer;
+    }
+    .filters-bar .filter-group label {
+      cursor: pointer;
+      user-select: none;
+    }
+    .filters-bar .priority-info {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.7rem;
+      margin-left: auto;
+      display: flex;
+      gap: 12px;
+    }
+    .filters-bar .priority-info span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .filters-bar .priority-info .badge-peso {
+      background: rgba(255,255,255,0.12);
+      padding: 0 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.6rem;
+      color: #6aafff;
+    }
 
-        .sources-box {
-            background: #f0f4fc;
-            padding: 10px 16px;
-            border-radius: 10px;
-            margin-top: 10px;
-            font-size: 0.82rem;
-            border-left: 3px solid #6aafff;
-        }
-        .meta {
-            font-size: 0.7rem;
-            color: #8899b0;
-            margin-top: 10px;
-            border-top: 1px solid #eef2f8;
-            padding-top: 8px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .suggestions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eef2f8;
-        }
-        .suggestion-btn {
-            background: #f0f4fc;
-            border: 1px solid #dde4f0;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: #1a3a6a;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
-        }
-        .suggestion-btn:hover {
-            background: #1a3a6a;
-            color: white;
-            border-color: #1a3a6a;
-            transform: translateY(-1px);
-        }
+    /* ===== CHAT ===== */
+    .chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 28px;
+      background: #f8faff;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .chat-container::-webkit-scrollbar { width: 5px; }
+    .chat-container::-webkit-scrollbar-track { background: transparent; }
+    .chat-container::-webkit-scrollbar-thumb { background: #c5d0e0; border-radius: 10px; }
 
-        .typing {
-            align-self: flex-start;
-            background: white;
-            padding: 12px 22px;
-            border-radius: 24px;
-            border: 1px solid #e8edf5;
-            color: #4a5a7a;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-        .typing .dots {
-            display: flex;
-            gap: 4px;
-        }
-        .typing .dots span {
-            width: 7px;
-            height: 7px;
-            background: #6aafff;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite;
-        }
-        .typing .dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .typing .dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        @keyframes bounce {
-            0%, 80%, 100% {
-                transform: scale(0.6);
-                opacity: 0.4;
-            }
-            40% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+    .message {
+      max-width: 92%;
+      padding: 14px 20px;
+      border-radius: 18px;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      word-break: break-word;
+      animation: fadeSlide 0.3s ease;
+    }
+    .message.user {
+      align-self: flex-end;
+      background: #1a3a6a;
+      color: white;
+      border-bottom-right-radius: 6px;
+    }
+    .message.bot {
+      align-self: flex-start;
+      background: white;
+      border: 1px solid #e8edf5;
+      color: #1a2332;
+      border-bottom-left-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      max-width: 95%;
+    }
+    .message .msg-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+    .message .msg-header .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      background: #eef3fc;
+    }
+    .message .msg-header .name {
+      font-weight: 600;
+      color: #1a3a6a;
+    }
+    .message.user .msg-header .name { color: rgba(255,255,255,0.9); }
+    .message.user .msg-header .avatar { background: rgba(255,255,255,0.15); }
 
-        .input-area {
-            padding: 14px 28px 20px;
-            background: white;
-            border-top: 1px solid #e8edf5;
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-        }
-        .input-area textarea {
-            flex: 1;
-            border: 2px solid #e8edf5;
-            border-radius: 24px;
-            padding: 12px 20px;
-            font-size: 0.95rem;
-            font-family: inherit;
-            resize: none;
-            outline: none;
-            background: #fafcff;
-            min-height: 52px;
-            max-height: 130px;
-            line-height: 1.5;
-            transition: all 0.2s;
-        }
-        .input-area textarea:focus {
-            border-color: #1a3a6a;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(26, 58, 106, 0.08);
-        }
-        .input-area textarea::placeholder {
-            color: #aab5c8;
-        }
-        .input-area button {
-            background: linear-gradient(135deg, #1a3a6a 0%, #2a5a9a 100%);
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 12px 28px;
-            border-radius: 40px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            height: 52px;
-            box-shadow: 0 4px 16px rgba(26, 58, 106, 0.25);
-            transition: all 0.25s;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .input-area button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(26, 58, 106, 0.35);
-        }
-        .input-area button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .input-area button .shortcut {
-            font-size: 0.65rem;
-            opacity: 0.5;
-            font-weight: 400;
-        }
+    .answer-box {
+      background: #f8faff;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border-left: 4px solid #1a3a6a;
+      margin: 6px 0;
+    }
+    .answer-box h4 {
+      color: #1a3a6a;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    .answer-box p { margin-bottom: 8px; }
+    .answer-box ul { padding-left: 20px; margin: 6px 0; }
+    .answer-box ul li { margin-bottom: 4px; }
 
-        .footer {
-            padding: 6px 28px 12px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            font-size: 0.7rem;
-            color: #8899b0;
-            background: #fafcff;
-            border-top: 1px solid #eef2f8;
-        }
-        .footer .stats {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .footer .stats span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+    .sources-box {
+      background: #f0f4fc;
+      padding: 10px 16px;
+      border-radius: 10px;
+      margin-top: 10px;
+      font-size: 0.82rem;
+      border-left: 3px solid #6aafff;
+    }
+    .meta {
+      font-size: 0.7rem;
+      color: #8899b0;
+      margin-top: 10px;
+      border-top: 1px solid #eef2f8;
+      padding-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #eef2f8;
+    }
+    .suggestion-btn {
+      background: #f0f4fc;
+      border: 1px solid #dde4f0;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: #1a3a6a;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .suggestion-btn:hover {
+      background: #1a3a6a;
+      color: white;
+      border-color: #1a3a6a;
+      transform: translateY(-1px);
+    }
+    .typing {
+      align-self: flex-start;
+      background: white;
+      padding: 12px 22px;
+      border-radius: 24px;
+      border: 1px solid #e8edf5;
+      color: #4a5a7a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .typing .dots {
+      display: flex;
+      gap: 4px;
+    }
+    .typing .dots span {
+      width: 7px;
+      height: 7px;
+      background: #6aafff;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite;
+    }
+    .typing .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
 
-        @keyframes fadeSlide {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    /* ===== INPUT ===== */
+    .input-area {
+      padding: 14px 28px 20px;
+      background: white;
+      border-top: 1px solid #e8edf5;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .input-area textarea {
+      flex: 1;
+      border: 2px solid #e8edf5;
+      border-radius: 24px;
+      padding: 12px 20px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      background: #fafcff;
+      min-height: 52px;
+      max-height: 130px;
+      line-height: 1.5;
+      transition: all 0.2s;
+    }
+    .input-area textarea:focus {
+      border-color: #1a3a6a;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(26,58,106,0.08);
+    }
+    .input-area textarea::placeholder { color: #aab5c8; }
+    .input-area button {
+      background: linear-gradient(135deg, #1a3a6a 0%, #2a5a9a 100%);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 40px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      height: 52px;
+      box-shadow: 0 4px 16px rgba(26,58,106,0.25);
+      transition: all 0.25s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .input-area button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(26,58,106,0.35);
+    }
+    .input-area button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .input-area button .shortcut {
+      font-size: 0.65rem;
+      opacity: 0.5;
+      font-weight: 400;
+    }
 
-        .welcome-box {
-            background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%);
-            border-radius: 14px;
-            padding: 16px 20px;
-            border: 1px solid #d5e0f0;
-        }
-        .welcome-box .features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 8px;
-        }
-        .welcome-box .feature-item {
-            background: white;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            border: 1px solid #e8edf5;
-            color: #1a3a6a;
-        }
-        .welcome-box .feature-item.turbo {
-            background: linear-gradient(135deg, #3498db, #2ecc71);
-            color: white;
-            border: none;
-        }
-        .welcome-box .feature-item.brain {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            color: white;
-            border: none;
-        }
-        @media (max-width: 640px) {
-            .app {
-                max-height: none;
-                height: 96vh;
-                border-radius: 20px;
-            }
-            .header {
-                padding: 12px 16px;
-            }
-            .header h1 {
-                font-size: 1.1rem;
-            }
-            .chat-container {
-                padding: 14px 16px;
-            }
-            .message {
-                max-width: 96%;
-                padding: 12px 16px;
-                font-size: 0.9rem;
-            }
-            .input-area {
-                padding: 10px 16px 16px;
-                flex-wrap: wrap;
-            }
-            .input-area textarea {
-                min-height: 44px;
-                font-size: 0.9rem;
-            }
-            .input-area button {
-                height: 44px;
-                padding: 8px 18px;
-                font-size: 0.85rem;
-            }
-            .footer {
-                padding: 6px 16px 10px;
-                font-size: 0.6rem;
-            }
-            .suggestion-btn {
-                font-size: 0.7rem;
-                padding: 4px 12px;
-            }
-        }
-    </style>
+    /* ===== FOOTER ===== */
+    .footer {
+      padding: 6px 28px 12px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.7rem;
+      color: #8899b0;
+      background: #fafcff;
+      border-top: 1px solid #eef2f8;
+    }
+    .footer .stats {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .footer .stats span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ===== ANIMAÇÃO ===== */
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== WELCOME ===== */
+    .welcome-box {
+      background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 100%);
+      border-radius: 14px;
+      padding: 16px 20px;
+      border: 1px solid #d5e0f0;
+    }
+    .welcome-box .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .welcome-box .feature-item {
+      background: white;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      border: 1px solid #e8edf5;
+      color: #1a3a6a;
+    }
+    .welcome-box .feature-item.turbo { background: linear-gradient(135deg,#3498db,#2ecc71); color: white; border: none; }
+    .welcome-box .feature-item.brain { background: linear-gradient(135deg,#9b59b6,#8e44ad); color: white; border: none; }
+
+    /* ===== RESPONSIVO ===== */
+    @media (max-width: 640px) {
+      .app { max-height: none; height: 96vh; border-radius: 20px; }
+      .header { padding: 10px 16px; }
+      .header h1 { font-size: 1.1rem; }
+      .chat-container { padding: 14px 16px; }
+      .message { max-width: 96%; padding: 12px 16px; font-size: 0.9rem; }
+      .input-area { padding: 10px 16px 16px; flex-wrap: wrap; }
+      .input-area textarea { min-height: 44px; font-size: 0.9rem; }
+      .input-area button { height: 44px; padding: 8px 18px; font-size: 0.85rem; }
+      .footer { padding: 6px 16px 10px; font-size: 0.6rem; }
+      .filters-bar { gap: 10px; flex-direction: column; align-items: flex-start; }
+      .filters-bar .priority-info { margin-left: 0; width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+    }
+  </style>
 </head>
 <body>
-    <div class="app">
-        <div class="header">
-            <div class="header-left">
-                <h1>🧠 Chromato<span>Buddy</span></h1>
-                <span class="subtitle">RAG Rápido</span>
-            </div>
-            <div class="badge-group">
-                <span class="badge notebook">📓 NotebookLM Style</span>
-                <span class="badge turbo">⚡ BM25 + BGE</span>
-                <span class="badge brain">🧠 BGE-small</span>
-                <span class="badge" id="statusBadge">⏳ carregando…</span>
-                <span class="badge" id="modelBadge">⏳ modelo…</span>
-            </div>
-            <div class="progress-wrap">
-                <div class="progress-fill" id="progressFill" style="width:0%"></div>
-            </div>
-            <div class="progress-text" id="progressText">0%</div>
-        </div>
+<div class="app">
 
-        <div class="chat-container" id="chatContainer">
-            <div class="message bot">
-                <div class="msg-header">
-                    <span class="avatar">🧠</span>
-                    <span class="name">ChromatoBuddy Pro</span>
-                </div>
-                <div class="welcome-box">
-                    <strong>🚀 Pipeline NotebookLM‑Style (rápido)</strong>
-                    <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-                        <strong>Arquitetura:</strong> Query → Expansão → BM25 (15) → BGE (8) → Resposta
-                    </div>
-                    <div class="features">
-                        <span class="feature-item turbo">⚡ BM25 + BGE</span>
-                        <span class="feature-item brain">🧠 Embeddings sob demanda</span>
-                        <span class="feature-item">📚 100% local</span>
-                    </div>
-                    <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
-                        💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
-                    </div>
-                </div>
-                <div class="meta">
-                    <span>✅ RAG NotebookLM‑Style</span>
-                    <span id="chunkInfo">📚 0 chunks</span>
-                    <span id="cacheInfo">💾 0 em cache</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="input-area">
-            <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito da temperatura na cromatografia?" disabled></textarea>
-            <button id="sendBtn" disabled>
-                Enviar
-                <span class="shortcut">⌘↵</span>
-            </button>
-        </div>
-
-        <div class="footer">
-            <div class="stats">
-                <span id="versionInfo">📌 versão: -</span>
-                <span id="sourceInfo">📄 origem: -</span>
-                <span id="perfInfo">⚡ GPU: -</span>
-            </div>
-            <span>🔒 Local · 📓 NotebookLM · ⚡ BGE</span>
-        </div>
+  <!-- ===== HEADER COM FILTROS ===== -->
+  <div class="header">
+    <div class="header-top">
+      <div class="header-left">
+        <h1>🧠 Chromato<span>Buddy</span></h1>
+        <span class="subtitle">Filtros Inteligentes</span>
+      </div>
+      <div class="badge-group">
+        <span class="badge notebook">📓 NotebookLM</span>
+        <span class="badge turbo">⚡ BM25+BGE</span>
+        <span class="badge brain">🧠 BGE-small</span>
+        <span class="badge" id="statusBadge">⏳ carregando…</span>
+        <span class="badge" id="modelBadge">⏳ modelo…</span>
+      </div>
     </div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.9.0/dist/transformers.js"
-            }
+    <!-- Barra de progresso -->
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-text" id="progressText">0%</div>
+
+    <!-- ===== FILTROS ===== -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <input type="checkbox" id="filterTags" checked />
+        <label for="filterTags">🏷️ Tags</label>
+      </div>
+      <div class="filter-group">
+        <input type="checkbox" id="filterTitles" checked />
+        <label for="filterTitles">📌 Títulos</label>
+      </div>
+      <div class="filter-group">
+        <input type="checkbox" id="filterContent" checked />
+        <label for="filterContent">📄 Conteúdo</label>
+      </div>
+      <div class="priority-info" id="priorityDisplay">
+        <span>Prioridade: <span class="badge-peso" id="p1">Tags</span> <span class="badge-peso" id="p2">Títulos</span> <span class="badge-peso" id="p3">Conteúdo</span></span>
+        <span style="font-size:0.65rem; opacity:0.6;">(clique nos filtros para alterar)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CHAT ===== -->
+  <div class="chat-container" id="chatContainer">
+    <div class="message bot">
+      <div class="msg-header">
+        <span class="avatar">🧠</span>
+        <span class="name">ChromatoBuddy Pro</span>
+      </div>
+      <div class="welcome-box">
+        <strong>🚀 Sistema de Filtros Inteligentes</strong>
+        <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
+          Marque quais campos usar na busca. A combinação define a prioridade.
+        </div>
+        <div class="features">
+          <span class="feature-item turbo">⚡ BM25 + BGE</span>
+          <span class="feature-item brain">🧠 Embeddings sob demanda</span>
+          <span class="feature-item">📚 100% local</span>
+        </div>
+        <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
+          💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
+        </div>
+      </div>
+      <div class="meta">
+        <span>✅ Filtros ativos</span>
+        <span id="chunkInfo">📚 0 chunks</span>
+        <span id="cacheInfo">💾 0 em cache</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INPUT ===== -->
+  <div class="input-area">
+    <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito da temperatura na cromatografia?" disabled></textarea>
+    <button id="sendBtn" disabled>
+      Enviar
+      <span class="shortcut">⌘↵</span>
+    </button>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <div class="footer">
+    <div class="stats">
+      <span id="versionInfo">📌 versão: -</span>
+      <span id="sourceInfo">📄 origem: -</span>
+      <span id="perfInfo">⚡ GPU: -</span>
+    </div>
+    <span>🔒 Local · 📓 NotebookLM · ⚡ BGE</span>
+  </div>
+</div>
+
+<!-- ===== IMPORTAÇÃO TRANSFORMERS ===== -->
+<script type="importmap">
+{
+  "imports": {
+    "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.9.0/dist/transformers.js"
+  }
+}
+</script>
+
+<script type="module">
+// ============================================================
+//  MÓDULO PRINCIPAL – CHROMATOBUDDY PRO COM FILTROS
+// ============================================================
+
+// ---------- ESTADO ----------
+let knowledgeData = null;
+let embedder = null;
+let embedderReady = false;
+let useFallback = false;
+const embeddingCache = new Map();
+let cacheHits = 0;
+let cacheMisses = 0;
+
+// Filtros (pesos)
+const FILTER_WEIGHTS = {
+  tags: 3,
+  title: 2,
+  content: 1
+};
+
+// Referências DOM
+const chatContainer = document.getElementById('chatContainer');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+
+// Checkboxes
+const chkTags = document.getElementById('filterTags');
+const chkTitles = document.getElementById('filterTitles');
+const chkContent = document.getElementById('filterContent');
+
+// Elementos de prioridade
+const p1 = document.getElementById('p1');
+const p2 = document.getElementById('p2');
+const p3 = document.getElementById('p3');
+
+// ---------- ATUALIZA DISPLAY DE PRIORIDADE ----------
+function updatePriorityDisplay() {
+  const active = [];
+  if (chkTags.checked) active.push({ label: 'Tags', peso: FILTER_WEIGHTS.tags });
+  if (chkTitles.checked) active.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
+  if (chkContent.checked) active.push({ label: 'Conteúdo', peso: FILTER_WEIGHTS.content });
+
+  // Ordena por peso decrescente
+  active.sort((a, b) => b.peso - a.peso);
+
+  // Atualiza os badges
+  const badges = [p1, p2, p3];
+  badges.forEach((el, i) => {
+    if (i < active.length) {
+      el.textContent = `${active[i].label} (${active[i].peso})`;
+      el.style.display = 'inline';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+
+// ---------- CONSTRÓI TEXTO DO CHUNK COM BASE NOS FILTROS ----------
+function buildChunkText(chunk) {
+  const parts = [];
+  if (chkTags.checked && chunk.tags && Array.isArray(chunk.tags)) {
+    const tagStr = chunk.tags.join(' ');
+    // Repete conforme peso
+    for (let i = 0; i < FILTER_WEIGHTS.tags; i++) parts.push(tagStr);
+  }
+  if (chkTitles.checked && chunk.titulo) {
+    for (let i = 0; i < FILTER_WEIGHTS.title; i++) parts.push(chunk.titulo);
+  }
+  if (chkContent.checked && chunk.conteudo) {
+    for (let i = 0; i < FILTER_WEIGHTS.content; i++) parts.push(chunk.conteudo);
+  }
+  return parts.join(' ');
+}
+
+// ---------- CARREGA JSON ----------
+async function loadKnowledgeBase() {
+  const statusBadge = document.getElementById('statusBadge');
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+
+  try {
+    statusBadge.textContent = '⏳ carregando JSON…';
+    fill.style.width = '5%';
+    text.textContent = '5%';
+    const response = await fetch('knowledge-base.json');
+    if (!response.ok) throw new Error('JSON não encontrado');
+    knowledgeData = await response.json();
+    const chunks = knowledgeData.chunks || [];
+    chunks.forEach((chunk, idx) => {
+      chunk.id = idx;
+      // Pré‑calcula o texto base (sem repetições) para usar como fallback
+      chunk._baseText = `${chunk.titulo || ''} ${(chunk.tags || []).join(' ')} ${chunk.conteudo || ''}`;
+    });
+    fill.style.width = '15%';
+    text.textContent = '15%';
+    statusBadge.textContent = `✅ ${chunks.length} chunks`;
+    statusBadge.className = 'badge success';
+    document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks`;
+    document.getElementById('versionInfo').textContent = `📌 ${knowledgeData.versao || '-'}`;
+    document.getElementById('sourceInfo').textContent = `📄 ${knowledgeData.arquivos_origem?.join(', ') || '-'}`;
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    return chunks;
+  } catch (err) {
+    console.warn('Erro ao carregar JSON:', err);
+    statusBadge.textContent = '⚠️ JSON não encontrado';
+    statusBadge.className = 'badge warning';
+    document.getElementById('chunkInfo').textContent = '📚 0 chunks';
+    userInput.disabled = false;
+    sendBtn.disabled = false;
+    return [];
+  }
+}
+
+// ---------- INICIALIZA BGE EM BACKGROUND ----------
+async function initBGE() {
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  const modelBadge = document.getElementById('modelBadge');
+
+  try {
+    const { pipeline } = await import('@xenova/transformers');
+
+    try {
+      fill.style.width = '30%';
+      text.textContent = '30% – carregando BGE (WebGPU)…';
+      embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', {
+        device: 'webgpu',
+        dtype: 'fp16',
+        progress_callback: (p) => {
+          if (p.status === 'progress') {
+            const prog = 30 + p.progress * 40;
+            fill.style.width = Math.min(prog, 70) + '%';
+            text.textContent = Math.round(Math.min(prog, 70)) + '% – BGE';
+          }
         }
-    </script>
-
-    <script type="module">
-        // ==================== IMPORTAÇÕES ====================
-        let knowledgeData = null;
-        let embedder = null;
-        let embedderReady = false;
-        let useFallback = false;
-
-        const embeddingCache = new Map();
-        let cacheHits = 0;
-        let cacheMisses = 0;
-
-        const chatContainer = document.getElementById('chatContainer');
-        const userInput = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-
-        // ==================== SINÔNIMOS ====================
-        const SYNONYM_MAP = {
-            'cromatografia': ['cromatográfico', 'cromatográfica', 'lc', 'hplc', 'uhplc', 'cromatografia liquida', 'cromatografia líquida', 'separação cromatográfica'],
-            'lc': ['cromatografia líquida', 'hplc', 'uhplc'],
-            'hplc': ['cromatografia líquida de alta eficiência', 'lc', 'uhplc'],
-            'uhplc': ['cromatografia líquida de ultra eficiência', 'lc', 'hplc', 'ultra alta pressão'],
-            'capilar': ['capilares', 'capillary', 'CLC', 'cromatografia líquida capilar', 'nano-LC', 'micro-LC'],
-            'partícula': ['particula', 'partículas', 'particulas', 'particle', 'beads', 'esferas', 'sílica', 'silica', 'dp', 'µm'],
-            'coluna': ['colunas', 'column', 'columns', 'empacotamento', 'packing', 'fase estacionária'],
-            'separação': ['separacao', 'separar', 'resolução', 'resolucao', 'rs', 'eficiencia', 'eficiência'],
-            'pressão': ['pressao', 'pressões', 'pressoes', 'bar', 'psi', 'pressure', 'backpressure'],
-            'fluxo': ['vazão', 'vazao', 'flow', 'vazões', 'vazoes'],
-            'vantagem': ['vantagens', 'benefício', 'benefícios', 'beneficio', 'beneficios', 'por que usar'],
-            'desvantagem': ['desvantagens', 'limitação', 'limitações', 'limitacao', 'limitacoes', 'problema', 'desafio'],
-            'eficiência': ['eficiencia', 'pratos teóricos', 'pratos teoricos', 'n', 'hetp'],
-            'resolução': ['resolucao', 'rs', 'poder de resolução', 'poder de resolucao'],
-            'lc-ms': ['lcms', 'espectrometria de massas', 'mass spectrometry', 'ms'],
-            'temperatura': ['térmico', 'termico', 'calor', 'aquecimento', 'thermal', 'van\'t hoff', 'termodinâmica', 'entropia', 'entalpia'],
-            'viscosidade': ['viscosidade', 'fluidez', 'resistência', 'fricção'],
-            'retenção': ['retention', 'tempo de retenção', 'fator de retenção', 'k\'', 'fator de capacidade'],
-            'seletividade': ['selectivity', 'fator de separação', 'alfa', 'α']
-        };
-
-        // ==================== QUERY EXPANSÃO ====================
-        function expandQuery(query) {
-            const q = query.toLowerCase();
-            let expanded = query;
-            for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
-                if (q.includes(term)) {
-                    for (const syn of synonyms) {
-                        if (!expanded.includes(syn)) expanded += ' ' + syn;
-                    }
-                }
-                for (const syn of synonyms) {
-                    if (q.includes(syn)) {
-                        if (!expanded.includes(term)) expanded += ' ' + term;
-                        for (const otherSyn of synonyms) {
-                            if (otherSyn !== syn && !expanded.includes(otherSyn)) expanded += ' ' + otherSyn;
-                        }
-                    }
-                }
-            }
-            if (query.split(' ').length < 4) expanded += ' cromatografia separação eficiência';
-            return expanded;
+      });
+      embedderReady = true;
+      modelBadge.textContent = '✅ BGE-small (WebGPU)';
+      modelBadge.className = 'badge webgpu';
+      document.getElementById('perfInfo').textContent = '⚡ WebGPU (BGE)';
+    } catch (e) {
+      console.warn('WebGPU falhou, tentando CPU:', e);
+      embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', {
+        device: 'cpu',
+        dtype: 'fp32',
+        progress_callback: (p) => {
+          if (p.status === 'progress') {
+            const prog = 30 + p.progress * 40;
+            fill.style.width = Math.min(prog, 70) + '%';
+            text.textContent = Math.round(Math.min(prog, 70)) + '% – BGE (CPU)';
+          }
         }
+      });
+      embedderReady = true;
+      modelBadge.textContent = '✅ BGE-small (CPU)';
+      modelBadge.className = 'badge cpu';
+      document.getElementById('perfInfo').textContent = '⚡ CPU (BGE)';
+      useFallback = true;
+    }
 
-        // ==================== CARREGA JSON ====================
-        async function loadKnowledgeBase() {
-            const statusBadge = document.getElementById('statusBadge');
-            const fill = document.getElementById('progressFill');
-            const text = document.getElementById('progressText');
+    fill.style.width = '80%';
+    text.textContent = '80% – pronto';
+    await new Promise(r => setTimeout(r, 300));
+    fill.style.width = '100%';
+    text.textContent = '100% – carregado!';
+    document.getElementById('statusBadge').textContent = '✅ pronto';
+    document.getElementById('statusBadge').className = 'badge success';
+    return true;
+  } catch (err) {
+    console.error('Erro ao inicializar BGE:', err);
+    modelBadge.textContent = '❌ BGE indisponível';
+    modelBadge.className = 'badge fallback';
+    fill.style.width = '100%';
+    text.textContent = '⚠️ erro';
+    return false;
+  }
+}
 
-            try {
-                statusBadge.textContent = '⏳ carregando JSON…';
-                fill.style.width = '5%';
-                text.textContent = '5%';
-                const response = await fetch('knowledge-base.json');
-                if (!response.ok) throw new Error('JSON não encontrado');
-                knowledgeData = await response.json();
-                const chunks = knowledgeData.chunks || [];
-                chunks.forEach((chunk, idx) => {
-                    chunk.id = idx;
-                    chunk._text = `${chunk.titulo || ''} ${chunk.tags?.join(' ') || ''} ${chunk.conteudo || ''}`;
-                });
-                fill.style.width = '15%';
-                text.textContent = '15%';
-                statusBadge.textContent = `✅ ${chunks.length} chunks`;
-                statusBadge.className = 'badge success';
-                document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks`;
-                document.getElementById('versionInfo').textContent = `📌 ${knowledgeData.versao || '-'}`;
-                document.getElementById('sourceInfo').textContent = `📄 ${knowledgeData.arquivos_origem?.join(', ') || '-'}`;
-                userInput.disabled = false;
-                sendBtn.disabled = false;
-                return chunks;
-            } catch (err) {
-                console.warn('Erro ao carregar JSON:', err);
-                statusBadge.textContent = '⚠️ JSON não encontrado';
-                statusBadge.className = 'badge warning';
-                document.getElementById('chunkInfo').textContent = '📚 0 chunks';
-                userInput.disabled = false;
-                sendBtn.disabled = false;
-                return [];
-            }
+// ---------- SINÔNIMOS (expansão) ----------
+const SYNONYM_MAP = {
+  'cromatografia': ['cromatográfico','cromatográfica','lc','hplc','uhplc','cromatografia liquida','cromatografia líquida','separação cromatográfica'],
+  'lc': ['cromatografia líquida','hplc','uhplc'],
+  'hplc': ['cromatografia líquida de alta eficiência','lc','uhplc'],
+  'uhplc': ['cromatografia líquida de ultra eficiência','lc','hplc','ultra alta pressão'],
+  'capilar': ['capilares','capillary','CLC','cromatografia líquida capilar','nano-LC','micro-LC'],
+  'partícula': ['particula','partículas','particulas','particle','beads','esferas','sílica','silica','dp','µm'],
+  'coluna': ['colunas','column','columns','empacotamento','packing','fase estacionária'],
+  'separação': ['separacao','separar','resolução','resolucao','rs','eficiencia','eficiência'],
+  'pressão': ['pressao','pressões','pressoes','bar','psi','pressure','backpressure'],
+  'fluxo': ['vazão','vazao','flow','vazões','vazoes'],
+  'vantagem': ['vantagens','benefício','benefícios','beneficio','beneficios','por que usar'],
+  'desvantagem': ['desvantagens','limitação','limitações','limitacao','limitacoes','problema','desafio'],
+  'eficiência': ['eficiencia','pratos teóricos','pratos teoricos','n','hetp'],
+  'resolução': ['resolucao','rs','poder de resolução','poder de resolucao'],
+  'lc-ms': ['lcms','espectrometria de massas','mass spectrometry','ms'],
+  'temperatura': ['térmico','termico','calor','aquecimento','thermal',"van't hoff",'termodinâmica','entropia','entalpia'],
+  'viscosidade': ['viscosidade','fluidez','resistência','fricção'],
+  'retenção': ['retention','tempo de retenção','fator de retenção',"k'",'fator de capacidade'],
+  'seletividade': ['selectivity','fator de separação','alfa','α']
+};
+
+function expandQuery(query) {
+  const q = query.toLowerCase();
+  let expanded = query;
+  for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
+    if (q.includes(term)) {
+      for (const syn of synonyms) {
+        if (!expanded.includes(syn)) expanded += ' ' + syn;
+      }
+    }
+    for (const syn of synonyms) {
+      if (q.includes(syn)) {
+        if (!expanded.includes(term)) expanded += ' ' + term;
+        for (const otherSyn of synonyms) {
+          if (otherSyn !== syn && !expanded.includes(otherSyn)) expanded += ' ' + otherSyn;
         }
+      }
+    }
+  }
+  if (query.split(' ').length < 4) expanded += ' cromatografia separação eficiência';
+  return expanded;
+}
 
-        // ==================== INICIALIZA BGE (em background) ====================
-        async function initBGE() {
-            const fill = document.getElementById('progressFill');
-            const text = document.getElementById('progressText');
-            const modelBadge = document.getElementById('modelBadge');
+// ---------- FUNÇÕES DE BUSCA (BM25 + BGE) ----------
 
-            try {
-                const { pipeline } = await import('@xenova/transformers');
+function bm25Search(query, chunks, topK = 15) {
+  const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  if (tokens.length === 0) return chunks.slice(0, topK);
 
-                // tentativa WebGPU
-                try {
-                    fill.style.width = '30%';
-                    text.textContent = '30% – carregando BGE (WebGPU)…';
-                    embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', {
-                        device: 'webgpu',
-                        dtype: 'fp16',
-                        progress_callback: (p) => {
-                            if (p.status === 'progress') {
-                                const prog = 30 + p.progress * 40;
-                                fill.style.width = Math.min(prog, 70) + '%';
-                                text.textContent = Math.round(Math.min(prog, 70)) + '% – BGE';
-                            }
-                        }
-                    });
-                    embedderReady = true;
-                    modelBadge.textContent = '✅ BGE-small (WebGPU)';
-                    modelBadge.className = 'badge webgpu';
-                    document.getElementById('perfInfo').textContent = '⚡ WebGPU (BGE)';
-                } catch (e) {
-                    console.warn('WebGPU falhou, tentando CPU:', e);
-                    embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', {
-                        device: 'cpu',
-                        dtype: 'fp32',
-                        progress_callback: (p) => {
-                            if (p.status === 'progress') {
-                                const prog = 30 + p.progress * 40;
-                                fill.style.width = Math.min(prog, 70) + '%';
-                                text.textContent = Math.round(Math.min(prog, 70)) + '% – BGE (CPU)';
-                            }
-                        }
-                    });
-                    embedderReady = true;
-                    modelBadge.textContent = '✅ BGE-small (CPU)';
-                    modelBadge.className = 'badge cpu';
-                    document.getElementById('perfInfo').textContent = '⚡ CPU (BGE)';
-                    useFallback = true;
-                }
+  // Prepara textos dinâmicos com base nos filtros
+  const docTexts = chunks.map(c => buildChunkText(c) || c._baseText);
+  const docTokens = docTexts.map(t => t.toLowerCase().split(/\s+/));
 
-                fill.style.width = '80%';
-                text.textContent = '80% – pronto';
-                // pequeno delay para o usuário ver
-                await new Promise(r => setTimeout(r, 300));
-                fill.style.width = '100%';
-                text.textContent = '100% – carregado!';
-                document.getElementById('statusBadge').textContent = '✅ pronto';
-                document.getElementById('statusBadge').className = 'badge success';
-                return true;
-            } catch (err) {
-                console.error('Erro ao inicializar BGE:', err);
-                modelBadge.textContent = '❌ BGE indisponível';
-                modelBadge.className = 'badge fallback';
-                fill.style.width = '100%';
-                text.textContent = '⚠️ erro';
-                return false;
-            }
-        }
+  const termDocs = {};
+  docTokens.forEach((t, idx) => {
+    const unique = new Set(t);
+    unique.forEach(token => {
+      if (!termDocs[token]) termDocs[token] = new Set();
+      termDocs[token].add(idx);
+    });
+  });
 
-        // ==================== FUNÇÕES DE BUSCA ====================
+  const avgDocLen = docTokens.reduce((s, t) => s + t.length, 0) / docTokens.length;
+  const totalDocs = docTokens.length;
+  const k1 = 1.5, b = 0.75;
 
-        // BM25
-        function bm25Search(query, chunks, topK = 15) {
-            const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-            if (tokens.length === 0) return chunks.slice(0, topK);
+  return chunks.map((chunk, idx) => {
+    const doc = docTokens[idx];
+    let score = 0;
+    tokens.forEach(qt => {
+      const tf = doc.filter(t => t === qt).length;
+      if (tf === 0) return;
+      const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / ((termDocs[qt]?.size || 0) + 0.5) + 1);
+      const docLen = doc.length;
+      score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
+    });
+    return { ...chunk, bm25_score: score };
+  }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
+}
 
-            const docLengths = chunks.map(c => c._text.toLowerCase().split(/\s+/));
-            const termDocs = {};
-            docLengths.forEach((t, idx) => {
-                const unique = new Set(t);
-                unique.forEach(token => {
-                    if (!termDocs[token]) termDocs[token] = new Set();
-                    termDocs[token].add(idx);
-                });
-            });
+function cosineSimilarity(vecA, vecB) {
+  if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    dot += vecA[i] * vecB[i];
+    normA += vecA[i] * vecA[i];
+    normB += vecB[i] * vecB[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
 
-            const avgDocLen = docLengths.reduce((s, t) => s + t.length, 0) / docLengths.length;
-            const totalDocs = docLengths.length;
-            const k1 = 1.5, b = 0.75;
+async function hybridSearch(query, chunks, topK = 8) {
+  // BM25 primeiro (15)
+  const bm25Results = bm25Search(query, chunks, 15);
 
-            return chunks.map((chunk, idx) => {
-                const docTokens = docLengths[idx];
-                let score = 0;
-                tokens.forEach(qt => {
-                    const tf = docTokens.filter(t => t === qt).length;
-                    if (tf === 0) return;
-                    const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / ((termDocs[qt]?.size || 0) + 0.5) + 1);
-                    const docLen = docTokens.length;
-                    score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
-                });
-                return { ...chunk, bm25_score: score };
-            }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
-        }
+  if (!embedderReady || !embedder) {
+    return bm25Results.slice(0, topK);
+  }
 
-        // Cosine similarity
-        function cosineSimilarity(vecA, vecB) {
-            if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
-            let dot = 0, normA = 0, normB = 0;
-            for (let i = 0; i < vecA.length; i++) {
-                dot += vecA[i] * vecB[i];
-                normA += vecA[i] * vecA[i];
-                normB += vecB[i] * vecB[i];
-            }
-            if (normA === 0 || normB === 0) return 0;
-            return dot / (Math.sqrt(normA) * Math.sqrt(normB));
-        }
+  // Query embedding (cache)
+  let queryVec;
+  if (embeddingCache.has(query)) {
+    queryVec = embeddingCache.get(query);
+    cacheHits++;
+  } else {
+    const result = await embedder(query, { pooling: 'mean', normalize: true });
+    queryVec = result.data || result;
+    embeddingCache.set(query, queryVec);
+    cacheMisses++;
+  }
 
-        // Busca híbrida: BM25 + BGE (embeddings sob demanda)
-        async function hybridSearch(query, chunks, topK = 8) {
-            // BM25 primeiro (15)
-            const bm25Results = bm25Search(query, chunks, 15);
+  // Embeddings sob demanda para os 15 chunks (usando o texto dinâmico)
+  const withEmbedding = await Promise.all(bm25Results.map(async (chunk) => {
+    const text = buildChunkText(chunk) || chunk._baseText;
+    if (!chunk.embedding) {
+      try {
+        const res = await embedder(text, { pooling: 'mean', normalize: true });
+        chunk.embedding = res.data || res;
+      } catch (e) {
+        chunk.embedding = null;
+      }
+    }
+    const sim = chunk.embedding ? cosineSimilarity(queryVec, chunk.embedding) : 0;
+    return { ...chunk, similarity: sim };
+  }));
 
-            // Se não tiver embedder, retorna BM25
-            if (!embedderReady || !embedder) {
-                return bm25Results.slice(0, topK);
-            }
+  return withEmbedding.map(chunk => ({
+    ...chunk,
+    hybrid_score: 0.3 * (chunk.bm25_score || 0) + 0.7 * (chunk.similarity || 0)
+  })).sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0)).slice(0, topK);
+}
 
-            // Gera embedding da query (cache)
-            let queryVec;
-            if (embeddingCache.has(query)) {
-                queryVec = embeddingCache.get(query);
-                cacheHits++;
-            } else {
-                const result = await embedder(query, { pooling: 'mean', normalize: true });
-                queryVec = result.data || result;
-                embeddingCache.set(query, queryVec);
-                cacheMisses++;
-            }
+// ---------- SÍNTESE DA RESPOSTA ----------
+function synthesizeResponse(query, chunks) {
+  if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
+  let response = chunks.map((c, i) => {
+    const content = c.conteudo || '';
+    return `**${i + 1}.** ${content}`;
+  }).join('\n\n');
+  const titles = chunks.map(c => c.titulo).filter(Boolean);
+  if (titles.length) {
+    response = `Com base em ${titles.join(', ')}:\n\n` + response;
+  }
+  return response;
+}
 
-            // Gera embedding apenas para os 15 chunks (sob demanda)
-            const withEmbedding = await Promise.all(bm25Results.map(async (chunk) => {
-                if (!chunk.embedding) {
-                    try {
-                        const res = await embedder(chunk._text, { pooling: 'mean', normalize: true });
-                        chunk.embedding = res.data || res;
-                    } catch (e) {
-                        chunk.embedding = null;
-                    }
-                }
-                const sim = chunk.embedding ? cosineSimilarity(queryVec, chunk.embedding) : 0;
-                return { ...chunk, similarity: sim };
-            }));
+// ---------- UI ----------
+function addMessage(sender, content, isHTML = false) {
+  const div = document.createElement('div');
+  div.className = `message ${sender}`;
+  if (isHTML) div.innerHTML = content;
+  else div.textContent = content;
+  chatContainer.appendChild(div);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
-            // Ponderação: 30% BM25 + 70% similaridade
-            return withEmbedding.map(chunk => ({
-                ...chunk,
-                hybrid_score: 0.3 * (chunk.bm25_score || 0) + 0.7 * (chunk.similarity || 0)
-            })).sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0)).slice(0, topK);
-        }
+function showTyping(text = '🧠 pensando…') {
+  const div = document.createElement('div');
+  div.className = 'typing';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+    <span>${text}</span>
+    <div class="dots"><span></span><span></span><span></span></div>
+  `;
+  chatContainer.appendChild(div);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
-        // ==================== SÍNTESE DA RESPOSTA ====================
-        function synthesizeResponse(query, chunks) {
-            if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
+function removeTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
 
-            let response = chunks.map((c, i) => {
-                const content = c.conteudo || '';
-                return `**${i + 1}.** ${content}`;
-            }).join('\n\n');
+function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
+  const response = synthesizeResponse(query, chunks);
 
-            // Adiciona uma introdução se houver mais de um chunk
-            if (chunks.length > 1) {
-                const titles = chunks.map(c => c.titulo).filter(Boolean);
-                if (titles.length) {
-                    response = `Com base em ${titles.join(', ')}:\n\n` + response;
-                }
-            }
-            return response;
-        }
+  let html = `<div class="msg-header">
+    <span class="avatar">🧠</span>
+    <span class="name">ChromatoBuddy Pro</span>
+    <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
+      ⚡ ${time}ms · 🧠 ${chunks.length} chunks
+      ${cacheInfo ? `· 💾 ${cacheInfo}` : ''}
+    </span>
+  </div>`;
 
-        // ==================== UI ====================
-        function addMessage(sender, content, isHTML = false) {
-            const div = document.createElement('div');
-            div.className = `message ${sender}`;
-            if (isHTML) {
-                div.innerHTML = content;
-            } else {
-                div.textContent = content;
-            }
-            chatContainer.appendChild(div);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+  // Mostra quais filtros foram usados
+  const filterNames = activeFilters.map(f => `${f.label}(${f.peso})`).join(' + ');
+  html += `<div style="font-size:0.7rem; color:#6aafff; margin-bottom:8px;">🔍 Filtros: ${filterNames}</div>`;
 
-        function showTyping(text = '🧠 pensando…') {
-            const div = document.createElement('div');
-            div.className = 'typing';
-            div.id = 'typingIndicator';
-            div.innerHTML = `
-                <span>${text}</span>
-                <div class="dots">
-                    <span></span><span></span><span></span>
-                </div>
-            `;
-            chatContainer.appendChild(div);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+  html += `<div class="answer-box">
+    <h4>📊 Resposta</h4>
+    <p>${response.replace(/\n/g, '<br>')}</p>
+  </div>`;
 
-        function removeTyping() {
-            const el = document.getElementById('typingIndicator');
-            if (el) el.remove();
-        }
+  const sources = chunks.map(c => c.titulo).filter(Boolean);
+  if (sources.length) {
+    html += `<div class="sources-box">
+      📖 <strong>Fontes:</strong><br>
+      ${sources.map(s => `• ${s}`).join('<br>')}
+    </div>`;
+  }
 
-        function formatResponse(query, chunks, time, cacheInfo) {
-            const response = synthesizeResponse(query, chunks);
+  html += `<div class="meta">
+    <span class="confidence-high">✅ ${chunks.length} chunks selecionados</span>
+    <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
+    <span>🧠 BGE-small</span>
+    <span>📓 NotebookLM</span>
+  </div>`;
 
-            let html = `<div class="msg-header">
-                <span class="avatar">🧠</span>
-                <span class="name">ChromatoBuddy Pro</span>
-                <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
-                    ⚡ ${time}ms · 🧠 ${chunks.length} chunks
-                    ${cacheInfo ? `· 💾 ${cacheInfo}` : ''}
-                </span>
-            </div>`;
+  const suggestions = getSuggestions(query);
+  html += `<div class="suggestions">
+    <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
+    ${suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
+  </div>`;
 
-            html += `<div class="answer-box">
-                <h4>📊 Resposta</h4>
-                <p>${response.replace(/\n/g, '<br>')}</p>
-            </div>`;
+  return html;
+}
 
-            // Fontes
-            const sources = chunks.map(c => c.titulo).filter(Boolean);
-            if (sources.length) {
-                html += `<div class="sources-box">
-                    📖 <strong>Fontes:</strong><br>
-                    ${sources.map(s => `• ${s}`).join('<br>')}
-                </div>`;
-            }
+function getSuggestions(query) {
+  const q = query.toLowerCase();
+  const list = [];
+  if (q.includes('temperatura')) {
+    list.push('Como a temperatura afeta a seletividade?');
+    list.push('Qual a relação entre temperatura e pressão?');
+  }
+  if (q.includes('pressão')) {
+    list.push('Como a pressão influencia a separação?');
+    list.push('Diferença entre HPLC e UHPLC em pressão');
+  }
+  if (q.includes('coluna') || q.includes('capilar')) {
+    list.push('Vantagens das colunas capilares');
+    list.push('Como escolher uma coluna?');
+  }
+  if (q.includes('vantagem') || q.includes('benefício')) {
+    list.push('Desvantagens da cromatografia capilar');
+    list.push('Comparação entre LC e GC');
+  }
+  if (list.length === 0) {
+    list.push(
+      'Quais as vantagens da cromatografia capilar?',
+      'Como a temperatura afeta a separação?',
+      'Diferença entre HPLC e UHPLC?'
+    );
+  }
+  return list.slice(0, 4);
+}
 
-            html += `<div class="meta">
-                <span class="confidence-high">✅ ${chunks.length} chunks selecionados</span>
-                <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
-                <span>🧠 BGE-small</span>
-                <span>📓 NotebookLM Style</span>
-            </div>`;
+// ---------- HANDLE QUERY ----------
+async function handleUserQuery() {
+  if (sendBtn.disabled) return;
+  const query = userInput.value.trim();
+  if (!query) return;
 
-            // Sugestões
-            const suggestions = getSuggestions(query);
-            html += `<div class="suggestions">
-                <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
-                ${suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
-            </div>`;
+  sendBtn.disabled = true;
+  userInput.disabled = true;
 
-            return html;
-        }
+  addMessage('user', query);
+  userInput.value = '';
 
-        function getSuggestions(query) {
-            const q = query.toLowerCase();
-            const list = [];
-            if (q.includes('temperatura')) {
-                list.push('Como a temperatura afeta a seletividade?');
-                list.push('Qual a relação entre temperatura e pressão?');
-            }
-            if (q.includes('pressão')) {
-                list.push('Como a pressão influencia a separação?');
-                list.push('Diferença entre HPLC e UHPLC em pressão');
-            }
-            if (q.includes('coluna') || q.includes('capilar')) {
-                list.push('Vantagens das colunas capilares');
-                list.push('Como escolher uma coluna?');
-            }
-            if (q.includes('vantagem') || q.includes('benefício')) {
-                list.push('Desvantagens da cromatografia capilar');
-                list.push('Comparação entre LC e GC');
-            }
-            if (list.length === 0) {
-                list.push(
-                    'Quais as vantagens da cromatografia capilar?',
-                    'Como a temperatura afeta a separação?',
-                    'Diferença entre HPLC e UHPLC?'
-                );
-            }
-            return list.slice(0, 4);
-        }
+  const startTime = performance.now();
 
-        // ==================== HANDLE QUERY ====================
-        async function handleUserQuery() {
-            if (sendBtn.disabled) return;
-            const query = userInput.value.trim();
-            if (!query) return;
+  try {
+    const expanded = expandQuery(query);
+    showTyping('🔍 buscando…');
 
-            sendBtn.disabled = true;
-            userInput.disabled = true;
+    const chunks = knowledgeData?.chunks || [];
+    const results = await hybridSearch(expanded, chunks, 8);
 
-            addMessage('user', query);
-            userInput.value = '';
+    removeTyping();
 
-            const startTime = performance.now();
+    const totalTime = Math.round(performance.now() - startTime);
+    const cacheInfo = `cache: ${cacheHits} hits / ${cacheMisses + cacheHits} total`;
+    document.getElementById('cacheInfo').textContent = `💾 ${cacheInfo}`;
 
-            try {
-                // 1. Expansão
-                const expanded = expandQuery(query);
-                showTyping('🔍 buscando…');
+    // Coleta filtros ativos para exibir
+    const activeFilters = [];
+    if (chkTags.checked) activeFilters.push({ label: 'Tags', peso: FILTER_WEIGHTS.tags });
+    if (chkTitles.checked) activeFilters.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
+    if (chkContent.checked) activeFilters.push({ label: 'Conteúdo', peso: FILTER_WEIGHTS.content });
 
-                // 2. Busca híbrida (BM25 + BGE)
-                const chunks = knowledgeData?.chunks || [];
-                const results = await hybridSearch(expanded, chunks, 8);
+    const html = formatResponse(query, results, totalTime, cacheInfo, activeFilters);
+    addMessage('bot', html, true);
 
-                removeTyping();
+    document.querySelectorAll('.suggestion-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        userInput.value = btn.dataset.query;
+        handleUserQuery();
+      });
+    });
 
-                const totalTime = Math.round(performance.now() - startTime);
-                const cacheInfo = `cache: ${cacheHits} hits / ${cacheMisses + cacheHits} total`;
-                document.getElementById('cacheInfo').textContent = `💾 ${cacheInfo}`;
+    document.getElementById('chunkInfo').textContent = `📚 ${results.length} chunks relevantes`;
+  } catch (err) {
+    removeTyping();
+    console.error(err);
+    addMessage('bot', `❌ Erro: ${err.message || 'tente novamente'}`);
+  }
 
-                const html = formatResponse(query, results, totalTime, cacheInfo);
-                addMessage('bot', html, true);
+  sendBtn.disabled = false;
+  userInput.disabled = false;
+  userInput.focus();
+}
 
-                // Eventos das sugestões
-                document.querySelectorAll('.suggestion-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        userInput.value = btn.dataset.query;
-                        handleUserQuery();
-                    });
-                });
+// ---------- EVENTOS ----------
+sendBtn.addEventListener('click', handleUserQuery);
+userInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleUserQuery();
+  }
+});
+userInput.addEventListener('input', () => {
+  userInput.style.height = 'auto';
+  userInput.style.height = Math.min(userInput.scrollHeight, 130) + 'px';
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault();
+    handleUserQuery();
+  }
+});
 
-                document.getElementById('chunkInfo').textContent = `📚 ${results.length} chunks relevantes`;
+// Atualiza prioridade quando checkboxes mudam
+[chkTags, chkTitles, chkContent].forEach(chk => {
+  chk.addEventListener('change', updatePriorityDisplay);
+});
 
-            } catch (err) {
-                removeTyping();
-                console.error(err);
-                addMessage('bot', `❌ Erro: ${err.message || 'tente novamente'}`);
-            }
+// ---------- INICIALIZAÇÃO ----------
+async function init() {
+  // Carrega JSON
+  const chunks = await loadKnowledgeBase();
 
-            sendBtn.disabled = false;
-            userInput.disabled = false;
-            userInput.focus();
-        }
+  // Inicia BGE em background
+  initBGE().then(() => {
+    console.log('🧠 BGE pronto');
+    if (!userInput.disabled) userInput.focus();
+  });
 
-        // ==================== EVENTOS ====================
-        sendBtn.addEventListener('click', handleUserQuery);
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleUserQuery();
-            }
-        });
-        userInput.addEventListener('input', () => {
-            userInput.style.height = 'auto';
-            userInput.style.height = Math.min(userInput.scrollHeight, 130) + 'px';
-        });
-        document.addEventListener('keydown', (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                e.preventDefault();
-                handleUserQuery();
-            }
-        });
+  // Atualiza display de prioridade
+  updatePriorityDisplay();
 
-        // ==================== INICIALIZAÇÃO ====================
-        async function init() {
-            // Carrega JSON (síncrono)
-            const chunks = await loadKnowledgeBase();
+  console.log(`🚀 ChromatoBuddy Pro (filtros) iniciado com ${chunks.length} chunks`);
+}
 
-            // Inicia BGE em background (não bloqueia)
-            initBGE().then(() => {
-                console.log('🧠 BGE pronto');
-                if (!userInput.disabled) userInput.focus();
-            });
-
-            console.log(`🚀 ChromatoBuddy Pro (rápido) iniciado com ${chunks.length} chunks`);
-        }
-
-        init();
-    </script>
+init();
+</script>
 </body>
 </html>
