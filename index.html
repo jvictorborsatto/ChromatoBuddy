@@ -556,7 +556,7 @@
         <span class="name">ChromatoBuddy Pro</span>
       </div>
       <div class="welcome-box">
-        <strong>🚀 Sistema de Filtros Inteligentes</strong>
+        <strong>🚀 Sistema de Filtros Inteligentes (Longest Match)</strong>
         <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
           Marque quais campos usar na busca. A combinação define a prioridade.
         </div>
@@ -564,7 +564,7 @@
           <span class="feature-item turbo">⚡ BM25 + BGE</span>
           <span class="feature-item brain">🧠 Embeddings sob demanda</span>
           <span class="feature-item">📚 100% local</span>
-          <span class="feature-item">🔍 Filtro por grupos de sinónimos (AND/OR)</span>
+          <span class="feature-item">🔍 Filtro AND/OR (longest match)</span>
         </div>
         <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
           💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
@@ -871,48 +871,75 @@ function expandQuery(query) {
   return expanded;
 }
 
-// ---------- EXTRAI GRUPOS DE SINÓNIMOS DA CONSULTA ----------
+// ---------- EXTRAI GRUPOS DE SINÓNIMOS (LONGEST MATCH FIRST) ----------
 function extractSynonymGroups(query) {
-  const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-  const commonSet = new Set(COMMON_WORDS.map(w => w.toLowerCase()));
+  // 1. Ordenar as chaves do mapa por número de palavras (maior primeiro)
+  const sortedKeys = Object.keys(SYNONYM_MAP).sort((a, b) => {
+    const wordsA = a.split(/\s+/).length;
+    const wordsB = b.split(/\s+/).length;
+    return wordsB - wordsA; // decrescente
+  });
+
+  const lowerQuery = query.toLowerCase();
+  const used = new Array(query.length).fill(false); // marca caracteres já utilizados
   const groups = [];
-  const usedTerms = new Set();
+  const commonSet = new Set(COMMON_WORDS.map(w => w.toLowerCase()));
 
-  // Para cada palavra, se for comum, tenta achar um grupo no mapa
-  for (const w of words) {
-    if (!commonSet.has(w)) continue;
-    // Verifica se essa palavra já foi incluída em algum grupo anterior
-    let found = false;
-    for (const group of groups) {
-      if (group.has(w)) { found = true; break; }
-    }
-    if (found) continue;
-
-    // Procura no mapa de sinónimos se a palavra é uma chave ou está em algum grupo
-    let group = new Set();
-    // Se a palavra é uma chave, pega todo o grupo
-    if (SYNONYM_MAP[w]) {
-      group = new Set([w, ...SYNONYM_MAP[w]]);
-    } else {
-      // Procura em qual grupo ela aparece como sinónimo
-      let foundKey = null;
-      for (const [key, syns] of Object.entries(SYNONYM_MAP)) {
-        if (syns.some(s => s === w)) {
-          foundKey = key;
-          break;
+  // 2. Tentar casar cada chave (expressão) na query, priorizando as mais longas
+  for (const key of sortedKeys) {
+    const keyLower = key.toLowerCase();
+    let startIdx = lowerQuery.indexOf(keyLower);
+    while (startIdx !== -1) {
+      // Verifica se todos os caracteres da ocorrência estão livres
+      let available = true;
+      for (let i = startIdx; i < startIdx + keyLower.length; i++) {
+        if (used[i]) { available = false; break; }
+      }
+      if (available) {
+        // Marcar como usado
+        for (let i = startIdx; i < startIdx + keyLower.length; i++) {
+          used[i] = true;
         }
+        // Adicionar o grupo (chave + seus sinônimos)
+        const group = new Set([key, ...SYNONYM_MAP[key]]);
+        groups.push(group);
+        break; // para esta chave, usa a primeira ocorrência disponível
       }
-      if (foundKey) {
-        group = new Set([foundKey, ...SYNONYM_MAP[foundKey]]);
-      } else {
-        // Palavra comum, mas sem sinónimos mapeados -> grupo unitário
-        group = new Set([w]);
-      }
+      // Procura próxima ocorrência
+      startIdx = lowerQuery.indexOf(keyLower, startIdx + 1);
     }
-    groups.push(group);
   }
 
-  // Se nenhum grupo foi encontrado, retorna vazio (sem filtro)
+  // 3. Para palavras não cobertas, analisar individualmente (se estiverem no COMMON_WORDS)
+  const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  let currentPos = 0;
+  for (const w of words) {
+    // Encontrar a posição da palavra na query (considerando espaços)
+    // Simplificação: percorrer a query e pular espaços
+    let pos = lowerQuery.indexOf(w, currentPos);
+    if (pos === -1) continue;
+    // Verifica se a palavra não está marcada como usada
+    let available = true;
+    for (let i = pos; i < pos + w.length; i++) {
+      if (used[i]) { available = false; break; }
+    }
+    if (available && commonSet.has(w)) {
+      // Verifica se essa palavra já não pertence a algum grupo
+      let alreadyInGroup = false;
+      for (const g of groups) {
+        if (g.has(w)) { alreadyInGroup = true; break; }
+      }
+      if (!alreadyInGroup) {
+        groups.push(new Set([w]));
+        // Marca a palavra como usada (opcional, mas evita duplicatas)
+        for (let i = pos; i < pos + w.length; i++) {
+          used[i] = true;
+        }
+      }
+    }
+    currentPos = pos + w.length;
+  }
+
   return groups;
 }
 
@@ -1155,11 +1182,13 @@ async function handleUserQuery() {
     // Expande para a busca semântica
     const expanded = expandQuery(query);
 
-    // Extrai grupos de sinónimos da consulta ORIGINAL
+    // Extrai grupos de sinónimos da consulta ORIGINAL usando Longest Match
     const groups = extractSynonymGroups(query);
     const hasGroups = groups.length > 0;
 
-    showTyping(hasGroups ? '🔍 filtrando por grupos de sinónimos (AND/OR)…' : '🔍 buscando…');
+    showTyping(hasGroups
+      ? `🔍 filtrando por ${groups.length} grupos de sinónimos (AND/OR)…`
+      : '🔍 buscando…');
 
     const chunks = knowledgeData?.chunks || [];
 
@@ -1197,7 +1226,7 @@ async function handleUserQuery() {
     });
 
     document.getElementById('chunkInfo').textContent =
-      `📚 ${results.length} chunks (${filteredCount} após filtro de grupos)`;
+      `📚 ${results.length} chunks (${filteredCount} após filtro de ${groups.length} grupos)`;
   } catch (err) {
     removeTyping();
     console.error(err);
@@ -1240,7 +1269,7 @@ async function init() {
     if (!userInput.disabled) userInput.focus();
   });
   updatePriorityDisplay();
-  console.log(`🚀 ChromatoBuddy Pro (filtro por grupos de sinónimos) iniciado com ${chunks.length} chunks`);
+  console.log(`🚀 ChromatoBuddy Pro (Longest Match) iniciado com ${chunks.length} chunks`);
 }
 
 init();
