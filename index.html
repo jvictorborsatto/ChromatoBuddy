@@ -703,15 +703,6 @@ const SYNONYM_MAP = {
   'seletividade': ['selectivity','fator de separação','alfa','α']
 };
 
-// ==================== NOVA FUNÇÃO DE NORMALIZAÇÃO ====================
-function normalizeText(text) {
-  if (!text) return '';
-  // Mantém letras, números, espaços, hífen, underscore e barra.
-  // Remove parênteses, colchetes, vírgulas, aspas, etc.
-  return text.replace(/[^\w\s-/]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-// ====================================================================
-
 // ---------- FUNÇÕES AUXILIARES ----------
 function updatePriorityDisplay() {
   const active = [];
@@ -742,15 +733,17 @@ function buildChunkText(chunk) {
   if (chkContent.checked && chunk.conteudo) {
     for (let i = 0; i < FILTER_WEIGHTS.content; i++) parts.push(chunk.conteudo);
   }
-  // <-- NORMALIZAÇÃO
-  return normalizeText(parts.join(' '));
+  return parts.join(' ');
 }
 
 // ---------- DETECÇÃO DE DOMÍNIO ----------
 function detectDomain(query) {
-  const q = normalizeText(query).toLowerCase(); // <-- NORMALIZAÇÃO
+  const q = query.toLowerCase();
+  // GC
   if (DOMAINS.GC.keywords.some(k => q.includes(k))) return 'GC';
+  // LC
   if (DOMAINS.LC.keywords.some(k => q.includes(k))) return 'LC';
+  // GENERAL (fallback)
   return 'GENERAL';
 }
 
@@ -856,9 +849,10 @@ async function initBGE() {
 
 // ---------- EXPANSÃO CONTEXTUAL (respeita domínio) ----------
 function expandQuery(query, domain) {
-  const q = query.toLowerCase(); // mantém original para includes
+  const q = query.toLowerCase();
   let expanded = query;
 
+  // Se domínio for GC ou LC, adiciona apenas sinônimos daquele domínio
   const domainSynonyms = (domain === 'GC') ? DOMAINS.GC.synonyms :
                          (domain === 'LC') ? DOMAINS.LC.synonyms :
                          [];
@@ -867,7 +861,9 @@ function expandQuery(query, domain) {
     if (!expanded.includes(syn)) expanded += ' ' + syn;
   }
 
+  // Adiciona sinônimos gerais (não específicos de domínio)
   for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
+    // Pula se o termo for específico de outro domínio (ex: 'lc' para GC)
     if (domain === 'GC' && ['lc', 'hplc', 'uhplc'].includes(term)) continue;
     if (domain === 'LC' && term === 'cromatografia gasosa') continue;
 
@@ -886,43 +882,62 @@ function expandQuery(query, domain) {
     }
   }
 
+  // Fallback para consultas curtas
   if (query.split(' ').length < 4) expanded += ' cromatografia separação eficiência';
   return expanded;
 }
 
-// ---------- EXTRAI GRUPOS DE SINÓNIMOS (versão normalizada) ----------
+// ---------- EXTRAI GRUPOS DE SINÓNIMOS (Longest Match) ----------
 function extractSynonymGroups(query) {
-  const normalized = normalizeText(query).toLowerCase(); // <-- NORMALIZAÇÃO
+  const sortedKeys = Object.keys(SYNONYM_MAP).sort((a, b) => {
+    const wordsA = a.split(/\s+/).length;
+    const wordsB = b.split(/\s+/).length;
+    return wordsB - wordsA;
+  });
+
+  const lowerQuery = query.toLowerCase();
+  const used = new Array(query.length).fill(false);
   const groups = [];
   const commonSet = new Set(COMMON_WORDS.map(w => w.toLowerCase()));
 
-  // Grupos baseados no mapa de sinônimos
-  for (const [key, synonyms] of Object.entries(SYNONYM_MAP)) {
+  for (const key of sortedKeys) {
     const keyLower = key.toLowerCase();
-    if (normalized.includes(keyLower)) {
-      groups.push(new Set([key, ...synonyms]));
-    } else {
-      for (const syn of synonyms) {
-        if (normalized.includes(syn.toLowerCase())) {
-          groups.push(new Set([key, ...synonyms]));
-          break;
-        }
+    let startIdx = lowerQuery.indexOf(keyLower);
+    while (startIdx !== -1) {
+      let available = true;
+      for (let i = startIdx; i < startIdx + keyLower.length; i++) {
+        if (used[i]) { available = false; break; }
       }
+      if (available) {
+        for (let i = startIdx; i < startIdx + keyLower.length; i++) used[i] = true;
+        const group = new Set([key, ...SYNONYM_MAP[key]]);
+        groups.push(group);
+        break;
+      }
+      startIdx = lowerQuery.indexOf(keyLower, startIdx + 1);
     }
   }
 
-  // Palavras comuns que não estão em nenhum grupo
-  const words = normalized.split(/\s+/).filter(w => w.length > 2);
+  const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  let currentPos = 0;
   for (const w of words) {
-    if (commonSet.has(w)) {
+    let pos = lowerQuery.indexOf(w, currentPos);
+    if (pos === -1) continue;
+    let available = true;
+    for (let i = pos; i < pos + w.length; i++) {
+      if (used[i]) { available = false; break; }
+    }
+    if (available && commonSet.has(w)) {
       let alreadyInGroup = false;
       for (const g of groups) {
         if (g.has(w)) { alreadyInGroup = true; break; }
       }
       if (!alreadyInGroup) {
         groups.push(new Set([w]));
+        for (let i = pos; i < pos + w.length; i++) used[i] = true;
       }
     }
+    currentPos = pos + w.length;
   }
   return groups;
 }
@@ -931,8 +946,8 @@ function extractSynonymGroups(query) {
 function filterChunksBySynonymGroups(groups, chunks) {
   if (groups.length === 0) return chunks;
   return chunks.filter(chunk => {
-    const title = normalizeText(chunk.titulo || '').toLowerCase(); // <-- NORMALIZAÇÃO
-    const content = normalizeText(chunk.conteudo || '').toLowerCase();
+    const title = (chunk.titulo || '').toLowerCase();
+    const content = (chunk.conteudo || '').toLowerCase();
     return groups.every(group => {
       for (const syn of group) {
         if (title.includes(syn) || content.includes(syn)) return true;
@@ -944,37 +959,37 @@ function filterChunksBySynonymGroups(groups, chunks) {
 
 // ---------- DOMAIN SCORE (penalidade) ----------
 function domainScore(chunk, domain) {
-  const text = normalizeText( // <-- NORMALIZAÇÃO
-    (chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' ')
-  ).toLowerCase();
+  const text = (chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' ');
+  const lower = text.toLowerCase();
 
   if (domain === 'GC') {
     if (chunk.tags?.includes('GC')) return 1.0;
-    if (text.includes('cromatografia gasosa') || text.includes('gas chromatography')) return 0.9;
-    if (text.includes('gc')) return 0.8;
-    if (text.includes('temperatura') && text.includes('programação')) return 0.7;
-    if (text.includes('lc') || text.includes('hplc') || text.includes('uhplc')) return 0.2;
+    if (lower.includes('cromatografia gasosa') || lower.includes('gas chromatography')) return 0.9;
+    if (lower.includes('gc')) return 0.8;
+    if (lower.includes('temperatura') && lower.includes('programação')) return 0.7;
+    if (lower.includes('lc') || lower.includes('hplc') || lower.includes('uhplc')) return 0.2;
     return 0.5;
   }
 
   if (domain === 'LC') {
     if (chunk.tags?.includes('LC')) return 1.0;
-    if (text.includes('cromatografia líquida') || text.includes('liquid chromatography')) return 0.9;
-    if (text.includes('lc') || text.includes('hplc') || text.includes('uhplc')) return 0.8;
-    if (text.includes('gc') || text.includes('gasosa') || text.includes('gas chromatography')) return 0.2;
+    if (lower.includes('cromatografia líquida') || lower.includes('liquid chromatography')) return 0.9;
+    if (lower.includes('lc') || lower.includes('hplc') || lower.includes('uhplc')) return 0.8;
+    if (lower.includes('gc') || lower.includes('gasosa') || lower.includes('gas chromatography')) return 0.2;
     return 0.5;
   }
 
+  // GENERAL
   return 0.7;
 }
 
 // ---------- BM25 (com penalidade de domínio) ----------
 function bm25Search(query, chunks, domain, topK = 15) {
-  const tokens = normalizeText(query).split(/\s+/).filter(w => w.length > 2); // <-- NORMALIZAÇÃO
+  const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
   if (tokens.length === 0) return chunks.slice(0, topK);
 
-  const docTexts = chunks.map(c => normalizeText(buildChunkText(c) || c._baseText)); // <-- NORMALIZAÇÃO
-  const docTokens = docTexts.map(t => t.split(/\s+/));
+  const docTexts = chunks.map(c => buildChunkText(c) || c._baseText);
+  const docTokens = docTexts.map(t => t.toLowerCase().split(/\s+/));
 
   const termDocs = {};
   docTokens.forEach((t, idx) => {
@@ -999,8 +1014,9 @@ function bm25Search(query, chunks, domain, topK = 15) {
       const docLen = doc.length;
       score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
     });
+    // Aplica penalidade de domínio
     const dScore = domainScore(chunk, domain);
-    score *= (0.5 + 0.5 * dScore);
+    score *= (0.5 + 0.5 * dScore); // penalidade suave (0.5 a 1.0)
     return { ...chunk, bm25_score: score };
   }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
 }
@@ -1038,7 +1054,7 @@ async function hybridSearch(query, chunks, domain, topK = 8) {
   }
 
   const withEmbedding = await Promise.all(bm25Results.map(async (chunk) => {
-    const text = buildChunkText(chunk) || chunk._baseText; // já normalizado
+    const text = buildChunkText(chunk) || chunk._baseText;
     if (!chunk.embedding) {
       try {
         const res = await embedder(text, { pooling: 'mean', normalize: true });
@@ -1176,7 +1192,7 @@ async function handleUserQuery() {
   const startTime = performance.now();
 
   try {
-    // 1. DETECTA DOMÍNIO (já normaliza internamente)
+    // 1. DETECTA DOMÍNIO
     const domain = detectDomain(query);
     domainInfo.textContent = `🌐 Domínio: ${domain}`;
 
@@ -1184,24 +1200,23 @@ async function handleUserQuery() {
 
     const chunks = knowledgeData?.chunks || [];
 
-    // 2. FILTRO POR DOMÍNIO (sempre aplicado) – com normalização
+    // 2. FILTRO POR DOMÍNIO (sempre aplicado)
     let filtered = chunks.filter(chunk => {
-      const text = normalizeText( // <-- NORMALIZAÇÃO
-        (chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' ')
-      ).toLowerCase();
+      const text = (chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' ');
+      const lower = text.toLowerCase();
       if (domain === 'GC') {
-        return text.includes('cromatografia gasosa') || text.includes('gas chromatography') ||
-               text.includes('gc') || chunk.tags?.includes('GC');
+        return lower.includes('cromatografia gasosa') || lower.includes('gas chromatography') ||
+               lower.includes('gc') || chunk.tags?.includes('GC');
       }
       if (domain === 'LC') {
-        return text.includes('cromatografia líquida') || text.includes('liquid chromatography') ||
-               text.includes('lc') || text.includes('hplc') || text.includes('uhplc') ||
+        return lower.includes('cromatografia líquida') || lower.includes('liquid chromatography') ||
+               lower.includes('lc') || lower.includes('hplc') || lower.includes('uhplc') ||
                chunk.tags?.includes('LC') || chunk.tags?.includes('HPLC');
       }
-      return true;
+      return true; // GENERAL: mantém todos
     });
 
-    // 3. EXTRAI GRUPOS DE SINÔNIMOS (já normaliza internamente)
+    // 3. EXTRAI GRUPOS DE SINÔNIMOS (para refinar)
     const groups = extractSynonymGroups(query);
     if (groups.length > 0) {
       filtered = filterChunksBySynonymGroups(groups, filtered);
@@ -1214,7 +1229,7 @@ async function handleUserQuery() {
 
     showTyping(`🧠 buscando com BM25 + BGE (${filteredCount} chunks filtrados)…`);
 
-    // 5. BUSCA HÍBRIDA (já normaliza internamente)
+    // 5. BUSCA HÍBRIDA (já aplica domainScore no BM25)
     const results = await hybridSearch(expanded, filtered, domain, 8);
 
     removeTyping();
@@ -1287,7 +1302,6 @@ async function init() {
 }
 
 init();
-</script>
 </script>
 </body>
 </html>
