@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChromatoBuddy Pro · Domain‑Lock</title>
+  <title>ChromatoBuddy Pro · Domain‑Lock + Fallback</title>
   <style>
     /* ===== RESET E BASE (mesmo estilo anterior) ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -500,7 +500,7 @@
       <div class="header-left">
         <h1>
           <img src="img.png" alt="ChromatoBuddy">
-          <span>Chromato</span>Buddy <span style="font-size:0.7rem; color:#6aafff;">Domain‑Lock</span>
+          <span>Chromato</span>Buddy <span style="font-size:0.7rem; color:#6aafff;">Fallback</span>
         </h1>
       </div>
       <div class="badge-group">
@@ -543,18 +543,18 @@
         <span class="name">ChromatoBuddy Pro</span>
       </div>
       <div class="welcome-box">
-        <strong>🚀 Domain‑Lock + Ontologia Leve</strong>
+        <strong>🚀 Domain‑Lock + Fallback Inteligente</strong>
         <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-          Detecção de domínio (GC/LC) → lock → expansão contextual → ranking com penalidade.
+          Se a busca restrita não encontrar resultados, faz uma busca livre com as palavras exatas.
         </div>
         <div class="features">
           <span class="feature-item turbo">⚡ BM25 + BGE</span>
           <span class="feature-item brain">🧠 Embeddings sob demanda</span>
           <span class="feature-item">📚 100% local</span>
-          <span class="feature-item">🔒 Lock por domínio</span>
+          <span class="feature-item">🔒 Lock + Fallback</span>
         </div>
         <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
-          💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
+          💬 Pergunte sobre cromatografia, temperatura, pressão, colunas, wall effect e muito mais!
         </div>
       </div>
       <div class="meta">
@@ -567,7 +567,7 @@
   </div>
 
   <div class="input-area">
-    <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito da temperatura na cromatografia gasosa?" disabled></textarea>
+    <textarea id="userInput" rows="1" placeholder="Ex: qual o wall effect em colunas capilares?" disabled></textarea>
     <button id="sendBtn" disabled>
       Enviar
       <span class="shortcut">⌘↵</span>
@@ -602,7 +602,7 @@
 
 <script type="module">
 // ============================================================
-//  CHROMATOBUDDY PRO – DOMAIN‑LOCK + ONTOLOGIA LEVE
+//  CHROMATOBUDDY PRO – DOMAIN‑LOCK + FALLBACK
 // ============================================================
 
 // ---------- ESTADO ----------
@@ -647,7 +647,7 @@ const COMMON_WORDS = [
   'pré-coluna', 'pre-coluna', 'guard', 'proteção', 'protecao'
 ];
 
-// ---------- DOMÍNIOS (ontologia leve) ----------
+// ---------- DOMÍNIOS ----------
 const DOMAINS = {
   GC: {
     keywords: ['gasosa', 'cg', 'gas chromatography', 'cromatografia gasosa'],
@@ -680,7 +680,7 @@ const modalFields = document.getElementById('modalFields');
 const modalClose = document.getElementById('modalClose');
 const domainInfo = document.getElementById('domainInfo');
 
-// ---------- SINÔNIMOS (expansão) ----------
+// ---------- SINÔNIMOS ----------
 const SYNONYM_MAP = {
   'cromatografia': ['cromatográfico','cromatográfica','lc','hplc','uhplc','cromatografia liquida','cromatografia líquida','separação cromatográfica'],
   'lc': ['cromatografia líquida','hplc','uhplc'],
@@ -739,11 +739,8 @@ function buildChunkText(chunk) {
 // ---------- DETECÇÃO DE DOMÍNIO ----------
 function detectDomain(query) {
   const q = query.toLowerCase();
-  // GC
   if (DOMAINS.GC.keywords.some(k => q.includes(k))) return 'GC';
-  // LC
   if (DOMAINS.LC.keywords.some(k => q.includes(k))) return 'LC';
-  // GENERAL (fallback)
   return 'GENERAL';
 }
 
@@ -847,12 +844,11 @@ async function initBGE() {
   }
 }
 
-// ---------- EXPANSÃO CONTEXTUAL (respeita domínio) ----------
+// ---------- EXPANSÃO CONTEXTUAL ----------
 function expandQuery(query, domain) {
   const q = query.toLowerCase();
   let expanded = query;
 
-  // Se domínio for GC ou LC, adiciona apenas sinônimos daquele domínio
   const domainSynonyms = (domain === 'GC') ? DOMAINS.GC.synonyms :
                          (domain === 'LC') ? DOMAINS.LC.synonyms :
                          [];
@@ -861,9 +857,7 @@ function expandQuery(query, domain) {
     if (!expanded.includes(syn)) expanded += ' ' + syn;
   }
 
-  // Adiciona sinônimos gerais (não específicos de domínio)
   for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
-    // Pula se o termo for específico de outro domínio (ex: 'lc' para GC)
     if (domain === 'GC' && ['lc', 'hplc', 'uhplc'].includes(term)) continue;
     if (domain === 'LC' && term === 'cromatografia gasosa') continue;
 
@@ -882,12 +876,11 @@ function expandQuery(query, domain) {
     }
   }
 
-  // Fallback para consultas curtas
   if (query.split(' ').length < 4) expanded += ' cromatografia separação eficiência';
   return expanded;
 }
 
-// ---------- EXTRAI GRUPOS DE SINÓNIMOS (Longest Match) ----------
+// ---------- EXTRAI GRUPOS DE SINÓNIMOS ----------
 function extractSynonymGroups(query) {
   const sortedKeys = Object.keys(SYNONYM_MAP).sort((a, b) => {
     const wordsA = a.split(/\s+/).length;
@@ -942,7 +935,7 @@ function extractSynonymGroups(query) {
   return groups;
 }
 
-// ---------- FILTRO POR GRUPOS (AND/OR) ----------
+// ---------- FILTRO POR GRUPOS ----------
 function filterChunksBySynonymGroups(groups, chunks) {
   if (groups.length === 0) return chunks;
   return chunks.filter(chunk => {
@@ -957,7 +950,7 @@ function filterChunksBySynonymGroups(groups, chunks) {
   });
 }
 
-// ---------- DOMAIN SCORE (penalidade) ----------
+// ---------- DOMAIN SCORE ----------
 function domainScore(chunk, domain) {
   const text = (chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' ');
   const lower = text.toLowerCase();
@@ -966,7 +959,6 @@ function domainScore(chunk, domain) {
     if (chunk.tags?.includes('GC')) return 1.0;
     if (lower.includes('cromatografia gasosa') || lower.includes('gas chromatography')) return 0.9;
     if (lower.includes('gc')) return 0.8;
-    if (lower.includes('temperatura') && lower.includes('programação')) return 0.7;
     if (lower.includes('lc') || lower.includes('hplc') || lower.includes('uhplc')) return 0.2;
     return 0.5;
   }
@@ -979,11 +971,10 @@ function domainScore(chunk, domain) {
     return 0.5;
   }
 
-  // GENERAL
   return 0.7;
 }
 
-// ---------- BM25 (com penalidade de domínio) ----------
+// ---------- BM25 (com penalidade) ----------
 function bm25Search(query, chunks, domain, topK = 15) {
   const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
   if (tokens.length === 0) return chunks.slice(0, topK);
@@ -1014,14 +1005,13 @@ function bm25Search(query, chunks, domain, topK = 15) {
       const docLen = doc.length;
       score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
     });
-    // Aplica penalidade de domínio
     const dScore = domainScore(chunk, domain);
-    score *= (0.5 + 0.5 * dScore); // penalidade suave (0.5 a 1.0)
+    score *= (0.5 + 0.5 * dScore);
     return { ...chunk, bm25_score: score };
   }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
 }
 
-// ---------- COSINE SIMILARITY ----------
+// ---------- COSINE ----------
 function cosineSimilarity(vecA, vecB) {
   if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
   let dot = 0, normA = 0, normB = 0;
@@ -1034,7 +1024,7 @@ function cosineSimilarity(vecA, vecB) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// ---------- BUSCA HÍBRIDA (BM25 + BGE + Domain Score) ----------
+// ---------- BUSCA HÍBRIDA ----------
 async function hybridSearch(query, chunks, domain, topK = 8) {
   const bm25Results = bm25Search(query, chunks, domain, 15);
 
@@ -1075,7 +1065,7 @@ async function hybridSearch(query, chunks, domain, topK = 8) {
   })).sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0)).slice(0, topK);
 }
 
-// ---------- SÍNTESE DA RESPOSTA ----------
+// ---------- SÍNTESE ----------
 function synthesizeResponse(query, chunks) {
   if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
   return chunks.map((c, i) => {
@@ -1143,7 +1133,7 @@ modalOverlay.addEventListener('click', (e) => {
 });
 
 // ---------- FORMATA RESPOSTA ----------
-function formatResponse(query, chunks, time, cacheInfo, activeFilters, domain) {
+function formatResponse(query, chunks, time, cacheInfo, activeFilters, domain, fallbackUsed = false) {
   const response = synthesizeResponse(query, chunks);
   let html = `<div class="msg-header">
     <span class="avatar"><img src="img.png" alt="ChromatoBuddy"></span>
@@ -1154,7 +1144,8 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters, domain) {
     </span>
   </div>`;
   const filterNames = activeFilters.map(f => `${f.label}(${f.peso})`).join(' + ');
-  html += `<div style="font-size:0.7rem; color:#6aafff; margin-bottom:8px;">🔍 Filtros: ${filterNames} · 🌐 Domínio: ${domain}</div>`;
+  const fallbackMsg = fallbackUsed ? ' ⚠️ fallback ativado' : '';
+  html += `<div style="font-size:0.7rem; color:#6aafff; margin-bottom:8px;">🔍 Filtros: ${filterNames} · 🌐 Domínio: ${domain}${fallbackMsg}</div>`;
   html += `<div class="answer-box">
     <h4>📊 Resposta</h4>
     <p>${response.replace(/\n/g, '<br>')}</p>
@@ -1177,7 +1168,7 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters, domain) {
   return html;
 }
 
-// ---------- HANDLE QUERY (pipeline corrigido) ----------
+// ---------- HANDLE QUERY (com fallback) ----------
 async function handleUserQuery() {
   if (sendBtn.disabled) return;
   const query = userInput.value.trim();
@@ -1190,6 +1181,7 @@ async function handleUserQuery() {
   userInput.value = '';
 
   const startTime = performance.now();
+  let fallbackUsed = false;
 
   try {
     // 1. DETECTA DOMÍNIO
@@ -1198,10 +1190,10 @@ async function handleUserQuery() {
 
     showTyping(`🔍 detectado domínio ${domain}…`);
 
-    const chunks = knowledgeData?.chunks || [];
+    const allChunks = knowledgeData?.chunks || [];
 
-    // 2. FILTRO POR DOMÍNIO (sempre aplicado)
-    let filtered = chunks.filter(chunk => {
+    // 2. FILTRO POR DOMÍNIO
+    let filtered = allChunks.filter(chunk => {
       const text = (chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' ');
       const lower = text.toLowerCase();
       if (domain === 'GC') {
@@ -1213,23 +1205,33 @@ async function handleUserQuery() {
                lower.includes('lc') || lower.includes('hplc') || lower.includes('uhplc') ||
                chunk.tags?.includes('LC') || chunk.tags?.includes('HPLC');
       }
-      return true; // GENERAL: mantém todos
+      return true;
     });
 
-    // 3. EXTRAI GRUPOS DE SINÔNIMOS (para refinar)
+    // 3. FILTRO POR GRUPOS DE SINÓNIMOS (se houver)
     const groups = extractSynonymGroups(query);
     if (groups.length > 0) {
       filtered = filterChunksBySynonymGroups(groups, filtered);
     }
 
-    const filteredCount = filtered.length;
+    let filteredCount = filtered.length;
 
-    // 4. EXPANSÃO CONTEXTUAL (respeita domínio)
+    // 4. SE APÓS OS FILTROS NÃO HOUVER CHUNKS, ATIVA FALLBACK
+    if (filteredCount === 0) {
+      fallbackUsed = true;
+      // Reseta para todos os chunks e aplica apenas o domínio (ou tudo)
+      // Vamos usar todos os chunks, mas ainda com o domínio como referência (para o domainScore)
+      filtered = allChunks; // busca livre
+      filteredCount = filtered.length;
+      showTyping(`⚠️ Fallback: buscando em todos os chunks (${filteredCount})…`);
+    } else {
+      showTyping(`🧠 Buscando em ${filteredCount} chunks (com filtros)…`);
+    }
+
+    // 5. EXPANSÃO CONTEXTUAL (sempre, mas respeita domínio)
     const expanded = expandQuery(query, domain);
 
-    showTyping(`🧠 buscando com BM25 + BGE (${filteredCount} chunks filtrados)…`);
-
-    // 5. BUSCA HÍBRIDA (já aplica domainScore no BM25)
+    // 6. BUSCA HÍBRIDA
     const results = await hybridSearch(expanded, filtered, domain, 8);
 
     removeTyping();
@@ -1243,7 +1245,7 @@ async function handleUserQuery() {
     if (chkTitles.checked) activeFilters.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
     if (chkContent.checked) activeFilters.push({ label: 'Conteúdo', peso: FILTER_WEIGHTS.content });
 
-    const html = formatResponse(query, results, totalTime, cacheInfo, activeFilters, domain);
+    const html = formatResponse(query, results, totalTime, cacheInfo, activeFilters, domain, fallbackUsed);
     addMessage('bot', html, true);
 
     document.querySelectorAll('.source-link').forEach(el => {
@@ -1255,7 +1257,7 @@ async function handleUserQuery() {
     });
 
     document.getElementById('chunkInfo').textContent =
-      `📚 ${results.length} chunks (${filteredCount} após lock)`;
+      `📚 ${results.length} chunks (${filteredCount} com ${fallbackUsed ? 'fallback' : 'filtros'})`;
   } catch (err) {
     removeTyping();
     console.error(err);
@@ -1298,7 +1300,7 @@ async function init() {
     if (!userInput.disabled) userInput.focus();
   });
   updatePriorityDisplay();
-  console.log(`🚀 ChromatoBuddy Pro (Domain‑Lock) iniciado com ${chunks.length} chunks`);
+  console.log(`🚀 ChromatoBuddy Pro (Fallback) iniciado com ${chunks.length} chunks`);
 }
 
 init();
