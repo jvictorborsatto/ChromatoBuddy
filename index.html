@@ -979,29 +979,16 @@ function filterChunksBySynonymGroups(groups, chunks) {
   });
 }
 
-// ---------- DOMAIN SCORE (usa texto normalizado do chunk) ----------
+// ---------- DOMAIN SCORE (NEUTRO) ----------
 function domainScore(chunk, domain) {
-  const textNorm = chunk._textoCompletoNorm || '';
+  const tags = chunk.tags || [];
 
-  if (domain === 'GC') {
-    if (chunk.tags?.includes('GC')) return 1.0;
-    if (textNorm.includes('cromatografia gasosa') || textNorm.includes('gas chromatography')) return 0.9;
-    if (textNorm.includes('gc')) return 0.8;
-    if (textNorm.includes('temperatura') && textNorm.includes('programação')) return 0.7;
-    if (textNorm.includes('lc') || textNorm.includes('hplc') || textNorm.includes('uhplc')) return 0.2;
-    return 0.5;
-  }
+  // regra mínima: só confirma alinhamento estrutural
+  if (domain === 'GC' && tags.includes('GC')) return 1.0;
+  if (domain === 'LC' && tags.includes('LC')) return 1.0;
 
-  if (domain === 'LC') {
-    if (chunk.tags?.includes('LC')) return 1.0;
-    if (textNorm.includes('cromatografia líquida') || textNorm.includes('liquid chromatography')) return 0.9;
-    if (textNorm.includes('lc') || textNorm.includes('hplc') || textNorm.includes('uhplc')) return 0.8;
-    if (textNorm.includes('gc') || textNorm.includes('gasosa') || textNorm.includes('gas chromatography')) return 0.2;
-    return 0.5;
-  }
-
-  // GENERAL
-  return 0.7;
+  // tudo mais é neutro
+  return 0.5;
 }
 
 // ---------- BM25 (usa texto normalizado dos chunks e pergunta normalizada) ----------
