@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChromatoBuddy Pro · Domain‑Lock + TinyLlama</title>
+  <title>ChromatoBuddy Pro · Domain‑Lock + WebLLM</title>
   <style>
+    /* (mesmo CSS do anterior, sem alterações) */
     /* ===== RESET E BASE (mesmo estilo anterior) ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -85,7 +86,7 @@
     .badge.webgpu { background: #00b894; color: white; border: none; }
     .badge.cpu { background: #fdcb6e; color: #2d3436; border: none; }
     .badge.fallback { background: #e17055; color: white; border: none; }
-    .badge.tinyllama { background: linear-gradient(135deg,#6c5ce7,#a29bfe); color: white; border: none; }
+    .badge.weblm { background: linear-gradient(135deg,#6c5ce7,#a29bfe); color: white; border: none; }
 
     .progress-wrap {
       width: 100%;
@@ -476,7 +477,7 @@
     }
     .welcome-box .feature-item.turbo { background: linear-gradient(135deg,#3498db,#2ecc71); color: white; border: none; }
     .welcome-box .feature-item.brain { background: linear-gradient(135deg,#9b59b6,#8e44ad); color: white; border: none; }
-    .welcome-box .feature-item.tiny { background: linear-gradient(135deg,#6c5ce7,#a29bfe); color: white; border: none; }
+    .welcome-box .feature-item.weblm { background: linear-gradient(135deg,#6c5ce7,#a29bfe); color: white; border: none; }
 
     @media (max-width: 640px) {
       .app { max-height: none; height: 96vh; border-radius: 20px; }
@@ -502,14 +503,14 @@
       <div class="header-left">
         <h1>
           <img src="img.png" alt="ChromatoBuddy">
-          <span>Chromato</span>Buddy <span style="font-size:0.7rem; color:#6aafff;">Domain‑Lock + TinyLlama</span>
+          <span>Chromato</span>Buddy <span style="font-size:0.7rem; color:#6aafff;">Domain‑Lock + WebLLM</span>
         </h1>
       </div>
       <div class="badge-group">
         <span class="badge notebook">📓 NotebookLM</span>
         <span class="badge turbo">⚡ BM25+BGE</span>
         <span class="badge brain">🧠 BGE-small</span>
-        <span class="badge tinyllama">🧠 TinyLlama</span>
+        <span class="badge weblm">🧠 WebLLM (TinyLlama)</span>
         <span class="badge" id="statusBadge">⏳ carregando…</span>
         <span class="badge" id="modelBadge">⏳ modelo…</span>
       </div>
@@ -546,14 +547,14 @@
         <span class="name">ChromatoBuddy Pro</span>
       </div>
       <div class="welcome-box">
-        <strong>🚀 Domain‑Lock + Ontologia Leve + TinyLlama</strong>
+        <strong>🚀 Domain‑Lock + Ontologia Leve + WebLLM</strong>
         <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-          Detecção de domínio (GC/LC) → lock → expansão → ranking → síntese com IA.
+          Detecção de domínio (GC/LC) → lock → expansão → ranking → síntese com IA local.
         </div>
         <div class="features">
           <span class="feature-item turbo">⚡ BM25 + BGE</span>
           <span class="feature-item brain">🧠 Embeddings sob demanda</span>
-          <span class="feature-item tiny">🧠 TinyLlama (síntese)</span>
+          <span class="feature-item weblm">🧠 WebLLM (TinyLlama)</span>
           <span class="feature-item">📚 100% local</span>
           <span class="feature-item">🔒 Lock por domínio</span>
         </div>
@@ -584,7 +585,7 @@
       <span id="sourceInfo">📄 origem: -</span>
       <span id="perfInfo">⚡ GPU: -</span>
     </div>
-    <span>🔒 Local · 📓 NotebookLM · ⚡ BGE · 🧠 TinyLlama</span>
+    <span>🔒 Local · 📓 NotebookLM · ⚡ BGE · 🧠 WebLLM</span>
   </div>
 </div>
 
@@ -606,10 +607,10 @@
 
 <script type="module">
 // ============================================================
-//  CHROMATOBUDDY PRO – DOMAIN‑LOCK + ONTOLOGIA LEVE + TinyLlama
+//  CHROMATOBUDDY PRO – DOMAIN‑LOCK + WEBLLM (TinyLlama)
 // ============================================================
 
-// ---------- NORMALIZAÇÃO (remove pontuação, acentos opcional, minúsculas, espaços extras) ----------
+// ---------- NORMALIZAÇÃO ----------
 function normalizeText(text) {
   if (!text) return '';
   return text
@@ -629,8 +630,8 @@ const embeddingCache = new Map();
 let cacheHits = 0;
 let cacheMisses = 0;
 
-// LLM (TinyLlama)
-let llm = null;
+// WebLLM
+let llmEngine = null;
 let llmReady = false;
 
 // Filtros (pesos)
@@ -640,7 +641,7 @@ const FILTER_WEIGHTS = {
   content: 3
 };
 
-// ---------- BANCO DE PALAVRAS COMUNS (já normalizadas) ----------
+// ---------- BANCO DE PALAVRAS COMUNS ----------
 const COMMON_WORDS_NORM = [
   'cromatografia', 'cromatografico', 'cromatografica', 'lc', 'hplc', 'uhplc',
   'cromatografia liquida', 'cromatografia gasosa', 'cg', 'clae', 'cl',
@@ -666,7 +667,7 @@ const COMMON_WORDS_NORM = [
   'pre coluna', 'guard', 'protecao'
 ];
 
-// ---------- DOMÍNIOS (ontologia leve) com normalização ----------
+// ---------- DOMÍNIOS ----------
 const DOMAINS = {
   GC: {
     keywords: ['gasosa', 'cg', 'gas chromatography', 'cromatografia gasosa'].map(normalizeText),
@@ -699,7 +700,7 @@ const modalFields = document.getElementById('modalFields');
 const modalClose = document.getElementById('modalClose');
 const domainInfo = document.getElementById('domainInfo');
 
-// ---------- SINÔNIMOS (expansão) com normalização ----------
+// ---------- SINÔNIMOS ----------
 const SYNONYM_MAP_RAW = {
   'cromatografia': ['cromatográfico','cromatográfica','lc','hplc','uhplc','cromatografia liquida','cromatografia líquida','separação cromatográfica'],
   'lc': ['cromatografia líquida','hplc','uhplc'],
@@ -722,7 +723,6 @@ const SYNONYM_MAP_RAW = {
   'seletividade': ['selectivity','fator de separação','alfa','α']
 };
 
-// Criar versão normalizada para matching (chaves e valores)
 const SYNONYM_MAP = {};
 for (const [key, values] of Object.entries(SYNONYM_MAP_RAW)) {
   SYNONYM_MAP[normalizeText(key)] = values.map(v => normalizeText(v));
@@ -746,7 +746,6 @@ function updatePriorityDisplay() {
   });
 }
 
-// Constrói o texto para embeddings (usando original, sem normalização)
 function buildChunkText(chunk) {
   const parts = [];
   if (chkTags.checked && chunk.tags && Array.isArray(chunk.tags)) {
@@ -762,14 +761,14 @@ function buildChunkText(chunk) {
   return parts.join(' ');
 }
 
-// ---------- DETECÇÃO DE DOMÍNIO (usa pergunta já normalizada) ----------
+// ---------- DETECÇÃO DE DOMÍNIO ----------
 function detectDomain(queryNorm) {
   if (DOMAINS.GC.keywords.some(k => queryNorm.includes(k))) return 'GC';
   if (DOMAINS.LC.keywords.some(k => queryNorm.includes(k))) return 'LC';
   return 'GENERAL';
 }
 
-// ---------- CARREGAR JSON (com normalização dos chunks) ----------
+// ---------- CARREGAR JSON ----------
 async function loadKnowledgeBase() {
   const statusBadge = document.getElementById('statusBadge');
   const fill = document.getElementById('progressFill');
@@ -871,78 +870,74 @@ async function initBGE() {
 }
 
 // ============================================================
-//  INICIALIZAR TinyLlama (substituto do Phi-3)
+//  INICIALIZAR WebLLM (TinyLlama)
 // ============================================================
 async function initLLM() {
   const fill = document.getElementById('progressFill');
   const text = document.getElementById('progressText');
   const modelBadge = document.getElementById('modelBadge');
   try {
-    const { pipeline } = await import('@xenova/transformers');
+    const webllm = await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.48/dist/web-llm.js');
     fill.style.width = '75%';
-    text.textContent = '75% – carregando TinyLlama (WebGPU)…';
-    llm = await pipeline(
-      'text-generation',
-      'Xenova/tinyllama-1.1b-chat',
+    text.textContent = '75% – carregando TinyLlama (WebLLM)…';
+    llmEngine = await webllm.CreateMLCEngine(
+      'TinyLlama-1.1B-Chat-v1.0-q4f32_1',
       {
         device: 'webgpu',
-        dtype: 'fp16',
         progress_callback: (p) => {
           if (p.status === 'progress') {
             const prog = 75 + p.progress * 20;
             fill.style.width = Math.min(prog, 95) + '%';
-            text.textContent = Math.round(Math.min(prog, 95)) + '% – TinyLlama';
+            text.textContent = Math.round(Math.min(prog, 95)) + '% – TinyLlama (WebLLM)';
           }
         }
       }
     );
     llmReady = true;
-    modelBadge.textContent = '✅ TinyLlama (WebGPU)';
-    modelBadge.className = 'badge tinyllama';
-    document.getElementById('perfInfo').textContent += ' · TinyLlama';
+    modelBadge.textContent = '✅ TinyLlama (WebLLM)';
+    modelBadge.className = 'badge weblm';
+    document.getElementById('perfInfo').textContent += ' · WebLLM';
     fill.style.width = '100%';
     text.textContent = '100% – pronto!';
     document.getElementById('statusBadge').textContent = '✅ pronto';
     document.getElementById('statusBadge').className = 'badge success';
     return true;
   } catch (err) {
-    console.warn('TinyLlama WebGPU falhou, tentando CPU…', err);
+    console.warn('WebLLM WebGPU falhou, tentando CPU…', err);
     try {
-      const { pipeline } = await import('@xenova/transformers');
-      llm = await pipeline(
-        'text-generation',
-        'Xenova/tinyllama-1.1b-chat',
+      const webllm = await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.48/dist/web-llm.js');
+      llmEngine = await webllm.CreateMLCEngine(
+        'TinyLlama-1.1B-Chat-v1.0-q4f32_1',
         {
           device: 'cpu',
-          dtype: 'fp32',
           progress_callback: (p) => {
             if (p.status === 'progress') {
               const prog = 75 + p.progress * 20;
               fill.style.width = Math.min(prog, 95) + '%';
-              text.textContent = Math.round(Math.min(prog, 95)) + '% – TinyLlama (CPU)';
+              text.textContent = Math.round(Math.min(prog, 95)) + '% – TinyLlama (WebLLM CPU)';
             }
           }
         }
       );
       llmReady = true;
-      modelBadge.textContent = '✅ TinyLlama (CPU)';
-      modelBadge.className = 'badge tinyllama';
-      document.getElementById('perfInfo').textContent += ' · TinyLlama CPU';
+      modelBadge.textContent = '✅ TinyLlama (WebLLM CPU)';
+      modelBadge.className = 'badge weblm';
+      document.getElementById('perfInfo').textContent += ' · WebLLM CPU';
       fill.style.width = '100%';
       text.textContent = '100% – pronto!';
       document.getElementById('statusBadge').textContent = '✅ pronto';
       document.getElementById('statusBadge').className = 'badge success';
       return true;
     } catch (e2) {
-      console.error('Erro ao carregar TinyLlama:', e2);
-      modelBadge.textContent = '⚠️ LLM indisponível';
+      console.error('Erro ao carregar WebLLM:', e2);
+      modelBadge.textContent = '⚠️ WebLLM indisponível';
       modelBadge.className = 'badge warning';
       return false;
     }
   }
 }
 
-// ---------- EXPANSÃO CONTEXTUAL (respeita domínio, com normalização) ----------
+// ---------- EXPANSÃO CONTEXTUAL ----------
 function expandQuery(query, queryNorm, domain) {
   let expanded = query;
   const domainSynonyms = (domain === 'GC') ? DOMAINS.GC.synonyms :
@@ -974,7 +969,7 @@ function expandQuery(query, queryNorm, domain) {
   return expanded;
 }
 
-// ---------- EXTRAI GRUPOS DE SINÓNIMOS (usa pergunta normalizada) ----------
+// ---------- EXTRAI GRUPOS DE SINÓNIMOS ----------
 function extractSynonymGroups(queryNorm) {
   const tokens = queryNorm.split(/\s+/).filter(t => t.length > 2);
   const groups = [];
@@ -1013,7 +1008,7 @@ function extractSynonymGroups(queryNorm) {
   return groups;
 }
 
-// ---------- FILTRO POR GRUPOS (AND/OR, usa dados normalizados dos chunks) ----------
+// ---------- FILTRO POR GRUPOS ----------
 function filterChunksBySynonymGroups(groups, chunks) {
   if (groups.length === 0) return chunks;
   return chunks.filter(chunk => {
@@ -1028,7 +1023,7 @@ function filterChunksBySynonymGroups(groups, chunks) {
   });
 }
 
-// ---------- DOMAIN SCORE (NEUTRO) ----------
+// ---------- DOMAIN SCORE ----------
 function domainScore(chunk, domain) {
   const tags = chunk.tags || [];
   if (domain === 'GC' && tags.includes('GC')) return 1.0;
@@ -1036,7 +1031,7 @@ function domainScore(chunk, domain) {
   return 0.5;
 }
 
-// ---------- BM25 (usa texto normalizado dos chunks e pergunta normalizada) ----------
+// ---------- BM25 ----------
 function bm25Search(queryNorm, chunks, domain, topK = 15) {
   const tokens = queryNorm.split(/\s+/).filter(w => w.length > 2);
   if (tokens.length === 0) return chunks.slice(0, topK);
@@ -1082,7 +1077,7 @@ function cosineSimilarity(vecA, vecB) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// ---------- BUSCA HÍBRIDA (BM25 + BGE + Domain Score) ----------
+// ---------- BUSCA HÍBRIDA ----------
 async function hybridSearch(query, queryNorm, chunks, domain, topK = 8) {
   const bm25Results = bm25Search(queryNorm, chunks, domain, 15);
   if (!embedderReady || !embedder) {
@@ -1120,7 +1115,7 @@ async function hybridSearch(query, queryNorm, chunks, domain, topK = 8) {
 }
 
 // ============================================================
-//  REORDENAÇÃO POR TERMO MAIS LONGO DA LISTA
+//  REORDENAÇÃO POR TERMO MAIS LONGO
 // ============================================================
 function reorderByLongestMatch(results, queryNorm) {
   const matchingTerms = COMMON_WORDS_NORM.filter(term => queryNorm.includes(term));
@@ -1141,11 +1136,10 @@ function reorderByLongestMatch(results, queryNorm) {
 }
 
 // ============================================================
-//  SÍNTESE COM TinyLlama (formato chat)
+//  SÍNTESE COM WebLLM
 // ============================================================
 async function generateCoherentAnswer(query, chunks) {
-  if (!llmReady || !llm) {
-    // Fallback: resposta concatenada
+  if (!llmReady || !llmEngine) {
     return chunks.map(c => c.conteudo).join('\n\n');
   }
 
@@ -1158,39 +1152,33 @@ CONTEÚDO: ${contentPreview}${c.conteudo && c.conteudo.length > 300 ? '…' : ''
 TAGS: ${(c.tags || []).join(', ')}`;
   }).join('\n\n');
 
-  // Prompt no formato esperado pelo TinyLlama (chat)
-  const prompt = `<|system|>
-Você é um assistente especializado em química analítica.
-Sua tarefa é escrever um texto único e coeso, usando apenas os chunks fornecidos como fonte.
-Conecte as ideias com fluidez científica, não liste os chunks e não repita conteúdo.
-<|user|>
-Pergunta: ${query}
-
-Contexto:
-${context}
-<|assistant|>`;
+  const messages = [
+    {
+      role: 'system',
+      content: 'Você é um assistente especializado em química analítica. Sua tarefa é escrever um texto único e coeso, usando apenas os chunks fornecidos como fonte. Conecte as ideias com fluidez científica, não liste os chunks e não repita conteúdo.'
+    },
+    {
+      role: 'user',
+      content: `Pergunta: ${query}\n\nContexto:\n${context}`
+    }
+  ];
 
   try {
-    const result = await llm(prompt, {
-      max_new_tokens: 350,
+    const reply = await llmEngine.chat.completions.create({
+      messages,
+      max_tokens: 350,
       temperature: 0.3,
       repetition_penalty: 1.1,
-      do_sample: true,
       top_p: 0.95,
     });
-    let generated = result[0].generated_text;
-    // Remove o prompt da resposta
-    if (generated.includes('<|assistant|>')) {
-      generated = generated.split('<|assistant|>')[1].trim();
-    }
-    return generated || 'Não foi possível gerar uma resposta coesa.';
+    return reply.choices[0].message.content || 'Não foi possível gerar uma resposta coesa.';
   } catch (err) {
-    console.error('Erro na geração com TinyLlama:', err);
+    console.error('Erro na geração com WebLLM:', err);
     return chunks.map(c => c.conteudo).join('\n\n');
   }
 }
 
-// ---------- SÍNTESE DA RESPOSTA (fallback sem IA) ----------
+// ---------- SÍNTESE FALLBACK ----------
 function synthesizeResponse(query, chunks) {
   if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
   return chunks.map((c, i) => {
@@ -1257,7 +1245,7 @@ modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) modalOverlay.classList.remove('active');
 });
 
-// ---------- FORMATA RESPOSTA (agora com texto coeso + fontes) ----------
+// ---------- FORMATA RESPOSTA ----------
 function formatResponse(query, chunks, coherentText, time, cacheInfo, activeFilters, domain) {
   const finalText = coherentText || synthesizeResponse(query, chunks);
 
@@ -1267,19 +1255,17 @@ function formatResponse(query, chunks, coherentText, time, cacheInfo, activeFilt
     <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
       ⚡ ${time}ms · 🧠 ${chunks.length} chunks
       ${cacheInfo ? `· 💾 ${cacheInfo}` : ''}
-      ${llmReady ? '· 🧠 TinyLlama' : ''}
+      ${llmReady ? '· 🧠 WebLLM' : ''}
     </span>
   </div>`;
   const filterNames = activeFilters.map(f => `${f.label}(${f.peso})`).join(' + ');
   html += `<div style="font-size:0.7rem; color:#6aafff; margin-bottom:8px;">🔍 Filtros: ${filterNames} · 🌐 Domínio: ${domain}</div>`;
 
-  // Bloco principal: resposta coesa
   html += `<div class="answer-box" style="border-left-color: #6c5ce7;">
-    <h4>🧠 Resposta Coesa (TinyLlama)</h4>
+    <h4>🧠 Resposta Coesa (WebLLM)</h4>
     <p>${finalText.replace(/\n/g, '<br>')}</p>
   </div>`;
 
-  // Bloco de fontes (chunks)
   if (chunks.length) {
     html += `<div class="sources-box">
       <strong>📚 Fontes (${chunks.length} chunks):</strong><br>
@@ -1293,13 +1279,13 @@ function formatResponse(query, chunks, coherentText, time, cacheInfo, activeFilt
   html += `<div class="meta">
     <span class="confidence-high">✅ ${chunks.length} chunks selecionados</span>
     <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
-    <span>🧠 BGE-small ${llmReady ? '· TinyLlama' : ''}</span>
+    <span>🧠 BGE-small ${llmReady ? '· WebLLM' : ''}</span>
     <span>📓 NotebookLM</span>
   </div>`;
   return html;
 }
 
-// ---------- HANDLE QUERY (pipeline com TinyLlama) ----------
+// ---------- HANDLE QUERY ----------
 async function handleUserQuery() {
   if (sendBtn.disabled) return;
   const query = userInput.value.trim();
@@ -1322,7 +1308,6 @@ async function handleUserQuery() {
 
     const chunks = knowledgeData?.chunks || [];
 
-    // Filtro por domínio
     let filtered = chunks.filter(chunk => {
       const textNorm = chunk._textoCompletoNorm || '';
       if (domain === 'GC') {
@@ -1337,27 +1322,20 @@ async function handleUserQuery() {
       return true;
     });
 
-    // Filtro por sinônimos
     const groups = extractSynonymGroups(queryNorm);
     if (groups.length > 0) {
       filtered = filterChunksBySynonymGroups(groups, filtered);
     }
 
     const filteredCount = filtered.length;
-
-    // Expansão
     const expanded = expandQuery(query, queryNorm, domain);
 
     showTyping(`🧠 buscando com BM25 + BGE (${filteredCount} chunks filtrados)…`);
 
-    // Busca híbrida
     let results = await hybridSearch(query, queryNorm, filtered, domain, 8);
-
-    // Reordenação por termo mais longo
     results = reorderByLongestMatch(results, queryNorm);
 
-    // --- AGORA, ANTES DE RENDERIZAR, GERAR TEXTO COESO COM TinyLlama ---
-    showTyping('🧠 sintetizando resposta com TinyLlama…');
+    showTyping('🧠 sintetizando resposta com WebLLM…');
     const coherentText = await generateCoherentAnswer(query, results);
 
     removeTyping();
@@ -1371,11 +1349,9 @@ async function handleUserQuery() {
     if (chkTitles.checked) activeFilters.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
     if (chkContent.checked) activeFilters.push({ label: 'Conteúdo', peso: FILTER_WEIGHTS.content });
 
-    // Renderiza a mensagem completa (texto + fontes)
     const html = formatResponse(query, results, coherentText, totalTime, cacheInfo, activeFilters, domain);
     addMessage('bot', html, true);
 
-    // Adiciona eventos de clique nas fontes
     document.querySelectorAll('.source-link').forEach(el => {
       el.addEventListener('click', (e) => {
         const chunkId = parseInt(el.dataset.chunkId);
@@ -1425,10 +1401,10 @@ document.addEventListener('keydown', (e) => {
 async function init() {
   await loadKnowledgeBase();
   await initBGE();
-  await initLLM(); // carrega TinyLlama
+  await initLLM(); // agora usa WebLLM
   updatePriorityDisplay();
   if (!userInput.disabled) userInput.focus();
-  console.log('🚀 ChromatoBuddy Pro com TinyLlama iniciado!');
+  console.log('🚀 ChromatoBuddy Pro com WebLLM/TinyLlama iniciado!');
 }
 
 init();
