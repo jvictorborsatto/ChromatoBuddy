@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChromatoBuddy Pro - RAG Híbrido Avançado</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChromatoBuddy · NotebookLM Local</title>
     <style>
+        /* Mantido o mesmo estilo, com pequenos ajustes nos badges */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -204,7 +205,7 @@
         }
         .pipeline-steps .step {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
             padding: 4px 0;
             color: #3a5a7a;
@@ -232,41 +233,12 @@
             border-radius: 12px;
             border-left: 4px solid #1a3a6a;
             margin: 6px 0;
+            white-space: pre-wrap;
         }
         .answer-box h4 {
             color: #1a3a6a;
             margin-bottom: 8px;
             font-size: 0.95rem;
-        }
-        .answer-box p {
-            margin-bottom: 8px;
-        }
-        .answer-box ul {
-            padding-left: 20px;
-            margin: 6px 0;
-        }
-        .answer-box ul li {
-            margin-bottom: 4px;
-        }
-        .answer-box .highlight {
-            background: #fff3cd;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-        .answer-box .insight {
-            background: #e8f5e9;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 500;
-            color: #2e7d32;
-        }
-        .answer-box .key-concept {
-            background: #e3f2fd;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 500;
-            color: #1565c0;
         }
 
         .sources-box {
@@ -277,22 +249,6 @@
             font-size: 0.82rem;
             border-left: 3px solid #6aafff;
         }
-        .tags-box {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 8px;
-        }
-        .tag-pill {
-            display: inline-block;
-            background: #e8edf5;
-            padding: 2px 12px;
-            border-radius: 14px;
-            font-size: 0.7rem;
-            color: #1a3a6a;
-            font-weight: 500;
-        }
-
         .meta {
             font-size: 0.7rem;
             color: #8899b0;
@@ -306,14 +262,6 @@
         }
         .confidence-high {
             color: #27ae60;
-            font-weight: 600;
-        }
-        .confidence-medium {
-            color: #f39c12;
-            font-weight: 600;
-        }
-        .confidence-low {
-            color: #e74c3c;
             font-weight: 600;
         }
 
@@ -374,14 +322,8 @@
             animation-delay: 0.4s;
         }
         @keyframes bounce {
-            0%, 80%, 100% {
-                transform: scale(0.6);
-                opacity: 0.4;
-            }
-            40% {
-                transform: scale(1);
-                opacity: 1;
-            }
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
         }
 
         .input-area {
@@ -470,14 +412,8 @@
         }
 
         @keyframes fadeSlide {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .welcome-box {
@@ -516,60 +452,18 @@
             border: none;
         }
 
-        .rerank-score {
-            background: #e8f5e9;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #2e7d32;
-        }
-
         @media (max-width: 640px) {
-            .app {
-                max-height: none;
-                height: 96vh;
-                border-radius: 20px;
-            }
-            .header {
-                padding: 12px 16px;
-            }
-            .header h1 {
-                font-size: 1.1rem;
-            }
-            .chat-container {
-                padding: 14px 16px;
-            }
-            .message {
-                max-width: 96%;
-                padding: 12px 16px;
-                font-size: 0.9rem;
-            }
-            .input-area {
-                padding: 10px 16px 16px;
-                flex-wrap: wrap;
-            }
-            .input-area textarea {
-                min-height: 44px;
-                font-size: 0.9rem;
-            }
-            .input-area button {
-                height: 44px;
-                padding: 8px 18px;
-                font-size: 0.85rem;
-            }
-            .footer {
-                padding: 6px 16px 10px;
-                font-size: 0.6rem;
-            }
-            .pipeline-steps {
-                font-size: 0.75rem;
-                padding: 8px 12px;
-            }
-            .suggestion-btn {
-                font-size: 0.7rem;
-                padding: 4px 12px;
-            }
+            .app { max-height: none; height: 96vh; border-radius: 20px; }
+            .header { padding: 12px 16px; }
+            .header h1 { font-size: 1.1rem; }
+            .chat-container { padding: 14px 16px; }
+            .message { max-width: 96%; padding: 12px 16px; font-size: 0.9rem; }
+            .input-area { padding: 10px 16px 16px; flex-wrap: wrap; }
+            .input-area textarea { min-height: 44px; font-size: 0.9rem; }
+            .input-area button { height: 44px; padding: 8px 18px; font-size: 0.85rem; }
+            .footer { padding: 6px 16px 10px; font-size: 0.6rem; }
+            .pipeline-steps { font-size: 0.75rem; padding: 8px 12px; }
+            .suggestion-btn { font-size: 0.7rem; padding: 4px 12px; }
         }
     </style>
 </head>
@@ -578,14 +472,14 @@
         <div class="header">
             <div class="header-left">
                 <h1>🧠 Chromato<span>Buddy</span></h1>
-                <span class="subtitle">RAG Híbrido Pro v2.0</span>
+                <span class="subtitle">NotebookLM Local</span>
             </div>
             <div class="badge-group">
-                <span class="badge notebook">📓 NotebookLM Style</span>
+                <span class="badge notebook">📓 NotebookLM</span>
                 <span class="badge turbo">⚡ RAG Híbrido</span>
                 <span class="badge brain">🧠 BGE + Reranker</span>
-                <span class="badge" id="statusBadge">⏳ carregando...</span>
-                <span class="badge" id="modelBadge">⏳ modelo...</span>
+                <span class="badge" id="statusBadge">⏳ carregando…</span>
+                <span class="badge" id="modelBadge">⏳ modelo…</span>
             </div>
         </div>
 
@@ -593,19 +487,19 @@
             <div class="message bot">
                 <div class="msg-header">
                     <span class="avatar">🧠</span>
-                    <span class="name">ChromatoBuddy Pro v2.0</span>
+                    <span class="name">ChromatoBuddy</span>
                 </div>
                 <div class="welcome-box">
-                    <strong>🚀 Pipeline Otimizado - Busca em Metadados</strong>
+                    <strong>🚀 Pipeline Local NotebookLM</strong>
                     <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-                        <strong>Nova Arquitetura:</strong> Query → BM25(metadados) → BGE(metadados) → Reranker → Extração de Sentenças → Síntese
+                        <strong>Etapas:</strong> BM25 → BGE Embedding → Reranker → LLM (WebLLM)
                     </div>
                     <div class="features">
-                        <span class="feature-item notebook">🎯 Busca em Título+Tags</span>
-                        <span class="feature-item turbo">⚡ BM25 + BGE em metadados</span>
-                        <span class="feature-item brain">🧠 Reranker</span>
-                        <span class="feature-item">📝 Extração de sentenças</span>
-                        <span class="feature-item">🎯 Síntese inteligente</span>
+                        <span class="feature-item">🔍 BM25</span>
+                        <span class="feature-item brain">🧠 BGE</span>
+                        <span class="feature-item turbo">🎯 Reranker</span>
+                        <span class="feature-item notebook">🤖 Qwen3 4B</span>
+                        <span class="feature-item">⚡ WebGPU</span>
                         <span class="feature-item">✅ 100% Local</span>
                     </div>
                     <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
@@ -613,7 +507,7 @@
                     </div>
                 </div>
                 <div class="meta">
-                    <span>✅ RAG NotebookLM-Style v2.0</span>
+                    <span>✅ RAG Híbrido</span>
                     <span id="chunkInfo">📚 0 chunks</span>
                     <span id="cacheInfo">💾 0 em cache</span>
                 </div>
@@ -634,20 +528,29 @@
                 <span id="sourceInfo">📄 origem: -</span>
                 <span id="perfInfo">⚡ GPU: -</span>
             </div>
-            <span>🔒 Local · 📓 NotebookLM · ⚡ Otimizado</span>
+            <span>🔒 Local · 📓 NotebookLM · 🤖 Qwen3 4B</span>
         </div>
     </div>
 
     <script type="importmap">
         {
             "imports": {
-                "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.9.0/dist/transformers.js"
+                "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.9.0/dist/transformers.js",
+                "@mlc-ai/web-llm": "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.46/dist/web-llm.js"
             }
         }
     </script>
 
     <script type="module">
-        // ==================== IMPORTAÇÕES ====================
+        // ========================================================================
+        //  IMPORTAÇÕES
+        // ========================================================================
+        import { pipeline } from '@xenova/transformers';
+        import * as webllm from '@mlc-ai/web-llm';
+
+        // ========================================================================
+        //  ESTADO GLOBAL
+        // ========================================================================
         let knowledgeData = null;
         let embedder = null;
         let reranker = null;
@@ -655,17 +558,27 @@
         let rerankerReady = false;
         let useFallback = false;
 
+        // WebLLM
+        let llmEngine = null;
+        let llmReady = false;
+
         // Cache
-        const queryCache = new Map();
-        const embeddingCache = new Map();
+        const queryCache = new Map();          // query -> resposta (streaming guardamos o texto completo)
+        const embeddingCache = new Map();      // query -> vetor
         let cacheHits = 0;
         let cacheMisses = 0;
 
+        // Histórico (últimas 3 interações)
+        const history = [];  // array de { role: 'user'|'assistant', content: string }
+
+        // Elementos UI
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
-        // ==================== SINÔNIMOS EXPANDIDOS ====================
+        // ========================================================================
+        //  SINÔNIMOS (expansão de query)
+        // ========================================================================
         const SYNONYM_MAP = {
             'cromatografia': ['cromatográfico', 'cromatográfica', 'lc', 'hplc', 'uhplc', 'cromatografia liquida', 'cromatografia líquida', 'separação cromatográfica'],
             'lc': ['cromatografia líquida', 'cromatografia liquida', 'hplc', 'uhplc'],
@@ -688,80 +601,37 @@
             'seletividade': ['selectivity', 'fator de separação', 'alfa', 'α']
         };
 
-        // ==================== QUERY INTENT CLASSIFIER ====================
+        // ========================================================================
+        //  INTENT CLASSIFIER (simples)
+        // ========================================================================
         function classifyIntent(query) {
             const q = query.toLowerCase();
-            
-            if (q.includes('vs') || q.includes('versus') || q.includes('compar') || 
-                q.includes('diferença') || q.includes('diferença') || q.includes('melhor')) {
-                return 'comparison';
-            }
-            if (q.includes('como') && (q.includes('funciona') || q.includes('afeta') || q.includes('impacta') || 
-                q.includes('influencia') || q.includes('mecanismo') || q.includes('efeito'))) {
-                return 'mechanism';
-            }
-            if (q.includes('vantagem') || q.includes('benefício') || q.includes('por que usar') || 
-                q.includes('vantagens') || q.includes('benefícios')) {
-                return 'advantages';
-            }
-            if (q.includes('desvantagem') || q.includes('limitação') || q.includes('problema') || 
-                q.includes('desafio') || q.includes('desvantagens')) {
-                return 'disadvantages';
-            }
-            if (q.includes('o que é') || q.includes('definição') || q.includes('conceito') || 
-                q.includes('significa') || q.includes('defina')) {
-                return 'definition';
-            }
-            if (q.includes('como escolher') || q.includes('selecionar') || q.includes('qual escolher') ||
-                q.includes('recomenda') || q.includes('sugere')) {
-                return 'selection';
-            }
+            if (q.includes('vs') || q.includes('versus') || q.includes('compar') || q.includes('diferença') || q.includes('melhor')) return 'comparison';
+            if (q.includes('como') && (q.includes('funciona') || q.includes('afeta') || q.includes('impacta') || q.includes('influencia') || q.includes('mecanismo') || q.includes('efeito'))) return 'mechanism';
+            if (q.includes('vantagem') || q.includes('benefício') || q.includes('por que usar') || q.includes('vantagens')) return 'advantages';
+            if (q.includes('desvantagem') || q.includes('limitação') || q.includes('problema') || q.includes('desafio')) return 'disadvantages';
+            if (q.includes('o que é') || q.includes('definição') || q.includes('conceito') || q.includes('significa')) return 'definition';
+            if (q.includes('como escolher') || q.includes('selecionar') || q.includes('qual escolher')) return 'selection';
             return 'general';
         }
 
-        // ==================== QUERY EXPANSION ====================
-        function expandQuery(query, intent) {
+        // ========================================================================
+        //  QUERY EXPANSION (sinônimos)
+        // ========================================================================
+        function expandQuery(query) {
             let expanded = query;
             const q = query.toLowerCase();
-
-            const intentExpansions = {
-                'comparison': ['diferença', 'comparação', 'vantagem', 'desvantagem', 'melhor', 'pior'],
-                'mechanism': ['mecanismo', 'efeito', 'influência', 'impacto', 'como', 'porque', 'causa', 'consequência'],
-                'advantages': ['vantagem', 'benefício', 'melhoria', 'ganho', 'superioridade'],
-                'disadvantages': ['desvantagem', 'limitação', 'problema', 'desafio', 'dificuldade'],
-                'definition': ['definição', 'conceito', 'significado', 'o que é', 'características'],
-                'selection': ['escolha', 'seleção', 'critério', 'recomendação', 'melhor opção']
-            };
-
-            if (intentExpansions[intent]) {
-                intentExpansions[intent].forEach(term => {
-                    if (!expanded.includes(term)) expanded += ' ' + term;
-                });
-            }
-
-            const expandedQuery = expandWithSynonyms(expanded);
-            
-            if (query.split(' ').length < 4) {
-                expanded += ' cromatografia separação eficiência';
-            }
-
-            return expandedQuery;
-        }
-
-        function expandWithSynonyms(query) {
-            let expanded = query;
-            const queryLower = query.toLowerCase();
             for (const [term, synonyms] of Object.entries(SYNONYM_MAP)) {
-                if (queryLower.includes(term)) {
+                if (q.includes(term)) {
                     for (const syn of synonyms) {
                         if (!expanded.includes(syn)) expanded += ' ' + syn;
                     }
                 }
                 for (const syn of synonyms) {
-                    if (queryLower.includes(syn)) {
+                    if (q.includes(syn)) {
                         if (!expanded.includes(term)) expanded += ' ' + term;
-                        for (const otherSyn of synonyms) {
-                            if (otherSyn !== syn && !expanded.includes(otherSyn)) expanded += ' ' + otherSyn;
+                        for (const other of synonyms) {
+                            if (other !== syn && !expanded.includes(other)) expanded += ' ' + other;
                         }
                     }
                 }
@@ -769,68 +639,26 @@
             return expanded;
         }
 
-        // ==================== PROCESSAMENTO DA BASE ====================
-        function processKnowledgeBase(rawData) {
-            const chunks = rawData.chunks.map((chunk, idx) => {
-                // Extrai sentenças-chave (frases com termos técnicos)
-                const sentences = chunk.conteudo
-                    .split(/[.!?]+/)
-                    .filter(s => s.trim().length > 20)
-                    .map(s => s.trim() + '.');
-                
-                // Identifica sentenças mais relevantes
-                const keySentences = sentences.filter(s => {
-                    const lower = s.toLowerCase();
-                    return lower.includes('vantagem') || 
-                           lower.includes('desvantagem') ||
-                           lower.includes('benef') ||
-                           lower.includes('efic') ||
-                           lower.includes('temperatura') ||
-                           lower.includes('pressão') ||
-                           lower.includes('resolução') ||
-                           lower.includes('seletividade') ||
-                           lower.includes('compar') ||
-                           lower.includes('diferença') ||
-                           lower.includes('mecanismo') ||
-                           lower.includes('efeito');
-                });
-
-                return {
-                    ...chunk,
-                    id: idx,
-                    // Metadados para busca (mais discriminativo)
-                    metadata_text: `${chunk.titulo} ${chunk.subtitulo || ''} ${chunk.tags ? chunk.tags.join(' ') : ''}`,
-                    // Conteúdo completo para resposta
-                    conteudo_completo: chunk.conteudo,
-                    // Sentenças chave para contexto
-                    sentencas_chave: keySentences.length > 0 ? keySentences : sentences.slice(0, 5),
-                    // Embedding será adicionado depois
-                    metadata_embedding: null,
-                    conteudo_embedding: null
-                };
-            });
-            return chunks;
-        }
-
-        // ==================== CARREGA JSON ====================
+        // ========================================================================
+        //  CARREGA BASE DE CONHECIMENTO
+        // ========================================================================
         async function loadKnowledgeBase() {
             const statusBadge = document.getElementById('statusBadge');
             try {
-                statusBadge.textContent = '⏳ carregando...';
+                statusBadge.textContent = '⏳ carregando…';
                 const response = await fetch('knowledge-base.json');
                 if (!response.ok) throw new Error('JSON não encontrado');
-                const rawData = await response.json();
-                
-                // Processa a base
-                knowledgeData = rawData;
-                const chunks = processKnowledgeBase(rawData);
-                knowledgeData.chunks = chunks;
-
+                knowledgeData = await response.json();
+                const chunks = knowledgeData.chunks || [];
+                chunks.forEach((chunk, idx) => {
+                    chunk.id = idx;
+                    chunk._text = `${chunk.titulo || ''} ${chunk.tags?.join(' ') || ''} ${chunk.conteudo || ''}`;
+                });
                 statusBadge.textContent = `✅ ${chunks.length} chunks`;
                 statusBadge.className = 'badge success';
                 document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks`;
-                document.getElementById('versionInfo').textContent = `📌 ${rawData.versao || '-'}`;
-                document.getElementById('sourceInfo').textContent = `📄 ${rawData.arquivos_origem?.join(', ') || '-'}`;
+                document.getElementById('versionInfo').textContent = `📌 ${knowledgeData.versao || '-'}`;
+                document.getElementById('sourceInfo').textContent = `📄 ${knowledgeData.arquivos_origem?.join(', ') || '-'}`;
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 return chunks;
@@ -845,12 +673,12 @@
             }
         }
 
-        // ==================== INICIALIZA MODELOS ====================
+        // ========================================================================
+        //  INICIALIZA MODELOS (BGE + Reranker)
+        // ========================================================================
         async function initModels() {
             try {
-                const { pipeline } = await import('@xenova/transformers');
-
-                // Embedder: BGE-small-en-v1.5
+                // Embedder
                 try {
                     embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', {
                         device: 'webgpu',
@@ -866,11 +694,8 @@
                     document.getElementById('modelBadge').className = 'badge turbo';
                     document.getElementById('perfInfo').textContent = '⚡ WebGPU (BGE)';
                 } catch (e) {
-                    console.warn('WebGPU falhou, tentando CPU:', e);
-                    embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', {
-                        device: 'cpu',
-                        dtype: 'fp32'
-                    });
+                    console.warn('WebGPU falhou, usando CPU para BGE:', e);
+                    embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', { device: 'cpu', dtype: 'fp32' });
                     embedderReady = true;
                     document.getElementById('modelBadge').textContent = '✅ BGE-small (CPU)';
                     document.getElementById('modelBadge').className = 'badge warning';
@@ -892,38 +717,71 @@
 
                 return true;
             } catch (err) {
-                console.error('Erro ao inicializar modelos:', err);
+                console.error('Erro ao inicializar modelos BGE:', err);
                 return false;
             }
         }
 
-        // ==================== PRÉ-COMPUTAÇÃO DE EMBEDDINGS ====================
+        // ========================================================================
+        //  PRÉ-CÁLCULO DE EMBEDDINGS DOS CHUNKS (uma única vez)
+        // ========================================================================
         async function precomputeEmbeddings(chunks) {
             if (!embedderReady || !embedder) return;
-            
-            console.log('🧠 Pré-computando embeddings de metadados para', chunks.length, 'chunks...');
+            console.log('🧠 Pré-computando embeddings para', chunks.length, 'chunks…');
             let processed = 0;
-            
             for (const chunk of chunks) {
-                if (!chunk.metadata_embedding) {
+                if (!chunk.embedding) {
                     try {
-                        const result = await embedder(chunk.metadata_text, { pooling: 'mean', normalize: true });
-                        chunk.metadata_embedding = result.data || result;
+                        const result = await embedder(chunk._text, { pooling: 'mean', normalize: true });
+                        chunk.embedding = result.data || result;
                         processed++;
-                        if (processed % 10 === 0) {
-                            console.log(`   ${processed}/${chunks.length} embeddings prontos`);
-                        }
+                        if (processed % 10 === 0) console.log(`   ${processed}/${chunks.length} embeddings prontos`);
                     } catch (e) {
                         console.warn('Erro ao gerar embedding para chunk', chunk.id, e);
                     }
                 }
             }
-            console.log(`✅ ${processed} embeddings de metadados pré-computados`);
+            console.log(`✅ ${processed} embeddings pré-computados`);
         }
 
-        // ==================== FUNÇÕES DE BUSCA ====================
+        // ========================================================================
+        //  BM25 (simples, otimizado)
+        // ========================================================================
+        function bm25Search(query, chunks, topK = 50) {
+            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+            if (queryTokens.length === 0) return chunks.slice(0, topK);
 
-        // 1. Cosine Similarity
+            const docLengths = chunks.map(c => c._text.toLowerCase().split(/\s+/));
+            const termDocs = {};
+            docLengths.forEach((tokens, idx) => {
+                const unique = new Set(tokens);
+                unique.forEach(token => {
+                    if (!termDocs[token]) termDocs[token] = new Set();
+                    termDocs[token].add(idx);
+                });
+            });
+
+            const avgDocLen = docLengths.reduce((sum, t) => sum + t.length, 0) / docLengths.length;
+            const totalDocs = docLengths.length;
+            const k1 = 1.5, b = 0.75;
+
+            return chunks.map((chunk, idx) => {
+                const tokens = docLengths[idx];
+                let score = 0;
+                queryTokens.forEach(qt => {
+                    const tf = tokens.filter(t => t === qt).length;
+                    if (tf === 0) return;
+                    const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / ((termDocs[qt]?.size || 0) + 0.5) + 1);
+                    const docLen = tokens.length;
+                    score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
+                });
+                return { ...chunk, bm25_score: score };
+            }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
+        }
+
+        // ========================================================================
+        //  COSINE SIMILARITY
+        // ========================================================================
         function cosineSimilarity(vecA, vecB) {
             if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
             let dot = 0, normA = 0, normB = 0;
@@ -936,99 +794,58 @@
             return dot / (Math.sqrt(normA) * Math.sqrt(normB));
         }
 
-        // 2. BM25 em METADADOS
-        function metadataBM25Search(query, chunks, topK = 20) {
-            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-            if (queryTokens.length === 0) return chunks.slice(0, topK);
-
-            const docLengths = chunks.map(c => c.metadata_text.toLowerCase().split(/\s+/));
-            const termDocs = {};
-            
-            docLengths.forEach((tokens, idx) => {
-                const unique = new Set(tokens);
-                unique.forEach(token => {
-                    if (!termDocs[token]) termDocs[token] = new Set();
-                    termDocs[token].add(idx);
-                });
-            });
-
-            const avgDocLen = docLengths.reduce((sum, t) => sum + t.length, 0) / docLengths.length;
-            const totalDocs = docLengths.length;
-            const k1 = 1.5;
-            const b = 0.75;
-
-            return chunks.map((chunk, idx) => {
-                const tokens = docLengths[idx];
-                let score = 0;
-                queryTokens.forEach(qt => {
-                    const tf = tokens.filter(t => t === qt).length;
-                    if (tf === 0) return;
-                    const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / 
-                                       ((termDocs[qt]?.size || 0) + 0.5) + 1);
-                    const docLen = tokens.length;
-                    score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
-                });
-                return { ...chunk, bm25_score: score };
-            }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
-        }
-
-        // 3. Busca Híbrida em METADADOS
-        async function hybridMetadataSearch(query, chunks, topK = 20) {
-            const bm25Results = metadataBM25Search(query, chunks, topK * 2);
-            
-            if (!embedderReady || !embedder) {
-                return bm25Results.slice(0, topK);
-            }
-
+        // ========================================================================
+        //  BUSCA HÍBRIDA (BM25 + Embedding)
+        // ========================================================================
+        async function hybridSearch(query, chunks, topK = 20) {
             let queryVec;
             if (embeddingCache.has(query)) {
                 queryVec = embeddingCache.get(query);
                 cacheHits++;
-            } else {
+            } else if (embedderReady && embedder) {
                 const result = await embedder(query, { pooling: 'mean', normalize: true });
                 queryVec = result.data || result;
                 embeddingCache.set(query, queryVec);
                 cacheMisses++;
             }
 
+            const bm25Results = bm25Search(query, chunks, topK * 3);  // 50
+
+            if (!queryVec || !embedderReady) {
+                return bm25Results.slice(0, topK);
+            }
+
             const withEmbedding = bm25Results.map(chunk => {
-                if (chunk.metadata_embedding) {
-                    const similarity = cosineSimilarity(queryVec, chunk.metadata_embedding);
-                    return { ...chunk, similarity };
+                if (chunk.embedding) {
+                    const sim = cosineSimilarity(queryVec, chunk.embedding);
+                    return { ...chunk, similarity: sim };
                 }
                 return { ...chunk, similarity: 0 };
             });
 
-            return withEmbedding
-                .map(chunk => ({
-                    ...chunk,
-                    hybrid_score: 0.2 * (chunk.bm25_score || 0) + 0.8 * (chunk.similarity || 0)
-                }))
-                .sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0))
-                .slice(0, topK);
+            return withEmbedding.map(chunk => ({
+                ...chunk,
+                hybrid_score: 0.3 * (chunk.bm25_score || 0) + 0.7 * (chunk.similarity || 0)
+            })).sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0)).slice(0, topK);
         }
 
-        // 4. Reranker
-        async function rerankChunks(query, chunks, topK = 8) {
+        // ========================================================================
+        //  RERANKER (top 5)
+        // ========================================================================
+        async function rerankChunks(query, chunks, topK = 5) {
             if (!rerankerReady || !reranker || chunks.length === 0) {
                 return chunks.slice(0, topK);
             }
-
             try {
                 const pairs = chunks.map(chunk => ({
                     query,
-                    text: `${chunk.titulo || ''} ${chunk.conteudo_completo || ''}`.slice(0, 1000),
+                    text: `${chunk.titulo || ''} ${chunk.conteudo || ''}`.slice(0, 1000),
                     chunk
                 }));
-
                 const results = await Promise.all(pairs.map(async (pair) => {
                     const result = await reranker(pair.query, pair.text);
-                    return {
-                        ...pair.chunk,
-                        rerank_score: result.score || 0
-                    };
+                    return { ...pair.chunk, rerank_score: result.score || 0 };
                 }));
-
                 return results.sort((a, b) => (b.rerank_score || 0) - (a.rerank_score || 0)).slice(0, topK);
             } catch (e) {
                 console.warn('Reranker falhou:', e);
@@ -1036,149 +853,103 @@
             }
         }
 
-        // 5. Extração de sentenças relevantes
-        function extractRelevantSentences(query, chunks, maxSentences = 15) {
-            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
-            const allSentences = [];
-            
-            chunks.forEach(chunk => {
-                const sentences = chunk.sentencas_chave || [];
-                
-                sentences.forEach(sentence => {
-                    const lower = sentence.toLowerCase();
-                    let score = 0;
-                    
-                    // Pontua por termos da query
-                    queryTokens.forEach(token => {
-                        if (lower.includes(token)) score += 2;
-                    });
-                    
-                    // Pontua por termos técnicos
-                    const techTerms = ['vantagem', 'desvantagem', 'benefício', 'limitação', 
-                                      'eficiência', 'resolução', 'seletividade', 'pressão', 
-                                      'temperatura', 'partícula', 'coluna', 'capilar',
-                                      'compar', 'diferença', 'mecanismo', 'efeito'];
-                    techTerms.forEach(term => {
-                        if (lower.includes(term)) score += 1;
-                    });
-                    
-                    allSentences.push({ 
-                        sentence, 
-                        score, 
-                        source: chunk.titulo || 'Fonte',
-                        chunk_id: chunk.id
-                    });
+        // ========================================================================
+        //  WEBLLM - INICIALIZAÇÃO
+        // ========================================================================
+        async function initLLM() {
+            try {
+                const modelId = 'Qwen3-4B-Instruct-q4f16_1-MLC';  // ou 'SmolLM3-4B-Instruct-q4f16_1-MLC'
+                // const modelId = 'SmolLM3-4B-Instruct-q4f16_1-MLC';
+                console.log('🤖 Carregando WebLLM:', modelId);
+                document.getElementById('modelBadge').textContent = `⏳ ${modelId}`;
+                document.getElementById('modelBadge').className = 'badge warning';
+
+                const engine = new webllm.MLCEngine();
+                await engine.reload(modelId, {
+                    device: 'webgpu',
+                    model_cache: 'browser',
                 });
-            });
-            
-            return allSentences
-                .sort((a, b) => b.score - a.score)
-                .slice(0, maxSentences);
+                llmEngine = engine;
+                llmReady = true;
+                document.getElementById('modelBadge').textContent = `✅ ${modelId}`;
+                document.getElementById('modelBadge').className = 'badge brain';
+                console.log('✅ WebLLM carregado');
+                return true;
+            } catch (err) {
+                console.error('Erro ao carregar WebLLM:', err);
+                document.getElementById('modelBadge').textContent = '❌ LLM falhou';
+                document.getElementById('modelBadge').className = 'badge warning';
+                return false;
+            }
         }
 
-        // 6. Síntese de resposta
-        function synthesizeFromSentences(query, sentences, intent) {
-            if (sentences.length === 0) {
-                return 'Não encontrei informações específicas sobre essa pergunta.';
+        // ========================================================================
+        //  GERAR RESPOSTA COM STREAMING (WebLLM)
+        // ========================================================================
+        async function generateWithLLM(query, chunks, onToken) {
+            if (!llmReady || !llmEngine) {
+                throw new Error('LLM não está disponível');
             }
 
-            const grouped = {
-                advantages: [],
-                disadvantages: [],
-                comparisons: [],
-                mechanisms: [],
-                definitions: [],
-                general: []
-            };
+            // Monta o contexto com os chunks (top 5)
+            const context = chunks.map((chunk, i) =>
+                `[${i+1}] ${chunk.conteudo || ''}`
+            ).join('\n\n');
 
-            sentences.forEach(item => {
-                const lower = item.sentence.toLowerCase();
-                if (lower.includes('vantagem') || lower.includes('benefício')) {
-                    grouped.advantages.push(item.sentence);
-                } else if (lower.includes('desvantagem') || lower.includes('limitação')) {
-                    grouped.disadvantages.push(item.sentence);
-                } else if (lower.includes('compar') || lower.includes('diferença')) {
-                    grouped.comparisons.push(item.sentence);
-                } else if (lower.includes('mecanismo') || lower.includes('efeito') || lower.includes('influência')) {
-                    grouped.mechanisms.push(item.sentence);
-                } else if (lower.includes('o que é') || lower.includes('definição') || lower.includes('conceito')) {
-                    grouped.definitions.push(item.sentence);
-                } else {
-                    grouped.general.push(item.sentence);
-                }
+            // System prompt
+            const systemPrompt = `Você é um especialista em cromatografia. Responda somente com base no contexto fornecido. Se a informação não estiver presente, diga que ela não foi encontrada na base.`;
+
+            // Mensagens: histórico (últimas 3 interações) + pergunta atual com contexto
+            const messages = [
+                { role: 'system', content: systemPrompt },
+                ...history,
+                { role: 'user', content: `CONTEXTO:\n${context}\n\nPERGUNTA:\n${query}` }
+            ];
+
+            // Verifica cache de resposta
+            const cacheKey = JSON.stringify(messages);
+            if (queryCache.has(cacheKey)) {
+                const cached = queryCache.get(cacheKey);
+                onToken(cached);  // entrega de uma vez
+                return cached;
+            }
+
+            // Chama WebLLM com streaming
+            const reply = await llmEngine.chat.completions.create({
+                messages,
+                stream: true,
+                max_tokens: 1024,
+                temperature: 0.2,
             });
 
-            let response = '';
-            
-            switch(intent) {
-                case 'advantages':
-                    response = grouped.advantages.slice(0, 4).join('\n• ');
-                    if (response) response = '**Principais vantagens:**\n• ' + response;
-                    break;
-                case 'disadvantages':
-                    response = grouped.disadvantages.slice(0, 4).join('\n• ');
-                    if (response) response = '**Limitações e desvantagens:**\n• ' + response;
-                    break;
-                case 'comparison':
-                    response = grouped.comparisons.slice(0, 4).join('\n• ');
-                    if (response) response = '**Comparações:**\n• ' + response;
-                    break;
-                case 'mechanism':
-                    response = grouped.mechanisms.slice(0, 4).join('\n• ');
-                    if (response) response = '**Mecanismos e efeitos:**\n• ' + response;
-                    break;
-                case 'definition':
-                    response = grouped.definitions.slice(0, 3).join('\n• ');
-                    if (response) response = '**Definição e conceitos:**\n• ' + response;
-                    break;
-                default:
-                    const allPoints = [
-                        ...grouped.definitions.slice(0, 2),
-                        ...grouped.advantages.slice(0, 2),
-                        ...grouped.mechanisms.slice(0, 2),
-                        ...grouped.general.slice(0, 3)
-                    ];
-                    response = allPoints.join('\n• ');
-                    if (response) response = '**Informações principais:**\n• ' + response;
-            }
-
-            if (!response || response === '**Informações principais:**\n• ') {
-                response = sentences.slice(0, 4).map(s => `• ${s.sentence}`).join('\n');
-                if (!response) {
-                    response = 'Não encontrei informações específicas sobre essa pergunta.';
+            let fullText = '';
+            for await (const chunk of reply) {
+                const delta = chunk.choices[0]?.delta?.content || '';
+                if (delta) {
+                    fullText += delta;
+                    onToken(delta);
                 }
             }
 
-            return response;
+            // Guarda no cache
+            queryCache.set(cacheKey, fullText);
+            return fullText;
         }
 
-        // 7. Geração de resposta otimizada
-        async function generateResponseOptimized(query, relevantSentences, intent) {
-            const synthesis = synthesizeFromSentences(query, relevantSentences, intent);
-            
-            const sources = [...new Set(relevantSentences.map(s => s.source))];
-            
-            return {
-                response: synthesis,
-                sources: sources.slice(0, 5),
-                sentences_count: relevantSentences.length
-            };
-        }
-
-        // ==================== UI ====================
+        // ========================================================================
+        //  FUNÇÕES DE UI
+        // ========================================================================
         function addMessage(sender, content, isHTML = false) {
             const div = document.createElement('div');
             div.className = `message ${sender}`;
-            if (isHTML) {
-                div.innerHTML = content;
-            } else {
-                div.textContent = content;
-            }
+            if (isHTML) div.innerHTML = content;
+            else div.textContent = content;
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
+            return div;
         }
 
-        function showTyping(text = '🧠 processando...') {
+        function showTyping(text = '🧠 processando…') {
             const div = document.createElement('div');
             div.className = 'typing';
             div.id = 'typingIndicator';
@@ -1197,58 +968,86 @@
             if (el) el.remove();
         }
 
-        function formatPipelineSteps(steps, performance) {
+        function formatPipelineSteps(steps, totalTime) {
             let html = `<div class="pipeline-steps">
                 <div style="font-weight:600; color:#1a3a6a; margin-bottom:6px; font-size:0.8rem;">
-                    🚀 Pipeline NotebookLM-Style v2.0 ${performance ? `(⚡ ${Math.round(performance.total)}ms)` : ''}:
+                    🚀 Pipeline ${totalTime ? `(⚡ ${totalTime}ms)` : ''}:
                 </div>`;
             for (const step of steps) {
                 html += `<div class="step">
                     <span class="emoji">${step.emoji}</span>
                     <span class="text">${step.text}</span>
                     ${step.badge ? `<span class="badge-step">${step.badge}</span>` : ''}
+                    ${step.time ? `<span class="badge-step" style="background:#6aafff20;">${step.time}ms</span>` : ''}
                 </div>`;
             }
             html += `</div>`;
             return html;
         }
 
-        function getSuggestions(query) {
-            const q = query.toLowerCase();
-            const suggestions = [];
+        function formatBotMessage(query, steps, totalTime, sources) {
+            let html = `<div class="msg-header">
+                <span class="avatar">🧠</span>
+                <span class="name">ChromatoBuddy</span>
+                <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
+                    ⚡ ${totalTime}ms · 📚 ${sources.length} chunks
+                </span>
+            </div>`;
 
-            if (q.includes('temperatura')) {
-                suggestions.push('Como a temperatura afeta a seletividade?');
-                suggestions.push('Qual a relação entre temperatura e pressão?');
-                suggestions.push('Vantagens da programação de temperatura');
-            }
-            if (q.includes('pressão')) {
-                suggestions.push('Como a pressão influencia a separação?');
-                suggestions.push('Diferença entre HPLC e UHPLC em pressão');
-                suggestions.push('Limitações da alta pressão');
-            }
-            if (q.includes('coluna') || q.includes('capilar')) {
-                suggestions.push('Vantagens das colunas capilares');
-                suggestions.push('Como escolher uma coluna?');
-                suggestions.push('Comparação entre colunas analíticas e preparativas');
-            }
-            if (q.includes('vantagem') || q.includes('benefício')) {
-                suggestions.push('Desvantagens da cromatografia capilar');
-                suggestions.push('Comparação entre LC e GC');
-                suggestions.push('Aplicações da cromatografia líquida');
+            html += formatPipelineSteps(steps, totalTime);
+
+            html += `<div class="answer-box" id="answerBox">
+                <h4>🤖 Resposta</h4>
+                <div id="streamingText" style="white-space:pre-wrap;"></div>
+            </div>`;
+
+            if (sources.length > 0) {
+                html += `<div class="sources-box">
+                    📖 <strong>Fontes:</strong><br>
+                    ${sources.map(s => `• ${s}`).join('<br>')}
+                </div>`;
             }
 
-            if (suggestions.length === 0) {
-                suggestions.push('Quais as vantagens da cromatografia capilar?');
-                suggestions.push('Como a temperatura afeta a separação?');
-                suggestions.push('Diferença entre HPLC e UHPLC?');
-                suggestions.push('Como escolher entre coluna capilar e convencional?');
-            }
+            html += `<div class="meta">
+                <span class="confidence-high">✅ ${sources.length} chunks relevantes</span>
+                <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
+                <span>🧠 BGE + Reranker</span>
+                <span>🤖 Qwen3 4B</span>
+            </div>`;
 
-            return suggestions.slice(0, 4);
+            // Sugestões
+            const suggestions = getSuggestions(query);
+            html += `<div class="suggestions">
+                <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
+                ${suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
+            </div>`;
+
+            return html;
         }
 
-        // ==================== HANDLE QUERY OTIMIZADO ====================
+        function getSuggestions(query) {
+            const q = query.toLowerCase();
+            const base = [
+                'Quais as vantagens da cromatografia capilar?',
+                'Como a temperatura afeta a separação?',
+                'Diferença entre HPLC e UHPLC?',
+                'Como escolher entre coluna capilar e convencional?'
+            ];
+            if (q.includes('temperatura')) {
+                return ['Como a temperatura afeta a seletividade?', 'Qual a relação entre temperatura e pressão?', 'Vantagens da programação de temperatura'];
+            }
+            if (q.includes('pressão')) {
+                return ['Como a pressão influencia a separação?', 'Diferença entre HPLC e UHPLC em pressão', 'Limitações da alta pressão'];
+            }
+            if (q.includes('coluna') || q.includes('capilar')) {
+                return ['Vantagens das colunas capilares', 'Como escolher uma coluna?', 'Comparação entre colunas analíticas e preparativas'];
+            }
+            return base.slice(0, 4);
+        }
+
+        // ========================================================================
+        //  HANDLE QUERY PRINCIPAL
+        // ========================================================================
         async function handleUserQuery() {
             if (sendBtn.disabled) return;
             const query = userInput.value.trim();
@@ -1259,92 +1058,103 @@
 
             addMessage('user', query);
             userInput.value = '';
+            userInput.style.height = 'auto';
 
             const startTime = performance.now();
             const steps = [];
+            const perf = {};
 
             try {
-                // 1. Classificação
+                // 1. Intent
+                perf.intent = performance.now();
                 const intent = classifyIntent(query);
-                steps.push({ emoji: '🎯', text: `Intenção: ${intent}`, badge: 'classificador' });
+                steps.push({ emoji: '🎯', text: `Intenção: ${intent}`, badge: 'classificador', time: Math.round(performance.now() - perf.intent) });
 
                 // 2. Expansão
-                const expanded = expandQuery(query, intent);
+                perf.expand = performance.now();
+                const expanded = expandQuery(query);
                 if (expanded !== query) {
-                    steps.push({ emoji: '📚', text: `Query expandida`, badge: 'expansão' });
+                    steps.push({ emoji: '📚', text: `Query expandida: "${expanded.substring(0, 60)}…"`, badge: 'expansão', time: Math.round(performance.now() - perf.expand) });
                 }
 
-                // 3. Busca híbrida em METADADOS
-                showTyping('🔍 Buscando em metadados...');
+                // 3. Busca híbrida
+                perf.search = performance.now();
+                showTyping('🔍 BM25 + BGE…');
                 const chunks = knowledgeData?.chunks || [];
-                const results = await hybridMetadataSearch(expanded, chunks, 15);
-                steps.push({ emoji: '📊', text: `${results.length} chunks via metadados`, badge: 'busca híbrida' });
+                const hybridResults = await hybridSearch(expanded, chunks, 20);  // top 20
+                steps.push({ emoji: '📊', text: `${hybridResults.length} chunks recuperados`, badge: 'busca híbrida', time: Math.round(performance.now() - perf.search) });
 
-                // 4. Rerank
-                let rerankedResults = results;
+                // 4. Reranker (top 5)
+                let rerankedResults = hybridResults;
                 if (rerankerReady) {
-                    showTyping('🧠 Rerankando...');
-                    rerankedResults = await rerankChunks(expanded, results, 8);
-                    steps.push({ emoji: '🎯', text: `${rerankedResults.length} selecionados`, badge: 'reranking' });
+                    perf.rerank = performance.now();
+                    showTyping('🎯 Rerank…');
+                    rerankedResults = await rerankChunks(expanded, hybridResults, 5);
+                    steps.push({ emoji: '🎯', text: `${rerankedResults.length} chunks selecionados`, badge: 'reranking', time: Math.round(performance.now() - perf.rerank) });
                 }
 
-                // 5. Extração de sentenças
-                showTyping('📝 Extraindo sentenças...');
-                const relevantSentences = extractRelevantSentences(expanded, rerankedResults, 12);
-                steps.push({ emoji: '📝', text: `${relevantSentences.length} sentenças`, badge: 'extração' });
+                // 5. LLM (streaming)
+                perf.llm = performance.now();
+                showTyping('🤖 Gerando resposta com Qwen3…');
 
-                // 6. Geração
-                showTyping('🧠 Sintetizando...');
-                const result = await generateResponseOptimized(expanded, relevantSentences, intent);
-                steps.push({ emoji: '✅', text: `Resposta gerada`, badge: 'síntese' });
+                // Cria a mensagem do bot (inicialmente sem texto)
+                const botMsgDiv = document.createElement('div');
+                botMsgDiv.className = 'message bot';
+                const sources = rerankedResults.map(c => c.titulo || 'Fonte').filter(Boolean);
+                const htmlPrelim = formatBotMessage(query, steps, 0, sources);
+                botMsgDiv.innerHTML = htmlPrelim;
+                chatContainer.appendChild(botMsgDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
 
-                removeTyping();
+                const streamingTextDiv = botMsgDiv.querySelector('#streamingText');
+                let fullText = '';
 
+                // Função de callback para cada token
+                const onToken = (token) => {
+                    fullText += token;
+                    streamingTextDiv.textContent = fullText;
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                };
+
+                // Gera com streaming
+                await generateWithLLM(expanded, rerankedResults, onToken);
+
+                // Atualiza o tempo final
                 const totalTime = Math.round(performance.now() - startTime);
-                
-                let html = `<div class="msg-header">
-                    <span class="avatar">🧠</span>
-                    <span class="name">ChromatoBuddy Pro v2.0</span>
-                    <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
-                        ⚡ ${totalTime}ms · 🧠 ${result.sources?.length || 0} fontes
-                    </span>
-                </div>`;
-
-                html += formatPipelineSteps(steps, { total: totalTime });
-
-                html += `<div class="answer-box">
-                    <h4>📊 Resposta <span style="font-size:0.7rem; font-weight:400; color:#8899b0;">
-                        (intenção: ${intent})</span></h4>
-                    <p>${result.response.replace(/\n/g, '<br>')}</p>
-                </div>`;
-
-                if (result.sources && result.sources.length > 0) {
-                    html += `<div class="sources-box">
-                        📖 <strong>Fontes:</strong><br>
-                        ${result.sources.map(s => `• ${s}`).join('<br>')}
-                    </div>`;
+                const timeSpan = botMsgDiv.querySelector('.msg-header span:last-child');
+                if (timeSpan) {
+                    timeSpan.textContent = `⚡ ${totalTime}ms · 📚 ${rerankedResults.length} chunks`;
                 }
 
-                html += `<div class="meta">
-                    <span class="confidence-high">✅ ${result.sentences_count || 0} sentenças</span>
-                    <span>🎯 Busca em metadados</span>
-                    <span>📓 NotebookLM v2.0</span>
-                </div>`;
+                // Atualiza os passos com os tempos reais (já foram preenchidos)
+                // Mas o tempo total não está nos passos, vamos substituir o pipeline steps com o tempo total
+                const pipelineDiv = botMsgDiv.querySelector('.pipeline-steps');
+                if (pipelineDiv) {
+                    // Reconstroi com totalTime
+                    const stepsHtml = formatPipelineSteps(steps, totalTime);
+                    pipelineDiv.outerHTML = stepsHtml;
+                }
 
-                const suggestions = getSuggestions(query);
-                html += `<div class="suggestions">
-                    <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
-                    ${suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
-                </div>`;
+                // Atualiza cache info
+                document.getElementById('cacheInfo').textContent = `💾 cache: ${cacheHits} hits / ${cacheMisses + cacheHits} total`;
 
-                addMessage('bot', html, true);
-
-                document.querySelectorAll('.suggestion-btn').forEach(btn => {
+                // Adiciona evento aos botões de sugestão
+                botMsgDiv.querySelectorAll('.suggestion-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         userInput.value = btn.dataset.query;
                         handleUserQuery();
                     });
                 });
+
+                // Atualiza histórico (adiciona esta interação)
+                history.push({ role: 'user', content: query });
+                history.push({ role: 'assistant', content: fullText });
+                // Mantém apenas as últimas 3 interações (6 mensagens)
+                while (history.length > 6) {
+                    history.shift();
+                }
+
+                removeTyping();
 
             } catch (err) {
                 removeTyping();
@@ -1357,7 +1167,9 @@
             userInput.focus();
         }
 
-        // ==================== EVENTOS ====================
+        // ========================================================================
+        //  EVENTOS
+        // ========================================================================
         sendBtn.addEventListener('click', handleUserQuery);
 
         userInput.addEventListener('keydown', (e) => {
@@ -1379,30 +1191,28 @@
             }
         });
 
-        // ==================== INICIALIZAÇÃO ====================
+        // ========================================================================
+        //  INICIALIZAÇÃO
+        // ========================================================================
         async function init() {
             const chunks = await loadKnowledgeBase();
-            
+            await initModels();
             if (chunks.length > 0) {
-                await initModels();
                 await precomputeEmbeddings(chunks);
-            } else {
-                await initModels();
             }
-            
-            const status = embedderReady ? '✅' : '⚠️';
-            document.getElementById('modelBadge').textContent = `${status} BGE + Reranker v2.0`;
-            
-            if (!userInput.disabled) {
-                userInput.focus();
-            }
+            // Inicializa WebLLM (pode demorar, mas fazemos depois dos modelos leves)
+            await initLLM();
 
-            console.log('🚀 ChromatoBuddy Pro v2.0 inicializado!');
-            console.log(`📚 ${chunks.length} chunks processados`);
-            console.log(`🧠 Embedders: ${embedderReady ? '✅' : '❌'}`);
+            // Atualiza status final
+            const status = embedderReady ? '✅' : '⚠️';
+            document.getElementById('modelBadge').textContent = `${status} BGE + Reranker + Qwen3`;
+            if (!userInput.disabled) userInput.focus();
+
+            console.log('🚀 ChromatoBuddy NotebookLM Local iniciado!');
+            console.log(`📚 ${chunks.length} chunks`);
+            console.log(`🧠 BGE: ${embedderReady ? '✅' : '❌'}`);
             console.log(`🎯 Reranker: ${rerankerReady ? '✅' : '❌'}`);
-            console.log(`💾 Cache: ${embeddingCache.size} embeddings`);
-            console.log('🎯 Nova arquitetura: Busca em METADADOS + Extração de sentenças');
+            console.log(`🤖 WebLLM: ${llmReady ? '✅' : '❌'}`);
         }
 
         init();
