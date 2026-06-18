@@ -1084,6 +1084,34 @@ async function hybridSearch(query, queryNorm, chunks, domain, topK = 8) {
   })).sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0)).slice(0, topK);
 }
 
+// ============================================================
+//  NOVA FUNÇÃO: REORDENAÇÃO POR TERMO MAIS LONGO DA LISTA
+// ============================================================
+function reorderByLongestMatch(results, queryNorm) {
+  // 1. Encontra quais termos da COMMON_WORDS_NORM estão presentes na consulta
+  const matchingTerms = COMMON_WORDS_NORM.filter(term => queryNorm.includes(term));
+  if (matchingTerms.length === 0) return results; // nada a fazer
+
+  // 2. Para cada resultado, calcula o comprimento do maior termo que aparece no título
+  const withScore = results.map(chunk => {
+    const titleNorm = chunk.titulo_norm || '';
+    let longest = 0;
+    for (const term of matchingTerms) {
+      if (titleNorm.includes(term)) {
+        const len = term.length; // comprimento da string (inclui espaços, se houver)
+        if (len > longest) longest = len;
+      }
+    }
+    return { ...chunk, _longestMatch: longest };
+  });
+
+  // 3. Ordena decrescente pelo comprimento do termo encontrado
+  withScore.sort((a, b) => b._longestMatch - a._longestMatch);
+
+  // 4. Remove a propriedade auxiliar
+  return withScore.map(({ _longestMatch, ...chunk }) => chunk);
+}
+
 // ---------- SÍNTESE DA RESPOSTA ----------
 function synthesizeResponse(query, chunks) {
   if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
@@ -1241,7 +1269,10 @@ async function handleUserQuery() {
     showTyping(`🧠 buscando com BM25 + BGE (${filteredCount} chunks filtrados)…`);
 
     // 6. BUSCA HÍBRIDA (passa pergunta original para embedding, normalizada para BM25)
-    const results = await hybridSearch(query, queryNorm, filtered, domain, 8);
+    let results = await hybridSearch(query, queryNorm, filtered, domain, 8);
+
+    // 7. REORDENAÇÃO POR TERMO MAIS LONGO DA LISTA COMMON_WORDS_NORM
+    results = reorderByLongestMatch(results, queryNorm);
 
     removeTyping();
 
