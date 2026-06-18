@@ -530,7 +530,7 @@
     <!-- ===== FILTROS ===== -->
     <div class="filters-bar">
       <div class="filter-group">
-        <input type="checkbox" id="filterTags" />
+        <input type="checkbox" id="filterTags" checked />
         <label for="filterTags">🏷️ Tags</label>
       </div>
       <div class="filter-group">
@@ -538,7 +538,7 @@
         <label for="filterTitles">📌 Títulos</label>
       </div>
       <div class="filter-group">
-        <input type="checkbox" id="filterContent" />
+        <input type="checkbox" id="filterContent" checked />
         <label for="filterContent">📄 Conteúdo</label>
       </div>
       <div class="priority-info" id="priorityDisplay">
@@ -564,6 +564,7 @@
           <span class="feature-item turbo">⚡ BM25 + BGE</span>
           <span class="feature-item brain">🧠 Embeddings sob demanda</span>
           <span class="feature-item">📚 100% local</span>
+          <span class="feature-item">🔍 Filtro AND por palavras‑chave</span>
         </div>
         <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
           💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
@@ -636,7 +637,34 @@ const FILTER_WEIGHTS = {
   content: 1
 };
 
-// Referências DOM
+// ---------- BANCO DE DADOS DE PALAVRAS COMUNS (PORTUGUÊS) ----------
+const COMMON_WORDS = [
+  // Técnicas
+  'cromatografia', 'cromatográfico', 'cromatográfica', 'lc', 'hplc', 'uhplc',
+  'cromatografia líquida', 'cromatografia gasosa', 'cg', 'clae', 'cl',
+  'separação', 'separar', 'resolução', 'resolucao', 'eficiência', 'eficiencia',
+  'pratos teóricos', 'hetp', 'fase estacionária', 'fase estacionaria',
+  'fase móvel', 'fase movel', 'coluna', 'colunas', 'empacotamento',
+  'partícula', 'particula', 'partículas', 'particulas', 'sílica', 'silica',
+  'pressão', 'pressao', 'pressões', 'pressoes', 'bar', 'psi', 'backpressure',
+  'fluxo', 'vazão', 'vazao', 'vazões', 'vazoes', 'temperatura', 'térmico',
+  'termico', 'calor', 'aquecimento', 'viscosidade', 'fluidez',
+  'gradiente', 'isocrático', 'isocratico', 'eluição', 'eluicao',
+  'detecção', 'detecao', 'uv', 'vis', 'ms', 'espectrometria de massas',
+  'lc-ms', 'lcms', 'espectrofotômetro', 'espectrofotometro',
+  'injeção', 'injecao', 'amostra', 'amostragem', 'padrão', 'padrao',
+  'retenção', 'retention', 'tempo de retenção', 'fator de retenção',
+  'seletividade', 'selectivity', 'fator de separação', 'alfa', 'α',
+  'capilar', 'capilares', 'capillary', 'clc', 'nano-lc', 'micro-lc',
+  'vantagem', 'vantagens', 'benefício', 'beneficios', 'beneficio',
+  'desvantagem', 'desvantagens', 'limitação', 'limitacao', 'limitações',
+  'problema', 'desafio', 'otimização', 'otimizacao', 'parametros',
+  'parâmetros', 'condições', 'condicoes', 'solvente', 'solventes',
+  'eluente', 'eluentes', 'filtração', 'filtracao', 'membrana',
+  'pré-coluna', 'pre-coluna', 'guard', 'proteção', 'protecao'
+];
+
+// ---------- REFERÊNCIAS DOM ----------
 const chatContainer = document.getElementById('chatContainer');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
@@ -665,10 +693,8 @@ function updatePriorityDisplay() {
   if (chkTitles.checked) active.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
   if (chkContent.checked) active.push({ label: 'Conteúdo', peso: FILTER_WEIGHTS.content });
 
-  // Ordena por peso decrescente
   active.sort((a, b) => b.peso - a.peso);
 
-  // Atualiza os badges
   const badges = [p1, p2, p3];
   badges.forEach((el, i) => {
     if (i < active.length) {
@@ -845,6 +871,22 @@ function expandQuery(query) {
   return expanded;
 }
 
+// ---------- FILTRO PRÉVIO POR PALAVRAS‑CHAVE (AGORA COM AND) ----------
+function filterChunksByCommonWords(query, chunks) {
+  const words = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+  const commonSet = new Set(COMMON_WORDS.map(w => w.toLowerCase()));
+  const foundWords = words.filter(w => commonSet.has(w));
+  if (foundWords.length === 0) {
+    return chunks; // sem filtro, mantém todos
+  }
+  // AGORA EXIGE QUE TODAS AS PALAVRAS ESTEJAM PRESENTES (E / AND)
+  return chunks.filter(chunk => {
+    const title = (chunk.titulo || '').toLowerCase();
+    const content = (chunk.conteudo || '').toLowerCase();
+    return foundWords.every(w => title.includes(w) || content.includes(w));
+  });
+}
+
 // ---------- FUNÇÕES DE BUSCA (BM25 + BGE) ----------
 
 function bm25Search(query, chunks, topK = 15) {
@@ -934,7 +976,6 @@ async function hybridSearch(query, chunks, topK = 8) {
 // ---------- SÍNTESE DA RESPOSTA (SEM TÍTULOS NO INÍCIO) ----------
 function synthesizeResponse(query, chunks) {
   if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
-  // Retorna apenas os itens numerados com o conteúdo
   let response = chunks.map((c, i) => {
     const content = c.conteudo || '';
     return `**${i + 1}.** ${content}`;
@@ -1028,7 +1069,6 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
     <p>${response.replace(/\n/g, '<br>')}</p>
   </div>`;
 
-  // Fontes com links clicáveis
   const sources = chunks.filter(c => c.titulo);
   if (sources.length) {
     html += `<div class="sources-box">
@@ -1065,10 +1105,17 @@ async function handleUserQuery() {
 
   try {
     const expanded = expandQuery(query);
-    showTyping('🔍 buscando…');
+    showTyping('🔍 filtrando por palavras‑chave (AND)…');
 
     const chunks = knowledgeData?.chunks || [];
-    const results = await hybridSearch(expanded, chunks, 8);
+
+    // === FILTRO PRÉVIO POR PALAVRAS COMUNS (AGORA AND) ===
+    const filteredByCommon = filterChunksByCommonWords(expanded, chunks);
+    const filteredCount = filteredByCommon.length;
+
+    showTyping('🧠 buscando com BM25 + BGE…');
+
+    const results = await hybridSearch(expanded, filteredByCommon, 8);
 
     removeTyping();
 
@@ -1084,7 +1131,7 @@ async function handleUserQuery() {
     const html = formatResponse(query, results, totalTime, cacheInfo, activeFilters);
     addMessage('bot', html, true);
 
-    // Adiciona event listeners para os links de fontes
+    // Event listeners para fontes
     document.querySelectorAll('.source-link').forEach(el => {
       el.addEventListener('click', (e) => {
         const chunkId = parseInt(el.dataset.chunkId);
@@ -1093,7 +1140,8 @@ async function handleUserQuery() {
       });
     });
 
-    document.getElementById('chunkInfo').textContent = `📚 ${results.length} chunks relevantes`;
+    document.getElementById('chunkInfo').textContent =
+      `📚 ${results.length} chunks (${filteredCount} após filtro AND)`;
   } catch (err) {
     removeTyping();
     console.error(err);
@@ -1136,7 +1184,7 @@ async function init() {
     if (!userInput.disabled) userInput.focus();
   });
   updatePriorityDisplay();
-  console.log(`🚀 ChromatoBuddy Pro (filtros) iniciado com ${chunks.length} chunks`);
+  console.log(`🚀 ChromatoBuddy Pro (filtros + palavras‑chave AND) iniciado com ${chunks.length} chunks`);
 }
 
 init();
