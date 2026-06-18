@@ -53,13 +53,15 @@
       color: white;
       font-weight: 700;
       letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header h1 img {
+      height: 1.8rem;
+      vertical-align: middle;
     }
     .header h1 span { color: #6aafff; }
-    .header .subtitle {
-      color: rgba(255,255,255,0.5);
-      font-size: 0.75rem;
-      font-weight: 300;
-    }
     .badge-group {
       display: flex;
       gap: 6px;
@@ -242,6 +244,15 @@
       font-size: 0.82rem;
       border-left: 3px solid #6aafff;
     }
+    .sources-box .source-link {
+      color: #1a3a6a;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .sources-box .source-link:hover {
+      color: #6aafff;
+    }
     .meta {
       font-size: 0.7rem;
       color: #8899b0;
@@ -252,31 +263,6 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 6px;
-    }
-    .suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid #eef2f8;
-    }
-    .suggestion-btn {
-      background: #f0f4fc;
-      border: 1px solid #dde4f0;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      color: #1a3a6a;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    .suggestion-btn:hover {
-      background: #1a3a6a;
-      color: white;
-      border-color: #1a3a6a;
-      transform: translateY(-1px);
     }
     .typing {
       align-self: flex-start;
@@ -394,6 +380,73 @@
       gap: 4px;
     }
 
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 24px;
+      max-width: 700px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 28px 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: fadeSlide 0.25s ease;
+    }
+    .modal-content h2 {
+      color: #1a3a6a;
+      margin-bottom: 16px;
+      font-size: 1.4rem;
+      border-bottom: 2px solid #e8edf5;
+      padding-bottom: 10px;
+    }
+    .modal-content .field {
+      margin-bottom: 12px;
+    }
+    .modal-content .field .label {
+      font-weight: 600;
+      color: #4a5a7a;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .modal-content .field .value {
+      background: #f8faff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border-left: 3px solid #6aafff;
+      margin-top: 2px;
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .modal-close {
+      background: #e8edf5;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-weight: 600;
+      color: #1a3a6a;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: background 0.2s;
+    }
+    .modal-close:hover {
+      background: #d5ddee;
+    }
+
     /* ===== ANIMAÇÃO ===== */
     @keyframes fadeSlide {
       from { opacity: 0; transform: translateY(10px); }
@@ -437,6 +490,7 @@
       .footer { padding: 6px 16px 10px; font-size: 0.6rem; }
       .filters-bar { gap: 10px; flex-direction: column; align-items: flex-start; }
       .filters-bar .priority-info { margin-left: 0; width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+      .modal-content { padding: 20px; }
     }
   </style>
 </head>
@@ -447,8 +501,10 @@
   <div class="header">
     <div class="header-top">
       <div class="header-left">
-        <h1>🧠 Chromato<span>Buddy</span></h1>
-        <span class="subtitle">Filtros Inteligentes</span>
+        <h1>
+          <img src="img.png" alt="ChromatoBuddy">
+          <span>Chromato</span>Buddy
+        </h1>
       </div>
       <div class="badge-group">
         <span class="badge notebook">📓 NotebookLM</span>
@@ -468,7 +524,7 @@
     <!-- ===== FILTROS ===== -->
     <div class="filters-bar">
       <div class="filter-group">
-        <input type="checkbox" id="filterTags" checked />
+        <input type="checkbox" id="filterTags" />
         <label for="filterTags">🏷️ Tags</label>
       </div>
       <div class="filter-group">
@@ -476,7 +532,7 @@
         <label for="filterTitles">📌 Títulos</label>
       </div>
       <div class="filter-group">
-        <input type="checkbox" id="filterContent" checked />
+        <input type="checkbox" id="filterContent" />
         <label for="filterContent">📄 Conteúdo</label>
       </div>
       <div class="priority-info" id="priorityDisplay">
@@ -490,7 +546,7 @@
   <div class="chat-container" id="chatContainer">
     <div class="message bot">
       <div class="msg-header">
-        <span class="avatar">🧠</span>
+        <span class="avatar"><img src="img.png" alt="ChromatoBuddy" style="width:24px; height:24px; border-radius:50%;"></span>
         <span class="name">ChromatoBuddy Pro</span>
       </div>
       <div class="welcome-box">
@@ -532,6 +588,15 @@
       <span id="perfInfo">⚡ GPU: -</span>
     </div>
     <span>🔒 Local · 📓 NotebookLM · ⚡ BGE</span>
+  </div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-content" id="modalContent">
+    <h2 id="modalTitle">Detalhes do Chunk</h2>
+    <div id="modalFields"></div>
+    <button class="modal-close" id="modalClose">Fechar</button>
   </div>
 </div>
 
@@ -580,6 +645,13 @@ const p1 = document.getElementById('p1');
 const p2 = document.getElementById('p2');
 const p3 = document.getElementById('p3');
 
+// Modal
+const modalOverlay = document.getElementById('modalOverlay');
+const modalContent = document.getElementById('modalContent');
+const modalTitle = document.getElementById('modalTitle');
+const modalFields = document.getElementById('modalFields');
+const modalClose = document.getElementById('modalClose');
+
 // ---------- ATUALIZA DISPLAY DE PRIORIDADE ----------
 function updatePriorityDisplay() {
   const active = [];
@@ -607,7 +679,6 @@ function buildChunkText(chunk) {
   const parts = [];
   if (chkTags.checked && chunk.tags && Array.isArray(chunk.tags)) {
     const tagStr = chunk.tags.join(' ');
-    // Repete conforme peso
     for (let i = 0; i < FILTER_WEIGHTS.tags; i++) parts.push(tagStr);
   }
   if (chkTitles.checked && chunk.titulo) {
@@ -635,7 +706,6 @@ async function loadKnowledgeBase() {
     const chunks = knowledgeData.chunks || [];
     chunks.forEach((chunk, idx) => {
       chunk.id = idx;
-      // Pré‑calcula o texto base (sem repetições) para usar como fallback
       chunk._baseText = `${chunk.titulo || ''} ${(chunk.tags || []).join(' ')} ${chunk.conteudo || ''}`;
     });
     fill.style.width = '15%';
@@ -775,7 +845,6 @@ function bm25Search(query, chunks, topK = 15) {
   const tokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
   if (tokens.length === 0) return chunks.slice(0, topK);
 
-  // Prepara textos dinâmicos com base nos filtros
   const docTexts = chunks.map(c => buildChunkText(c) || c._baseText);
   const docTokens = docTexts.map(t => t.toLowerCase().split(/\s+/));
 
@@ -819,14 +888,12 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 async function hybridSearch(query, chunks, topK = 8) {
-  // BM25 primeiro (15)
   const bm25Results = bm25Search(query, chunks, 15);
 
   if (!embedderReady || !embedder) {
     return bm25Results.slice(0, topK);
   }
 
-  // Query embedding (cache)
   let queryVec;
   if (embeddingCache.has(query)) {
     queryVec = embeddingCache.get(query);
@@ -838,7 +905,6 @@ async function hybridSearch(query, chunks, topK = 8) {
     cacheMisses++;
   }
 
-  // Embeddings sob demanda para os 15 chunks (usando o texto dinâmico)
   const withEmbedding = await Promise.all(bm25Results.map(async (chunk) => {
     const text = buildChunkText(chunk) || chunk._baseText;
     if (!chunk.embedding) {
@@ -900,11 +966,50 @@ function removeTyping() {
   if (el) el.remove();
 }
 
+// ---------- MODAL ----------
+function openModal(chunk) {
+  modalTitle.textContent = `📄 ${chunk.titulo || 'Chunk sem título'}`;
+  modalFields.innerHTML = '';
+
+  const fields = [
+    { label: 'ID', value: chunk.id },
+    { label: 'Título', value: chunk.titulo },
+    { label: 'Tags', value: chunk.tags?.join(', ') || '-' },
+    { label: 'Conteúdo', value: chunk.conteudo || '-' },
+    { label: 'Autores', value: chunk.autores?.join(', ') || '-' },
+    { label: 'Referências', value: chunk.referencias?.join('\n') || '-' },
+    { label: 'Arquivo de origem', value: chunk.origem || '-' },
+    { label: 'Data', value: chunk.data || '-' }
+  ];
+
+  fields.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'field';
+    div.innerHTML = `
+      <div class="label">${f.label}</div>
+      <div class="value">${f.value}</div>
+    `;
+    modalFields.appendChild(div);
+  });
+
+  modalOverlay.classList.add('active');
+}
+
+function closeModal() {
+  modalOverlay.classList.remove('active');
+}
+
+modalClose.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
+
+// ---------- FORMATA RESPOSTA (sem sugestões) ----------
 function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
   const response = synthesizeResponse(query, chunks);
 
   let html = `<div class="msg-header">
-    <span class="avatar">🧠</span>
+    <span class="avatar"><img src="img.png" alt="ChromatoBuddy" style="width:24px; height:24px; border-radius:50%;"></span>
     <span class="name">ChromatoBuddy Pro</span>
     <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
       ⚡ ${time}ms · 🧠 ${chunks.length} chunks
@@ -912,7 +1017,6 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
     </span>
   </div>`;
 
-  // Mostra quais filtros foram usados
   const filterNames = activeFilters.map(f => `${f.label}(${f.peso})`).join(' + ');
   html += `<div style="font-size:0.7rem; color:#6aafff; margin-bottom:8px;">🔍 Filtros: ${filterNames}</div>`;
 
@@ -921,11 +1025,14 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
     <p>${response.replace(/\n/g, '<br>')}</p>
   </div>`;
 
-  const sources = chunks.map(c => c.titulo).filter(Boolean);
+  // Fontes com links clicáveis
+  const sources = chunks.filter(c => c.titulo);
   if (sources.length) {
     html += `<div class="sources-box">
       📖 <strong>Fontes:</strong><br>
-      ${sources.map(s => `• ${s}`).join('<br>')}
+      ${sources.map((c, idx) => {
+        return `<span class="source-link" data-chunk-id="${c.id}">• ${c.titulo}</span>`;
+      }).join('<br>')}
     </div>`;
   }
 
@@ -936,42 +1043,7 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
     <span>📓 NotebookLM</span>
   </div>`;
 
-  const suggestions = getSuggestions(query);
-  html += `<div class="suggestions">
-    <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
-    ${suggestions.map(s => `<button class="suggestion-btn" data-query="${s}">${s}</button>`).join('')}
-  </div>`;
-
   return html;
-}
-
-function getSuggestions(query) {
-  const q = query.toLowerCase();
-  const list = [];
-  if (q.includes('temperatura')) {
-    list.push('Como a temperatura afeta a seletividade?');
-    list.push('Qual a relação entre temperatura e pressão?');
-  }
-  if (q.includes('pressão')) {
-    list.push('Como a pressão influencia a separação?');
-    list.push('Diferença entre HPLC e UHPLC em pressão');
-  }
-  if (q.includes('coluna') || q.includes('capilar')) {
-    list.push('Vantagens das colunas capilares');
-    list.push('Como escolher uma coluna?');
-  }
-  if (q.includes('vantagem') || q.includes('benefício')) {
-    list.push('Desvantagens da cromatografia capilar');
-    list.push('Comparação entre LC e GC');
-  }
-  if (list.length === 0) {
-    list.push(
-      'Quais as vantagens da cromatografia capilar?',
-      'Como a temperatura afeta a separação?',
-      'Diferença entre HPLC e UHPLC?'
-    );
-  }
-  return list.slice(0, 4);
 }
 
 // ---------- HANDLE QUERY ----------
@@ -1001,7 +1073,6 @@ async function handleUserQuery() {
     const cacheInfo = `cache: ${cacheHits} hits / ${cacheMisses + cacheHits} total`;
     document.getElementById('cacheInfo').textContent = `💾 ${cacheInfo}`;
 
-    // Coleta filtros ativos para exibir
     const activeFilters = [];
     if (chkTags.checked) activeFilters.push({ label: 'Tags', peso: FILTER_WEIGHTS.tags });
     if (chkTitles.checked) activeFilters.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
@@ -1010,10 +1081,12 @@ async function handleUserQuery() {
     const html = formatResponse(query, results, totalTime, cacheInfo, activeFilters);
     addMessage('bot', html, true);
 
-    document.querySelectorAll('.suggestion-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        userInput.value = btn.dataset.query;
-        handleUserQuery();
+    // Adiciona event listeners para os links de fontes
+    document.querySelectorAll('.source-link').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const chunkId = parseInt(el.dataset.chunkId);
+        const chunk = knowledgeData?.chunks?.find(c => c.id === chunkId);
+        if (chunk) openModal(chunk);
       });
     });
 
@@ -1048,25 +1121,18 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Atualiza prioridade quando checkboxes mudam
 [chkTags, chkTitles, chkContent].forEach(chk => {
   chk.addEventListener('change', updatePriorityDisplay);
 });
 
 // ---------- INICIALIZAÇÃO ----------
 async function init() {
-  // Carrega JSON
   const chunks = await loadKnowledgeBase();
-
-  // Inicia BGE em background
   initBGE().then(() => {
     console.log('🧠 BGE pronto');
     if (!userInput.disabled) userInput.focus();
   });
-
-  // Atualiza display de prioridade
   updatePriorityDisplay();
-
   console.log(`🚀 ChromatoBuddy Pro (filtros) iniciado com ${chunks.length} chunks`);
 }
 
