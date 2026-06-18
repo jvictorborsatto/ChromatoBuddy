@@ -264,6 +264,10 @@
             color: #27ae60;
             font-weight: 600;
         }
+        .confidence-low {
+            color: #e74c3c;
+            font-weight: 600;
+        }
 
         .suggestions {
             display: flex;
@@ -561,15 +565,28 @@
         // WebLLM
         let llmEngine = null;
         let llmReady = false;
+        let llmLoading = false;   // para não disparar múltiplos carregamentos
 
-        // Cache
-        const queryCache = new Map();          // query -> resposta (streaming guardamos o texto completo)
-        const embeddingCache = new Map();      // query -> vetor
+        // BM25 indexado (pré-calculado)
+        let bm25Index = null;
+
+        // Cache (LRU)
+        const MAX_CACHE = 100;
+        const embeddingCache = new Map();   // query -> vetor
+        const responseCache = new Map();    // query -> resposta (para respostas completas)
         let cacheHits = 0;
         let cacheMisses = 0;
+        // LRU simples: ordem de inserção
+        function lruSet(map, key, value) {
+            if (map.size >= MAX_CACHE) {
+                const firstKey = map.keys().next().value;
+                map.delete(firstKey);
+            }
+            map.set(key, value);
+        }
 
         // Histórico (últimas 3 interações)
-        const history = [];  // array de { role: 'user'|'assistant', content: string }
+        const history = [];
 
         // Elementos UI
         const chatContainer = document.getElementById('chatContainer');
@@ -600,20 +617,6 @@
             'retenção': ['retention', 'tempo de retenção', 'fator de retenção', 'k\'', 'fator de capacidade'],
             'seletividade': ['selectivity', 'fator de separação', 'alfa', 'α']
         };
-
-        // ========================================================================
-        //  INTENT CLASSIFIER (simples)
-        // ========================================================================
-        function classifyIntent(query) {
-            const q = query.toLowerCase();
-            if (q.includes('vs') || q.includes('versus') || q.includes('compar') || q.includes('diferença') || q.includes('melhor')) return 'comparison';
-            if (q.includes('como') && (q.includes('funciona') || q.includes('afeta') || q.includes('impacta') || q.includes('influencia') || q.includes('mecanismo') || q.includes('efeito'))) return 'mechanism';
-            if (q.includes('vantagem') || q.includes('benefício') || q.includes('por que usar') || q.includes('vantagens')) return 'advantages';
-            if (q.includes('desvantagem') || q.includes('limitação') || q.includes('problema') || q.includes('desafio')) return 'disadvantages';
-            if (q.includes('o que é') || q.includes('definição') || q.includes('conceito') || q.includes('significa')) return 'definition';
-            if (q.includes('como escolher') || q.includes('selecionar') || q.includes('qual escolher')) return 'selection';
-            return 'general';
-        }
 
         // ========================================================================
         //  QUERY EXPANSION (sinônimos)
@@ -659,6 +662,7 @@
                 document.getElementById('chunkInfo').textContent = `📚 ${chunks.length} chunks`;
                 document.getElementById('versionInfo').textContent = `📌 ${knowledgeData.versao || '-'}`;
                 document.getElementById('sourceInfo').textContent = `📄 ${knowledgeData.arquivos_origem?.join(', ') || '-'}`;
+                // Libera UI
                 userInput.disabled = false;
                 sendBtn.disabled = false;
                 return chunks;
@@ -671,6 +675,46 @@
                 sendBtn.disabled = false;
                 return [];
             }
+        }
+
+        // ========================================================================
+        //  BM25 INDEX (pré-calculado)
+        // ========================================================================
+        function buildBM25Index(chunks) {
+            if (!chunks || chunks.length === 0) return null;
+            const docLengths = chunks.map(c => c._text.toLowerCase().split(/\s+/).filter(w => w.length > 2));
+            const termDocs = {};
+            docLengths.forEach((tokens, idx) => {
+                const unique = new Set(tokens);
+                unique.forEach(token => {
+                    if (!termDocs[token]) termDocs[token] = new Set();
+                    termDocs[token].add(idx);
+                });
+            });
+            const avgDocLen = docLengths.reduce((sum, t) => sum + t.length, 0) / docLengths.length;
+            const totalDocs = docLengths.length;
+            return { docLengths, termDocs, avgDocLen, totalDocs };
+        }
+
+        function bm25Search(query, index, chunks, topK = 30) {
+            if (!index) return chunks.slice(0, topK);
+            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+            if (queryTokens.length === 0) return chunks.slice(0, topK);
+            const { docLengths, termDocs, avgDocLen, totalDocs } = index;
+            const k1 = 1.5, b = 0.75;
+
+            return chunks.map((chunk, idx) => {
+                const tokens = docLengths[idx];
+                let score = 0;
+                queryTokens.forEach(qt => {
+                    const tf = tokens.filter(t => t === qt).length;
+                    if (tf === 0) return;
+                    const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / ((termDocs[qt]?.size || 0) + 0.5) + 1);
+                    const docLen = tokens.length;
+                    score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
+                });
+                return { ...chunk, bm25_score: score };
+            }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
         }
 
         // ========================================================================
@@ -726,7 +770,7 @@
         //  PRÉ-CÁLCULO DE EMBEDDINGS DOS CHUNKS (uma única vez)
         // ========================================================================
         async function precomputeEmbeddings(chunks) {
-            if (!embedderReady || !embedder) return;
+            if (!embedderReady || !embedder || !chunks.length) return;
             console.log('🧠 Pré-computando embeddings para', chunks.length, 'chunks…');
             let processed = 0;
             for (const chunk of chunks) {
@@ -745,41 +789,6 @@
         }
 
         // ========================================================================
-        //  BM25 (simples, otimizado)
-        // ========================================================================
-        function bm25Search(query, chunks, topK = 50) {
-            const queryTokens = query.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-            if (queryTokens.length === 0) return chunks.slice(0, topK);
-
-            const docLengths = chunks.map(c => c._text.toLowerCase().split(/\s+/));
-            const termDocs = {};
-            docLengths.forEach((tokens, idx) => {
-                const unique = new Set(tokens);
-                unique.forEach(token => {
-                    if (!termDocs[token]) termDocs[token] = new Set();
-                    termDocs[token].add(idx);
-                });
-            });
-
-            const avgDocLen = docLengths.reduce((sum, t) => sum + t.length, 0) / docLengths.length;
-            const totalDocs = docLengths.length;
-            const k1 = 1.5, b = 0.75;
-
-            return chunks.map((chunk, idx) => {
-                const tokens = docLengths[idx];
-                let score = 0;
-                queryTokens.forEach(qt => {
-                    const tf = tokens.filter(t => t === qt).length;
-                    if (tf === 0) return;
-                    const idf = Math.log((totalDocs - (termDocs[qt]?.size || 0) + 0.5) / ((termDocs[qt]?.size || 0) + 0.5) + 1);
-                    const docLen = tokens.length;
-                    score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
-                });
-                return { ...chunk, bm25_score: score };
-            }).sort((a, b) => (b.bm25_score || 0) - (a.bm25_score || 0)).slice(0, topK);
-        }
-
-        // ========================================================================
         //  COSINE SIMILARITY
         // ========================================================================
         function cosineSimilarity(vecA, vecB) {
@@ -795,9 +804,9 @@
         }
 
         // ========================================================================
-        //  BUSCA HÍBRIDA (BM25 + Embedding)
+        //  BUSCA HÍBRIDA (BM25 + Embedding) - com limites ajustados
         // ========================================================================
-        async function hybridSearch(query, chunks, topK = 20) {
+        async function hybridSearch(query, chunks, topK = 10) {
             let queryVec;
             if (embeddingCache.has(query)) {
                 queryVec = embeddingCache.get(query);
@@ -805,11 +814,11 @@
             } else if (embedderReady && embedder) {
                 const result = await embedder(query, { pooling: 'mean', normalize: true });
                 queryVec = result.data || result;
-                embeddingCache.set(query, queryVec);
+                lruSet(embeddingCache, query, queryVec);
                 cacheMisses++;
             }
 
-            const bm25Results = bm25Search(query, chunks, topK * 3);  // 50
+            const bm25Results = bm25Search(query, bm25Index, chunks, 30); // top 30
 
             if (!queryVec || !embedderReady) {
                 return bm25Results.slice(0, topK);
@@ -830,23 +839,32 @@
         }
 
         // ========================================================================
-        //  RERANKER (top 5)
+        //  RERANKER (top 5) - com paralelismo limitado
         // ========================================================================
         async function rerankChunks(query, chunks, topK = 5) {
             if (!rerankerReady || !reranker || chunks.length === 0) {
                 return chunks.slice(0, topK);
             }
             try {
-                const pairs = chunks.map(chunk => ({
+                // Limita a 10 para rerank
+                const candidates = chunks.slice(0, 10);
+                const pairs = candidates.map(chunk => ({
                     query,
                     text: `${chunk.titulo || ''} ${chunk.conteudo || ''}`.slice(0, 1000),
                     chunk
                 }));
+                // Executa em paralelo, mas com limite de 10 (não 20)
                 const results = await Promise.all(pairs.map(async (pair) => {
                     const result = await reranker(pair.query, pair.text);
                     return { ...pair.chunk, rerank_score: result.score || 0 };
                 }));
-                return results.sort((a, b) => (b.rerank_score || 0) - (a.rerank_score || 0)).slice(0, topK);
+                const sorted = results.sort((a, b) => (b.rerank_score || 0) - (a.rerank_score || 0));
+                // Verifica se o melhor score é baixo
+                if (sorted.length > 0 && sorted[0].rerank_score < 0.2) {
+                    // Retorna vazio para indicar baixa confiança
+                    return [];
+                }
+                return sorted.slice(0, topK);
             } catch (e) {
                 console.warn('Reranker falhou:', e);
                 return chunks.slice(0, topK);
@@ -854,12 +872,16 @@
         }
 
         // ========================================================================
-        //  WEBLLM - INICIALIZAÇÃO
+        //  WEBLLM - INICIALIZAÇÃO (em background)
         // ========================================================================
         async function initLLM() {
+            if (llmLoading || llmReady) return;
+            llmLoading = true;
             try {
-                const modelId = 'Qwen3-4B-Instruct-q4f16_1-MLC';  // ou 'SmolLM3-4B-Instruct-q4f16_1-MLC'
-                // const modelId = 'SmolLM3-4B-Instruct-q4f16_1-MLC';
+                // Usar modelo mais leve: SmolLM3 4B (menor que Qwen3)
+                // Pode ser trocado para 'Qwen3-4B-Instruct-q4f16_1-MLC' se preferir
+                const modelId = 'SmolLM3-4B-Instruct-q4f16_1-MLC';
+                // const modelId = 'Qwen3-4B-Instruct-q4f16_1-MLC';
                 console.log('🤖 Carregando WebLLM:', modelId);
                 document.getElementById('modelBadge').textContent = `⏳ ${modelId}`;
                 document.getElementById('modelBadge').className = 'badge warning';
@@ -874,32 +896,35 @@
                 document.getElementById('modelBadge').textContent = `✅ ${modelId}`;
                 document.getElementById('modelBadge').className = 'badge brain';
                 console.log('✅ WebLLM carregado');
-                return true;
             } catch (err) {
                 console.error('Erro ao carregar WebLLM:', err);
                 document.getElementById('modelBadge').textContent = '❌ LLM falhou';
                 document.getElementById('modelBadge').className = 'badge warning';
-                return false;
+            } finally {
+                llmLoading = false;
             }
         }
 
         // ========================================================================
-        //  GERAR RESPOSTA COM STREAMING (WebLLM)
+        //  GERAR RESPOSTA COM STREAMING (WebLLM) com truncamento
         // ========================================================================
         async function generateWithLLM(query, chunks, onToken) {
             if (!llmReady || !llmEngine) {
                 throw new Error('LLM não está disponível');
             }
 
-            // Monta o contexto com os chunks (top 5)
-            const context = chunks.map((chunk, i) =>
-                `[${i+1}] ${chunk.conteudo || ''}`
+            // Trunca cada chunk para ~800 caracteres
+            const truncatedChunks = chunks.map(chunk => {
+                const content = chunk.conteudo || '';
+                return content.length > 800 ? content.slice(0, 800) + '…' : content;
+            });
+
+            const context = truncatedChunks.map((text, i) =>
+                `[${i+1}] ${text}`
             ).join('\n\n');
 
-            // System prompt
             const systemPrompt = `Você é um especialista em cromatografia. Responda somente com base no contexto fornecido. Se a informação não estiver presente, diga que ela não foi encontrada na base.`;
 
-            // Mensagens: histórico (últimas 3 interações) + pergunta atual com contexto
             const messages = [
                 { role: 'system', content: systemPrompt },
                 ...history,
@@ -908,9 +933,9 @@
 
             // Verifica cache de resposta
             const cacheKey = JSON.stringify(messages);
-            if (queryCache.has(cacheKey)) {
-                const cached = queryCache.get(cacheKey);
-                onToken(cached);  // entrega de uma vez
+            if (responseCache.has(cacheKey)) {
+                const cached = responseCache.get(cacheKey);
+                onToken(cached);
                 return cached;
             }
 
@@ -931,8 +956,8 @@
                 }
             }
 
-            // Guarda no cache
-            queryCache.set(cacheKey, fullText);
+            // Guarda no cache LRU
+            lruSet(responseCache, cacheKey, fullText);
             return fullText;
         }
 
@@ -985,7 +1010,7 @@
             return html;
         }
 
-        function formatBotMessage(query, steps, totalTime, sources) {
+        function formatBotMessage(query, steps, totalTime, sources, confidenceOk) {
             let html = `<div class="msg-header">
                 <span class="avatar">🧠</span>
                 <span class="name">ChromatoBuddy</span>
@@ -1001,6 +1026,12 @@
                 <div id="streamingText" style="white-space:pre-wrap;"></div>
             </div>`;
 
+            if (!confidenceOk) {
+                html += `<div style="color:#e74c3c; font-size:0.9rem; margin-top:6px;">
+                    ⚠️ Não encontrei informações relevantes na base para essa pergunta.
+                </div>`;
+            }
+
             if (sources.length > 0) {
                 html += `<div class="sources-box">
                     📖 <strong>Fontes:</strong><br>
@@ -1009,7 +1040,7 @@
             }
 
             html += `<div class="meta">
-                <span class="confidence-high">✅ ${sources.length} chunks relevantes</span>
+                <span class="${confidenceOk ? 'confidence-high' : 'confidence-low'}">${confidenceOk ? '✅ Confiável' : '⚠️ Baixa confiança'}</span>
                 <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
                 <span>🧠 BGE + Reranker</span>
                 <span>🤖 Qwen3 4B</span>
@@ -1065,35 +1096,37 @@
             const perf = {};
 
             try {
-                // 1. Intent
-                perf.intent = performance.now();
-                const intent = classifyIntent(query);
-                steps.push({ emoji: '🎯', text: `Intenção: ${intent}`, badge: 'classificador', time: Math.round(performance.now() - perf.intent) });
-
-                // 2. Expansão
+                // 1. Expansão (sem intent classifier)
                 perf.expand = performance.now();
                 const expanded = expandQuery(query);
                 if (expanded !== query) {
                     steps.push({ emoji: '📚', text: `Query expandida: "${expanded.substring(0, 60)}…"`, badge: 'expansão', time: Math.round(performance.now() - perf.expand) });
                 }
 
-                // 3. Busca híbrida
+                // 2. Busca híbrida (BM25 + embedding) - top 10
                 perf.search = performance.now();
                 showTyping('🔍 BM25 + BGE…');
                 const chunks = knowledgeData?.chunks || [];
-                const hybridResults = await hybridSearch(expanded, chunks, 20);  // top 20
+                const hybridResults = await hybridSearch(expanded, chunks, 10);
                 steps.push({ emoji: '📊', text: `${hybridResults.length} chunks recuperados`, badge: 'busca híbrida', time: Math.round(performance.now() - perf.search) });
 
-                // 4. Reranker (top 5)
+                // 3. Reranker (top 5)
                 let rerankedResults = hybridResults;
+                let confidenceOk = true;
                 if (rerankerReady) {
                     perf.rerank = performance.now();
                     showTyping('🎯 Rerank…');
                     rerankedResults = await rerankChunks(expanded, hybridResults, 5);
                     steps.push({ emoji: '🎯', text: `${rerankedResults.length} chunks selecionados`, badge: 'reranking', time: Math.round(performance.now() - perf.rerank) });
+                    // Se rerankedResults vier vazio, baixa confiança
+                    if (rerankedResults.length === 0) {
+                        confidenceOk = false;
+                        // Usa os primeiros 5 do hybrid para tentar, mas com aviso
+                        rerankedResults = hybridResults.slice(0, 5);
+                    }
                 }
 
-                // 5. LLM (streaming)
+                // 4. LLM (streaming)
                 perf.llm = performance.now();
                 showTyping('🤖 Gerando resposta com Qwen3…');
 
@@ -1101,7 +1134,7 @@
                 const botMsgDiv = document.createElement('div');
                 botMsgDiv.className = 'message bot';
                 const sources = rerankedResults.map(c => c.titulo || 'Fonte').filter(Boolean);
-                const htmlPrelim = formatBotMessage(query, steps, 0, sources);
+                const htmlPrelim = formatBotMessage(query, steps, 0, sources, confidenceOk);
                 botMsgDiv.innerHTML = htmlPrelim;
                 chatContainer.appendChild(botMsgDiv);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -1109,15 +1142,20 @@
                 const streamingTextDiv = botMsgDiv.querySelector('#streamingText');
                 let fullText = '';
 
-                // Função de callback para cada token
                 const onToken = (token) => {
                     fullText += token;
                     streamingTextDiv.textContent = fullText;
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 };
 
-                // Gera com streaming
-                await generateWithLLM(expanded, rerankedResults, onToken);
+                // Se não houver chunks ou baixa confiança, gerar resposta padrão
+                if (!confidenceOk || rerankedResults.length === 0) {
+                    const fallbackMsg = 'Não encontrei informações relevantes na base para essa pergunta. Por favor, reformule ou pergunte sobre outro tópico.';
+                    onToken(fallbackMsg);
+                    fullText = fallbackMsg;
+                } else {
+                    await generateWithLLM(expanded, rerankedResults, onToken);
+                }
 
                 // Atualiza o tempo final
                 const totalTime = Math.round(performance.now() - startTime);
@@ -1126,11 +1164,9 @@
                     timeSpan.textContent = `⚡ ${totalTime}ms · 📚 ${rerankedResults.length} chunks`;
                 }
 
-                // Atualiza os passos com os tempos reais (já foram preenchidos)
-                // Mas o tempo total não está nos passos, vamos substituir o pipeline steps com o tempo total
+                // Atualiza os passos com o tempo total
                 const pipelineDiv = botMsgDiv.querySelector('.pipeline-steps');
                 if (pipelineDiv) {
-                    // Reconstroi com totalTime
                     const stepsHtml = formatPipelineSteps(steps, totalTime);
                     pipelineDiv.outerHTML = stepsHtml;
                 }
@@ -1149,7 +1185,6 @@
                 // Atualiza histórico (adiciona esta interação)
                 history.push({ role: 'user', content: query });
                 history.push({ role: 'assistant', content: fullText });
-                // Mantém apenas as últimas 3 interações (6 mensagens)
                 while (history.length > 6) {
                     history.shift();
                 }
@@ -1192,27 +1227,39 @@
         });
 
         // ========================================================================
-        //  INICIALIZAÇÃO
+        //  INICIALIZAÇÃO (assíncrona, libera UI cedo)
         // ========================================================================
         async function init() {
+            // 1. Carrega JSON (essencial)
             const chunks = await loadKnowledgeBase();
-            await initModels();
-            if (chunks.length > 0) {
-                await precomputeEmbeddings(chunks);
-            }
-            // Inicializa WebLLM (pode demorar, mas fazemos depois dos modelos leves)
-            await initLLM();
 
-            // Atualiza status final
-            const status = embedderReady ? '✅' : '⚠️';
-            document.getElementById('modelBadge').textContent = `${status} BGE + Reranker + Qwen3`;
+            // 2. Constrói índice BM25 (rápido)
+            if (chunks.length > 0) {
+                bm25Index = buildBM25Index(chunks);
+            }
+
+            // 3. Inicia modelos BGE e pré-computa embeddings (em background)
+            //    mas não bloqueia a UI
+            (async () => {
+                await initModels();
+                if (chunks.length > 0) {
+                    await precomputeEmbeddings(chunks);
+                }
+                // Atualiza status final
+                const status = embedderReady ? '✅' : '⚠️';
+                document.getElementById('modelBadge').textContent = `${status} BGE + Reranker + Qwen3`;
+            })();
+
+            // 4. Inicia WebLLM em background
+            (async () => {
+                await initLLM();
+            })();
+
+            // 5. UI já está liberada (se JSON carregou)
             if (!userInput.disabled) userInput.focus();
 
-            console.log('🚀 ChromatoBuddy NotebookLM Local iniciado!');
+            console.log('🚀 ChromatoBuddy NotebookLM Local iniciado (carregando modelos em background)');
             console.log(`📚 ${chunks.length} chunks`);
-            console.log(`🧠 BGE: ${embedderReady ? '✅' : '❌'}`);
-            console.log(`🎯 Reranker: ${rerankerReady ? '✅' : '❌'}`);
-            console.log(`🤖 WebLLM: ${llmReady ? '✅' : '❌'}`);
         }
 
         init();
