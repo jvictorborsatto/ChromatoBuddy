@@ -605,6 +605,20 @@
 //  CHROMATOBUDDY PRO – DOMAIN‑LOCK + ONTOLOGIA LEVE
 // ============================================================
 
+// ---------- NORMALIZAÇÃO (remove pontuação, acentos opcional, minúsculas, espaços extras) ----------
+function normalizeText(text) {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    // Remove acentos (opcional, mas recomendado)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    // Substitui pontuação por espaço
+    .replace(/[^\w\s]/g, ' ')
+    // Colapsa múltiplos espaços
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 // ---------- ESTADO ----------
 let knowledgeData = null;
 let embedder = null;
@@ -621,66 +635,47 @@ const FILTER_WEIGHTS = {
   content: 1
 };
 
-// ---------- BANCO DE PALAVRAS COMUNS ----------
-const COMMON_WORDS = [
-  'cromatografia', 'cromatográfico', 'cromatográfica', 'lc', 'hplc', 'uhplc',
-  'cromatografia líquida', 'cromatografia gasosa', 'cg', 'clae', 'cl',
-  'separação', 'separar', 'resolução', 'resolucao', 'eficiência', 'eficiencia',
-  'pratos teóricos', 'hetp', 'fase estacionária', 'fase estacionaria',
-  'fase móvel', 'fase movel', 'coluna', 'colunas', 'empacotamento',
-  'partícula', 'particula', 'partículas', 'particulas', 'sílica', 'silica',
-  'pressão', 'pressao', 'pressões', 'pressoes', 'bar', 'psi', 'backpressure',
-  'fluxo', 'vazão', 'vazao', 'vazões', 'vazoes', 'temperatura', 'térmico',
-  'termico', 'calor', 'aquecimento', 'viscosidade', 'fluidez',
-  'gradiente', 'isocrático', 'isocratico', 'eluição', 'eluicao',
-  'detecção', 'detecao', 'uv', 'vis', 'ms', 'espectrometria de massas',
-  'lc-ms', 'lcms', 'espectrofotômetro', 'espectrofotometro',
-  'injeção', 'injecao', 'amostra', 'amostragem', 'padrão', 'padrao',
-  'retenção', 'retention', 'tempo de retenção', 'fator de retenção',
-  'seletividade', 'selectivity', 'fator de separação', 'alfa', 'α',
-  'capilar', 'capilares', 'capillary', 'clc', 'nano-lc', 'micro-lc',
-  'vantagem', 'vantagens', 'benefício', 'beneficios', 'beneficio',
-  'desvantagem', 'desvantagens', 'limitação', 'limitacao', 'limitações',
-  'problema', 'desafio', 'otimização', 'otimizacao', 'parametros',
-  'parâmetros', 'condições', 'condicoes', 'solvente', 'solventes',
-  'eluente', 'eluentes', 'filtração', 'filtracao', 'membrana',
-  'pré-coluna', 'pre-coluna', 'guard', 'proteção', 'protecao'
+// ---------- BANCO DE PALAVRAS COMUNS (já normalizadas) ----------
+const COMMON_WORDS_NORM = [
+  'cromatografia', 'cromatografico', 'cromatografica', 'lc', 'hplc', 'uhplc',
+  'cromatografia liquida', 'cromatografia gasosa', 'cg', 'clae', 'cl',
+  'separacao', 'separar', 'resolucao', 'eficiencia',
+  'pratos teoricos', 'hetp', 'fase estacionaria',
+  'fase movel', 'coluna', 'colunas', 'empacotamento',
+  'particula', 'particulas', 'silica',
+  'pressao', 'pressoes', 'bar', 'psi', 'backpressure',
+  'fluxo', 'vazao', 'vazoes', 'temperatura', 'termico',
+  'calor', 'aquecimento', 'viscosidade', 'fluidez',
+  'gradiente', 'isocratico', 'eluicao',
+  'detecao', 'uv', 'vis', 'ms', 'espectrometria de massas',
+  'lcms', 'espectrofotometro',
+  'injecao', 'amostra', 'amostragem', 'padrao',
+  'retencao', 'tempo de retencao', 'fator de retencao',
+  'seletividade', 'fator de separacao', 'alfa',
+  'capilar', 'capilares', 'capillary', 'clc', 'nano lc', 'micro lc',
+  'vantagem', 'vantagens', 'beneficio', 'beneficios',
+  'desvantagem', 'desvantagens', 'limitacao', 'limitacoes',
+  'problema', 'desafio', 'otimizacao', 'parametros',
+  'condicoes', 'solvente', 'solventes',
+  'eluente', 'eluentes', 'filtracao', 'membrana',
+  'pre coluna', 'guard', 'protecao'
 ];
 
-// ---------- DOMÍNIOS (ontologia leve) ----------
+// ---------- DOMÍNIOS (ontologia leve) com normalização ----------
 const DOMAINS = {
   GC: {
-    keywords: ['gasosa', 'cg', 'gas chromatography', 'cromatografia gasosa'],
-    synonyms: ['cromatografia gasosa', 'cg', 'gas chromatography']
+    keywords: ['gasosa', 'cg', 'gas chromatography', 'cromatografia gasosa'].map(normalizeText),
+    synonyms: ['cromatografia gasosa', 'cg', 'gas chromatography'].map(normalizeText)
   },
   LC: {
-    keywords: ['líquida', 'lc', 'hplc', 'uhplc', 'cromatografia líquida', 'liquida'],
-    synonyms: ['cromatografia líquida', 'lc', 'hplc', 'uhplc', 'liquid chromatography']
+    keywords: ['líquida', 'lc', 'hplc', 'uhplc', 'cromatografia líquida', 'liquida'].map(normalizeText),
+    synonyms: ['cromatografia líquida', 'lc', 'hplc', 'uhplc', 'liquid chromatography'].map(normalizeText)
   },
   GENERAL: {
-    keywords: ['cromatografia', 'chromatography'],
-    synonyms: ['cromatografia', 'chromatography']
+    keywords: ['cromatografia', 'chromatography'].map(normalizeText),
+    synonyms: ['cromatografia', 'chromatography'].map(normalizeText)
   }
 };
-
-// ---------- NORMALIZAÇÃO (remove pontuação, minúsculas, espaços extras) ----------
-function normalizeText(text) {
-  if (!text) return '';
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s]/g, ' ')   // substitui pontuação por espaço
-    .replace(/\s+/g, ' ')       // colapsa múltiplos espaços
-    .trim();
-}
-
-// Pré-normalizar keywords dos domínios para uso em detectDomain
-const NORMALIZED_DOMAINS = {};
-for (const [key, val] of Object.entries(DOMAINS)) {
-  NORMALIZED_DOMAINS[key] = {
-    keywords: val.keywords.map(k => normalizeText(k)),
-    synonyms: val.synonyms.map(s => normalizeText(s))
-  };
-}
 
 // ---------- REFERÊNCIAS DOM ----------
 const chatContainer = document.getElementById('chatContainer');
@@ -722,7 +717,7 @@ const SYNONYM_MAP_RAW = {
   'seletividade': ['selectivity','fator de separação','alfa','α']
 };
 
-// Criar versão normalizada para matching
+// Criar versão normalizada para matching (chaves e valores)
 const SYNONYM_MAP = {};
 for (const [key, values] of Object.entries(SYNONYM_MAP_RAW)) {
   SYNONYM_MAP[normalizeText(key)] = values.map(v => normalizeText(v));
@@ -746,6 +741,7 @@ function updatePriorityDisplay() {
   });
 }
 
+// Constrói o texto para embeddings (usando original, sem normalização)
 function buildChunkText(chunk) {
   const parts = [];
   if (chkTags.checked && chunk.tags && Array.isArray(chunk.tags)) {
@@ -761,18 +757,17 @@ function buildChunkText(chunk) {
   return parts.join(' ');
 }
 
-// ---------- DETECÇÃO DE DOMÍNIO (com normalização) ----------
-function detectDomain(query) {
-  const q = normalizeText(query);
+// ---------- DETECÇÃO DE DOMÍNIO (usa pergunta já normalizada) ----------
+function detectDomain(queryNorm) {
   // GC
-  if (NORMALIZED_DOMAINS.GC.keywords.some(k => q.includes(k))) return 'GC';
+  if (DOMAINS.GC.keywords.some(k => queryNorm.includes(k))) return 'GC';
   // LC
-  if (NORMALIZED_DOMAINS.LC.keywords.some(k => q.includes(k))) return 'LC';
+  if (DOMAINS.LC.keywords.some(k => queryNorm.includes(k))) return 'LC';
   // GENERAL (fallback)
   return 'GENERAL';
 }
 
-// ---------- CARREGAR JSON ----------
+// ---------- CARREGAR JSON (com normalização dos chunks) ----------
 async function loadKnowledgeBase() {
   const statusBadge = document.getElementById('statusBadge');
   const fill = document.getElementById('progressFill');
@@ -787,6 +782,18 @@ async function loadKnowledgeBase() {
     const chunks = knowledgeData.chunks || [];
     chunks.forEach((chunk, idx) => {
       chunk.id = idx;
+      // Campos originais já existem: titulo, conteudo, tags
+      // Criar versões normalizadas
+      chunk.titulo_norm = normalizeText(chunk.titulo || '');
+      chunk.conteudo_norm = normalizeText(chunk.conteudo || '');
+      chunk.tags_norm = (chunk.tags || []).map(t => normalizeText(t));
+      // Texto completo normalizado para buscas
+      chunk._textoCompletoNorm = normalizeText(
+        (chunk.titulo || '') + ' ' +
+        (chunk.conteudo || '') + ' ' +
+        (chunk.tags || []).join(' ')
+      );
+      // Base original para fallback
       chunk._baseText = `${chunk.titulo || ''} ${(chunk.tags || []).join(' ')} ${chunk.conteudo || ''}`;
     });
     fill.style.width = '15%';
@@ -873,15 +880,13 @@ async function initBGE() {
 }
 
 // ---------- EXPANSÃO CONTEXTUAL (respeita domínio, com normalização) ----------
-function expandQuery(query, domain) {
-  const q = normalizeText(query);
+function expandQuery(query, queryNorm, domain) {
   let expanded = query; // mantém a original para não perder formatação
 
-  // Se domínio for GC ou LC, adiciona apenas sinônimos daquele domínio
+  // Se domínio for GC ou LC, adiciona sinônimos daquele domínio
   const domainSynonyms = (domain === 'GC') ? DOMAINS.GC.synonyms :
                          (domain === 'LC') ? DOMAINS.LC.synonyms :
                          [];
-
   for (const syn of domainSynonyms) {
     if (!expanded.includes(syn)) expanded += ' ' + syn;
   }
@@ -893,14 +898,14 @@ function expandQuery(query, domain) {
     if (domain === 'LC' && term === 'cromatografia gasosa') continue;
 
     const termNorm = normalizeText(term);
-    if (q.includes(termNorm)) {
+    if (queryNorm.includes(termNorm)) {
       for (const syn of synonyms) {
         if (!expanded.includes(syn)) expanded += ' ' + syn;
       }
     }
     for (const syn of synonyms) {
       const synNorm = normalizeText(syn);
-      if (q.includes(synNorm)) {
+      if (queryNorm.includes(synNorm)) {
         if (!expanded.includes(term)) expanded += ' ' + term;
         for (const otherSyn of synonyms) {
           if (otherSyn !== syn && !expanded.includes(otherSyn)) expanded += ' ' + otherSyn;
@@ -914,18 +919,16 @@ function expandQuery(query, domain) {
   return expanded;
 }
 
-// ---------- EXTRAI GRUPOS DE SINÓNIMOS (usando normalização) ----------
-function extractSynonymGroups(query) {
-  const q = normalizeText(query);
-  const tokens = q.split(/\s+/).filter(t => t.length > 2);
+// ---------- EXTRAI GRUPOS DE SINÓNIMOS (usa pergunta normalizada) ----------
+function extractSynonymGroups(queryNorm) {
+  const tokens = queryNorm.split(/\s+/).filter(t => t.length > 2);
   const groups = [];
   const usedTokens = new Set();
 
   // Primeiro, tenta encontrar grupos completos (chaves)
   const sortedKeys = Object.keys(SYNONYM_MAP).sort((a, b) => b.length - a.length);
   for (const key of sortedKeys) {
-    if (q.includes(key)) {
-      // Verifica se a chave já foi usada em algum grupo
+    if (queryNorm.includes(key)) {
       let alreadyUsed = false;
       for (const g of groups) {
         if (g.has(key)) { alreadyUsed = true; break; }
@@ -933,7 +936,6 @@ function extractSynonymGroups(query) {
       if (!alreadyUsed) {
         const group = new Set([key, ...SYNONYM_MAP[key]]);
         groups.push(group);
-        // Marca os tokens correspondentes como usados
         for (const t of tokens) {
           for (const syn of group) {
             if (t === syn) usedTokens.add(t);
@@ -944,7 +946,7 @@ function extractSynonymGroups(query) {
   }
 
   // Depois, adiciona tokens comuns que não estão em nenhum grupo
-  const commonSet = new Set(COMMON_WORDS.map(w => normalizeText(w)));
+  const commonSet = new Set(COMMON_WORDS_NORM);
   for (const t of tokens) {
     if (!usedTokens.has(t) && commonSet.has(t)) {
       let alreadyInGroup = false;
@@ -961,40 +963,40 @@ function extractSynonymGroups(query) {
   return groups;
 }
 
-// ---------- FILTRO POR GRUPOS (AND/OR, com normalização) ----------
+// ---------- FILTRO POR GRUPOS (AND/OR, usa dados normalizados dos chunks) ----------
 function filterChunksBySynonymGroups(groups, chunks) {
   if (groups.length === 0) return chunks;
   return chunks.filter(chunk => {
-    const title = normalizeText(chunk.titulo || '');
-    const content = normalizeText(chunk.conteudo || '');
-    // Todos os grupos devem ter pelo menos um sinônimo presente (AND)
+    // Usa os campos normalizados já pré-calculados
+    const titleNorm = chunk.titulo_norm || '';
+    const contentNorm = chunk.conteudo_norm || '';
     return groups.every(group => {
       for (const syn of group) {
-        if (title.includes(syn) || content.includes(syn)) return true;
+        if (titleNorm.includes(syn) || contentNorm.includes(syn)) return true;
       }
       return false;
     });
   });
 }
 
-// ---------- DOMAIN SCORE (penalidade) com normalização ----------
+// ---------- DOMAIN SCORE (usa texto normalizado do chunk) ----------
 function domainScore(chunk, domain) {
-  const text = normalizeText((chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' '));
+  const textNorm = chunk._textoCompletoNorm || '';
 
   if (domain === 'GC') {
     if (chunk.tags?.includes('GC')) return 1.0;
-    if (text.includes('cromatografia gasosa') || text.includes('gas chromatography')) return 0.9;
-    if (text.includes('gc')) return 0.8;
-    if (text.includes('temperatura') && text.includes('programação')) return 0.7;
-    if (text.includes('lc') || text.includes('hplc') || text.includes('uhplc')) return 0.2;
+    if (textNorm.includes('cromatografia gasosa') || textNorm.includes('gas chromatography')) return 0.9;
+    if (textNorm.includes('gc')) return 0.8;
+    if (textNorm.includes('temperatura') && textNorm.includes('programação')) return 0.7;
+    if (textNorm.includes('lc') || textNorm.includes('hplc') || textNorm.includes('uhplc')) return 0.2;
     return 0.5;
   }
 
   if (domain === 'LC') {
     if (chunk.tags?.includes('LC')) return 1.0;
-    if (text.includes('cromatografia líquida') || text.includes('liquid chromatography')) return 0.9;
-    if (text.includes('lc') || text.includes('hplc') || text.includes('uhplc')) return 0.8;
-    if (text.includes('gc') || text.includes('gasosa') || text.includes('gas chromatography')) return 0.2;
+    if (textNorm.includes('cromatografia líquida') || textNorm.includes('liquid chromatography')) return 0.9;
+    if (textNorm.includes('lc') || textNorm.includes('hplc') || textNorm.includes('uhplc')) return 0.8;
+    if (textNorm.includes('gc') || textNorm.includes('gasosa') || textNorm.includes('gas chromatography')) return 0.2;
     return 0.5;
   }
 
@@ -1002,15 +1004,13 @@ function domainScore(chunk, domain) {
   return 0.7;
 }
 
-// ---------- BM25 (tokenização com normalização) ----------
-function bm25Search(query, chunks, domain, topK = 15) {
-  // Tokeniza a query normalizada e remove pontuação
-  const queryNorm = normalizeText(query);
+// ---------- BM25 (usa texto normalizado dos chunks e pergunta normalizada) ----------
+function bm25Search(queryNorm, chunks, domain, topK = 15) {
   const tokens = queryNorm.split(/\s+/).filter(w => w.length > 2);
-
   if (tokens.length === 0) return chunks.slice(0, topK);
 
-  const docTexts = chunks.map(c => normalizeText(buildChunkText(c) || c._baseText));
+  // Usa o texto completo normalizado de cada chunk
+  const docTexts = chunks.map(c => c._textoCompletoNorm || '');
   const docTokens = docTexts.map(t => t.split(/\s+/).filter(w => w.length > 0));
 
   const termDocs = {};
@@ -1057,8 +1057,8 @@ function cosineSimilarity(vecA, vecB) {
 }
 
 // ---------- BUSCA HÍBRIDA (BM25 + BGE + Domain Score) ----------
-async function hybridSearch(query, chunks, domain, topK = 8) {
-  const bm25Results = bm25Search(query, chunks, domain, 15);
+async function hybridSearch(query, queryNorm, chunks, domain, topK = 8) {
+  const bm25Results = bm25Search(queryNorm, chunks, domain, 15);
 
   if (!embedderReady || !embedder) {
     return bm25Results.slice(0, topK);
@@ -1214,44 +1214,47 @@ async function handleUserQuery() {
   const startTime = performance.now();
 
   try {
-    // 1. DETECTA DOMÍNIO
-    const domain = detectDomain(query);
+    // 1. NORMALIZA A PERGUNTA UMA VEZ
+    const queryNorm = normalizeText(query);
+
+    // 2. DETECTA DOMÍNIO (usando a normalizada)
+    const domain = detectDomain(queryNorm);
     domainInfo.textContent = `🌐 Domínio: ${domain}`;
 
     showTyping(`🔍 detectado domínio ${domain}…`);
 
     const chunks = knowledgeData?.chunks || [];
 
-    // 2. FILTRO POR DOMÍNIO (sempre aplicado)
+    // 3. FILTRO POR DOMÍNIO (usando campos normalizados dos chunks)
     let filtered = chunks.filter(chunk => {
-      const text = normalizeText((chunk.titulo || '') + ' ' + (chunk.conteudo || '') + ' ' + (chunk.tags || []).join(' '));
+      const textNorm = chunk._textoCompletoNorm || '';
       if (domain === 'GC') {
-        return text.includes('cromatografia gasosa') || text.includes('gas chromatography') ||
-               text.includes('gc') || chunk.tags?.includes('GC');
+        return textNorm.includes('cromatografia gasosa') || textNorm.includes('gas chromatography') ||
+               textNorm.includes('gc') || chunk.tags?.includes('GC');
       }
       if (domain === 'LC') {
-        return text.includes('cromatografia líquida') || text.includes('liquid chromatography') ||
-               text.includes('lc') || text.includes('hplc') || text.includes('uhplc') ||
+        return textNorm.includes('cromatografia líquida') || textNorm.includes('liquid chromatography') ||
+               textNorm.includes('lc') || textNorm.includes('hplc') || textNorm.includes('uhplc') ||
                chunk.tags?.includes('LC') || chunk.tags?.includes('HPLC');
       }
       return true; // GENERAL: mantém todos
     });
 
-    // 3. EXTRAI GRUPOS DE SINÔNIMOS (para refinar)
-    const groups = extractSynonymGroups(query);
+    // 4. EXTRAI GRUPOS DE SINÔNIMOS (usando pergunta normalizada)
+    const groups = extractSynonymGroups(queryNorm);
     if (groups.length > 0) {
       filtered = filterChunksBySynonymGroups(groups, filtered);
     }
 
     const filteredCount = filtered.length;
 
-    // 4. EXPANSÃO CONTEXTUAL (respeita domínio)
-    const expanded = expandQuery(query, domain);
+    // 5. EXPANSÃO CONTEXTUAL (respeita domínio)
+    const expanded = expandQuery(query, queryNorm, domain);
 
     showTyping(`🧠 buscando com BM25 + BGE (${filteredCount} chunks filtrados)…`);
 
-    // 5. BUSCA HÍBRIDA (já aplica domainScore no BM25)
-    const results = await hybridSearch(expanded, filtered, domain, 8);
+    // 6. BUSCA HÍBRIDA (passa pergunta original para embedding, normalizada para BM25)
+    const results = await hybridSearch(query, queryNorm, filtered, domain, 8);
 
     removeTyping();
 
