@@ -212,6 +212,12 @@
       justify-content: center;
       font-size: 1rem;
       background: #eef3fc;
+      overflow: hidden;
+    }
+    .message .msg-header .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .message .msg-header .name {
       font-weight: 600;
@@ -546,7 +552,7 @@
   <div class="chat-container" id="chatContainer">
     <div class="message bot">
       <div class="msg-header">
-        <span class="avatar"><img src="img.png" alt="ChromatoBuddy" style="width:24px; height:24px; border-radius:50%;"></span>
+        <span class="avatar"><img src="img.png" alt="ChromatoBuddy"></span>
         <span class="name">ChromatoBuddy Pro</span>
       </div>
       <div class="welcome-box">
@@ -925,17 +931,14 @@ async function hybridSearch(query, chunks, topK = 8) {
   })).sort((a, b) => (b.hybrid_score || 0) - (a.hybrid_score || 0)).slice(0, topK);
 }
 
-// ---------- SÍNTESE DA RESPOSTA ----------
+// ---------- SÍNTESE DA RESPOSTA (SEM TÍTULOS NO INÍCIO) ----------
 function synthesizeResponse(query, chunks) {
   if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
+  // Retorna apenas os itens numerados com o conteúdo
   let response = chunks.map((c, i) => {
     const content = c.conteudo || '';
     return `**${i + 1}.** ${content}`;
   }).join('\n\n');
-  const titles = chunks.map(c => c.titulo).filter(Boolean);
-  if (titles.length) {
-    response = `Com base em ${titles.join(', ')}:\n\n` + response;
-  }
   return response;
 }
 
@@ -1009,7 +1012,7 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters) {
   const response = synthesizeResponse(query, chunks);
 
   let html = `<div class="msg-header">
-    <span class="avatar"><img src="img.png" alt="ChromatoBuddy" style="width:24px; height:24px; border-radius:50%;"></span>
+    <span class="avatar"><img src="img.png" alt="ChromatoBuddy"></span>
     <span class="name">ChromatoBuddy Pro</span>
     <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
       ⚡ ${time}ms · 🧠 ${chunks.length} chunks
