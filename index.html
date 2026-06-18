@@ -75,6 +75,7 @@
             color: rgba(255, 255, 255, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.06);
             font-weight: 500;
+            transition: all 0.3s;
         }
         .badge.success {
             background: rgba(46, 213, 115, 0.2);
@@ -456,6 +457,30 @@
             border: none;
         }
 
+        /* Barra de progresso */
+        .progress-container {
+            width: 100%;
+            background: #e8edf5;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 6px;
+            margin-top: 6px;
+            transition: opacity 0.3s;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6aafff, #1a3a6a);
+            border-radius: 10px;
+            transition: width 0.2s;
+        }
+        .progress-label {
+            font-size: 0.7rem;
+            color: #5a6a8a;
+            margin-top: 2px;
+            text-align: center;
+        }
+
         @media (max-width: 640px) {
             .app { max-height: none; height: 96vh; border-radius: 20px; }
             .header { padding: 12px 16px; }
@@ -509,6 +534,11 @@
                     <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
                         💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
                     </div>
+                    <!-- Barra de progresso -->
+                    <div class="progress-container" id="progressContainer" style="display:none;">
+                        <div class="progress-bar" id="progressBar"></div>
+                        <div class="progress-label" id="progressLabel">Inicializando…</div>
+                    </div>
                 </div>
                 <div class="meta">
                     <span>✅ RAG Híbrido</span>
@@ -531,6 +561,7 @@
                 <span id="versionInfo">📌 versão: -</span>
                 <span id="sourceInfo">📄 origem: -</span>
                 <span id="perfInfo">⚡ GPU: -</span>
+                <span id="backendInfo">⚡ backend: -</span>
             </div>
             <span>🔒 Local · 📓 NotebookLM · 🤖 Qwen3 4B</span>
         </div>
@@ -561,24 +592,26 @@
         let embedderReady = false;
         let rerankerReady = false;
         let useFallback = false;
+        let backendType = 'desconhecido'; // 'webgpu' ou 'cpu'
 
         // WebLLM
         let llmEngine = null;
         let llmReady = false;
-        let llmLoading = false;   // para não disparar múltiplos carregamentos
+        let llmLoading = false;
 
         // BM25 indexado (pré-calculado)
         let bm25Index = null;
 
         // Cache (LRU)
-        const MAX_CACHE = 100;
-        const embeddingCache = new Map();   // query -> vetor
-        const responseCache = new Map();    // query -> resposta (para respostas completas)
+        const MAX_EMBEDDING_CACHE = 200;
+        const MAX_RESPONSE_CACHE = 100;
+        const embeddingCache = new Map();
+        const responseCache = new Map();
         let cacheHits = 0;
         let cacheMisses = 0;
-        // LRU simples: ordem de inserção
-        function lruSet(map, key, value) {
-            if (map.size >= MAX_CACHE) {
+
+        function lruSet(map, key, value, maxSize) {
+            if (map.size >= maxSize) {
                 const firstKey = map.keys().next().value;
                 map.delete(firstKey);
             }
@@ -592,6 +625,9 @@
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressLabel = document.getElementById('progressLabel');
 
         // ========================================================================
         //  SINÔNIMOS (expansão de query)
@@ -718,10 +754,15 @@
         }
 
         // ========================================================================
-        //  INICIALIZA MODELOS (BGE + Reranker)
+        //  INICIALIZA MODELOS (BGE + Reranker) com progresso
         // ========================================================================
         async function initModels() {
             try {
+                // Mostra barra de progresso
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressLabel.textContent = 'Carregando BGE…';
+
                 // Embedder
                 try {
                     embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', {
@@ -729,21 +770,28 @@
                         dtype: 'fp16',
                         progress_callback: (p) => {
                             if (p.status === 'progress') {
-                                document.getElementById('modelBadge').textContent = `⏳ BGE ${Math.round(p.progress * 100)}%`;
+                                const percent = Math.round(p.progress * 100);
+                                progressBar.style.width = `${percent * 0.5}%`; // 50% do progresso total para BGE
+                                progressLabel.textContent = `BGE: ${percent}%`;
+                                document.getElementById('modelBadge').textContent = `⏳ BGE ${percent}%`;
                             }
                         }
                     });
                     embedderReady = true;
+                    backendType = 'WebGPU';
                     document.getElementById('modelBadge').textContent = '✅ BGE-small (WebGPU)';
                     document.getElementById('modelBadge').className = 'badge turbo';
                     document.getElementById('perfInfo').textContent = '⚡ WebGPU (BGE)';
+                    document.getElementById('backendInfo').textContent = '⚡ backend: WebGPU';
                 } catch (e) {
                     console.warn('WebGPU falhou, usando CPU para BGE:', e);
                     embedder = await pipeline('feature-extraction', 'Xenova/bge-small-en-v1.5', { device: 'cpu', dtype: 'fp32' });
                     embedderReady = true;
+                    backendType = 'CPU';
                     document.getElementById('modelBadge').textContent = '✅ BGE-small (CPU)';
                     document.getElementById('modelBadge').className = 'badge warning';
                     document.getElementById('perfInfo').textContent = '⚡ CPU (BGE)';
+                    document.getElementById('backendInfo').textContent = '🐌 backend: CPU';
                     useFallback = true;
                 }
 
@@ -759,6 +807,10 @@
                     rerankerReady = false;
                 }
 
+                // Atualiza progresso para 50% (BGE concluído)
+                progressBar.style.width = '50%';
+                progressLabel.textContent = 'BGE carregado.';
+
                 return true;
             } catch (err) {
                 console.error('Erro ao inicializar modelos BGE:', err);
@@ -767,25 +819,19 @@
         }
 
         // ========================================================================
-        //  PRÉ-CÁLCULO DE EMBEDDINGS DOS CHUNKS (uma única vez)
+        //  EMBEDDING LAZY (calcula sob demanda)
         // ========================================================================
-        async function precomputeEmbeddings(chunks) {
-            if (!embedderReady || !embedder || !chunks.length) return;
-            console.log('🧠 Pré-computando embeddings para', chunks.length, 'chunks…');
-            let processed = 0;
-            for (const chunk of chunks) {
-                if (!chunk.embedding) {
-                    try {
-                        const result = await embedder(chunk._text, { pooling: 'mean', normalize: true });
-                        chunk.embedding = result.data || result;
-                        processed++;
-                        if (processed % 10 === 0) console.log(`   ${processed}/${chunks.length} embeddings prontos`);
-                    } catch (e) {
-                        console.warn('Erro ao gerar embedding para chunk', chunk.id, e);
-                    }
-                }
+        async function getEmbedding(chunk) {
+            if (chunk.embedding) return chunk.embedding;
+            if (!embedderReady || !embedder) return null;
+            try {
+                const result = await embedder(chunk._text, { pooling: 'mean', normalize: true });
+                chunk.embedding = result.data || result;
+                return chunk.embedding;
+            } catch (e) {
+                console.warn('Erro ao gerar embedding lazy para chunk', chunk.id, e);
+                return null;
             }
-            console.log(`✅ ${processed} embeddings pré-computados`);
         }
 
         // ========================================================================
@@ -804,7 +850,7 @@
         }
 
         // ========================================================================
-        //  BUSCA HÍBRIDA (BM25 + Embedding) - com limites ajustados
+        //  BUSCA HÍBRIDA (BM25 + Embedding lazy) - top 10
         // ========================================================================
         async function hybridSearch(query, chunks, topK = 10) {
             let queryVec;
@@ -814,7 +860,7 @@
             } else if (embedderReady && embedder) {
                 const result = await embedder(query, { pooling: 'mean', normalize: true });
                 queryVec = result.data || result;
-                lruSet(embeddingCache, query, queryVec);
+                lruSet(embeddingCache, query, queryVec, MAX_EMBEDDING_CACHE);
                 cacheMisses++;
             }
 
@@ -824,13 +870,15 @@
                 return bm25Results.slice(0, topK);
             }
 
-            const withEmbedding = bm25Results.map(chunk => {
-                if (chunk.embedding) {
-                    const sim = cosineSimilarity(queryVec, chunk.embedding);
+            // Para cada chunk, obtém embedding (lazy)
+            const withEmbedding = await Promise.all(bm25Results.map(async (chunk) => {
+                const emb = await getEmbedding(chunk);
+                if (emb) {
+                    const sim = cosineSimilarity(queryVec, emb);
                     return { ...chunk, similarity: sim };
                 }
                 return { ...chunk, similarity: 0 };
-            });
+            }));
 
             return withEmbedding.map(chunk => ({
                 ...chunk,
@@ -839,30 +887,27 @@
         }
 
         // ========================================================================
-        //  RERANKER (top 5) - com paralelismo limitado
+        //  RERANKER (top 5) - com paralelismo limitado a 10 candidatos
         // ========================================================================
         async function rerankChunks(query, chunks, topK = 5) {
             if (!rerankerReady || !reranker || chunks.length === 0) {
                 return chunks.slice(0, topK);
             }
             try {
-                // Limita a 10 para rerank
                 const candidates = chunks.slice(0, 10);
                 const pairs = candidates.map(chunk => ({
                     query,
                     text: `${chunk.titulo || ''} ${chunk.conteudo || ''}`.slice(0, 1000),
                     chunk
                 }));
-                // Executa em paralelo, mas com limite de 10 (não 20)
+                // Paralelismo controlado (máximo 10)
                 const results = await Promise.all(pairs.map(async (pair) => {
                     const result = await reranker(pair.query, pair.text);
                     return { ...pair.chunk, rerank_score: result.score || 0 };
                 }));
                 const sorted = results.sort((a, b) => (b.rerank_score || 0) - (a.rerank_score || 0));
-                // Verifica se o melhor score é baixo
                 if (sorted.length > 0 && sorted[0].rerank_score < 0.2) {
-                    // Retorna vazio para indicar baixa confiança
-                    return [];
+                    return []; // baixa confiança
                 }
                 return sorted.slice(0, topK);
             } catch (e) {
@@ -872,14 +917,17 @@
         }
 
         // ========================================================================
-        //  WEBLLM - INICIALIZAÇÃO (em background)
+        //  WEBLLM - INICIALIZAÇÃO (somente na primeira pergunta)
         // ========================================================================
         async function initLLM() {
             if (llmLoading || llmReady) return;
             llmLoading = true;
             try {
-                // Usar modelo mais leve: SmolLM3 4B (menor que Qwen3)
-                // Pode ser trocado para 'Qwen3-4B-Instruct-q4f16_1-MLC' se preferir
+                // Mostra progresso no WebLLM (usando callback)
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '50%';
+                progressLabel.textContent = 'Carregando Qwen3…';
+
                 const modelId = 'SmolLM3-4B-Instruct-q4f16_1-MLC';
                 // const modelId = 'Qwen3-4B-Instruct-q4f16_1-MLC';
                 console.log('🤖 Carregando WebLLM:', modelId);
@@ -890,16 +938,30 @@
                 await engine.reload(modelId, {
                     device: 'webgpu',
                     model_cache: 'browser',
+                    initProgressCallback: (progress) => {
+                        // progress: { text, progress }
+                        const pct = progress.progress ? Math.round(progress.progress * 50) : 0; // 50% a 100%
+                        const totalPct = 50 + pct;
+                        progressBar.style.width = `${Math.min(totalPct, 100)}%`;
+                        progressLabel.textContent = progress.text || `Carregando… ${totalPct}%`;
+                        document.getElementById('modelBadge').textContent = `⏳ ${progress.text || 'carregando…'}`;
+                    }
                 });
                 llmEngine = engine;
                 llmReady = true;
                 document.getElementById('modelBadge').textContent = `✅ ${modelId}`;
                 document.getElementById('modelBadge').className = 'badge brain';
                 console.log('✅ WebLLM carregado');
+                progressBar.style.width = '100%';
+                progressLabel.textContent = 'Pronto!';
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 1000);
             } catch (err) {
                 console.error('Erro ao carregar WebLLM:', err);
                 document.getElementById('modelBadge').textContent = '❌ LLM falhou';
                 document.getElementById('modelBadge').className = 'badge warning';
+                progressLabel.textContent = 'Erro ao carregar LLM';
             } finally {
                 llmLoading = false;
             }
@@ -909,6 +971,10 @@
         //  GERAR RESPOSTA COM STREAMING (WebLLM) com truncamento
         // ========================================================================
         async function generateWithLLM(query, chunks, onToken) {
+            // Carrega LLM se necessário (primeira pergunta)
+            if (!llmReady && !llmLoading) {
+                await initLLM();
+            }
             if (!llmReady || !llmEngine) {
                 throw new Error('LLM não está disponível');
             }
@@ -957,7 +1023,7 @@
             }
 
             // Guarda no cache LRU
-            lruSet(responseCache, cacheKey, fullText);
+            lruSet(responseCache, cacheKey, fullText, MAX_RESPONSE_CACHE);
             return fullText;
         }
 
@@ -1041,12 +1107,11 @@
 
             html += `<div class="meta">
                 <span class="${confidenceOk ? 'confidence-high' : 'confidence-low'}">${confidenceOk ? '✅ Confiável' : '⚠️ Baixa confiança'}</span>
-                <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
+                <span>⚡ ${backendType}</span>
                 <span>🧠 BGE + Reranker</span>
                 <span>🤖 Qwen3 4B</span>
             </div>`;
 
-            // Sugestões
             const suggestions = getSuggestions(query);
             html += `<div class="suggestions">
                 <span style="font-size:0.75rem; color:#8899b0; margin-right:6px;">💡 Perguntas relacionadas:</span>
@@ -1096,14 +1161,14 @@
             const perf = {};
 
             try {
-                // 1. Expansão (sem intent classifier)
+                // 1. Expansão
                 perf.expand = performance.now();
                 const expanded = expandQuery(query);
                 if (expanded !== query) {
                     steps.push({ emoji: '📚', text: `Query expandida: "${expanded.substring(0, 60)}…"`, badge: 'expansão', time: Math.round(performance.now() - perf.expand) });
                 }
 
-                // 2. Busca híbrida (BM25 + embedding) - top 10
+                // 2. Busca híbrida (BM25 + embedding lazy) - top 10
                 perf.search = performance.now();
                 showTyping('🔍 BM25 + BGE…');
                 const chunks = knowledgeData?.chunks || [];
@@ -1118,19 +1183,16 @@
                     showTyping('🎯 Rerank…');
                     rerankedResults = await rerankChunks(expanded, hybridResults, 5);
                     steps.push({ emoji: '🎯', text: `${rerankedResults.length} chunks selecionados`, badge: 'reranking', time: Math.round(performance.now() - perf.rerank) });
-                    // Se rerankedResults vier vazio, baixa confiança
                     if (rerankedResults.length === 0) {
                         confidenceOk = false;
-                        // Usa os primeiros 5 do hybrid para tentar, mas com aviso
                         rerankedResults = hybridResults.slice(0, 5);
                     }
                 }
 
-                // 4. LLM (streaming)
+                // 4. LLM (streaming) - carrega se necessário
                 perf.llm = performance.now();
                 showTyping('🤖 Gerando resposta com Qwen3…');
 
-                // Cria a mensagem do bot (inicialmente sem texto)
                 const botMsgDiv = document.createElement('div');
                 botMsgDiv.className = 'message bot';
                 const sources = rerankedResults.map(c => c.titulo || 'Fonte').filter(Boolean);
@@ -1148,7 +1210,6 @@
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 };
 
-                // Se não houver chunks ou baixa confiança, gerar resposta padrão
                 if (!confidenceOk || rerankedResults.length === 0) {
                     const fallbackMsg = 'Não encontrei informações relevantes na base para essa pergunta. Por favor, reformule ou pergunte sobre outro tópico.';
                     onToken(fallbackMsg);
@@ -1157,24 +1218,20 @@
                     await generateWithLLM(expanded, rerankedResults, onToken);
                 }
 
-                // Atualiza o tempo final
                 const totalTime = Math.round(performance.now() - startTime);
                 const timeSpan = botMsgDiv.querySelector('.msg-header span:last-child');
                 if (timeSpan) {
                     timeSpan.textContent = `⚡ ${totalTime}ms · 📚 ${rerankedResults.length} chunks`;
                 }
 
-                // Atualiza os passos com o tempo total
                 const pipelineDiv = botMsgDiv.querySelector('.pipeline-steps');
                 if (pipelineDiv) {
                     const stepsHtml = formatPipelineSteps(steps, totalTime);
                     pipelineDiv.outerHTML = stepsHtml;
                 }
 
-                // Atualiza cache info
                 document.getElementById('cacheInfo').textContent = `💾 cache: ${cacheHits} hits / ${cacheMisses + cacheHits} total`;
 
-                // Adiciona evento aos botões de sugestão
                 botMsgDiv.querySelectorAll('.suggestion-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         userInput.value = btn.dataset.query;
@@ -1182,7 +1239,6 @@
                     });
                 });
 
-                // Atualiza histórico (adiciona esta interação)
                 history.push({ role: 'user', content: query });
                 history.push({ role: 'assistant', content: fullText });
                 while (history.length > 6) {
@@ -1227,42 +1283,37 @@
         });
 
         // ========================================================================
-        //  INICIALIZAÇÃO (assíncrona, libera UI cedo)
+        //  INICIALIZAÇÃO (não bloqueante)
         // ========================================================================
         async function init() {
-            // 1. Carrega JSON (essencial)
-            const chunks = await loadKnowledgeBase();
+            // Paraleliza carregamento do JSON e dos modelos BGE (não bloqueante)
+            const [chunks] = await Promise.all([
+                loadKnowledgeBase(),
+                initModels() // inicia BGE em segundo plano
+            ]);
 
-            // 2. Constrói índice BM25 (rápido)
+            // Constrói índice BM25 (rápido, síncrono)
             if (chunks.length > 0) {
                 bm25Index = buildBM25Index(chunks);
             }
 
-            // 3. Inicia modelos BGE e pré-computa embeddings (em background)
-            //    mas não bloqueia a UI
-            (async () => {
-                await initModels();
-                if (chunks.length > 0) {
-                    await precomputeEmbeddings(chunks);
-                }
-                // Atualiza status final
-                const status = embedderReady ? '✅' : '⚠️';
-                document.getElementById('modelBadge').textContent = `${status} BGE + Reranker + Qwen3`;
-            })();
+            // Não pré-computa embeddings, não carrega LLM agora.
+            // A interface já está liberada.
 
-            // 4. Inicia WebLLM em background
-            (async () => {
-                await initLLM();
-            })();
+            // Atualiza status final (BGE já deve estar pronto ou quase)
+            if (embedderReady) {
+                document.getElementById('modelBadge').textContent = '✅ BGE + Reranker (pronto)';
+                document.getElementById('modelBadge').className = 'badge brain';
+            }
 
-            // 5. UI já está liberada (se JSON carregou)
-            if (!userInput.disabled) userInput.focus();
-
-            console.log('🚀 ChromatoBuddy NotebookLM Local iniciado (carregando modelos em background)');
+            console.log('🚀 ChromatoBuddy iniciado (modelos em background)');
             console.log(`📚 ${chunks.length} chunks`);
         }
 
+        // Inicia
         init();
+
+        // Inicialização do LLM será feita sob demanda na primeira pergunta.
     </script>
 </body>
 </html>
