@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChromatoBuddy Pro · Domain‑Lock</title>
+  <title>ChromatoBuddy Pro · Domain‑Lock + Phi‑3</title>
   <style>
     /* ===== RESET E BASE (mesmo estilo anterior) ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -85,6 +85,7 @@
     .badge.webgpu { background: #00b894; color: white; border: none; }
     .badge.cpu { background: #fdcb6e; color: #2d3436; border: none; }
     .badge.fallback { background: #e17055; color: white; border: none; }
+    .badge.phi { background: linear-gradient(135deg,#6c5ce7,#a29bfe); color: white; border: none; }
 
     .progress-wrap {
       width: 100%;
@@ -475,6 +476,7 @@
     }
     .welcome-box .feature-item.turbo { background: linear-gradient(135deg,#3498db,#2ecc71); color: white; border: none; }
     .welcome-box .feature-item.brain { background: linear-gradient(135deg,#9b59b6,#8e44ad); color: white; border: none; }
+    .welcome-box .feature-item.phi { background: linear-gradient(135deg,#6c5ce7,#a29bfe); color: white; border: none; }
 
     @media (max-width: 640px) {
       .app { max-height: none; height: 96vh; border-radius: 20px; }
@@ -500,13 +502,14 @@
       <div class="header-left">
         <h1>
           <img src="img.png" alt="ChromatoBuddy">
-          <span>Chromato</span>Buddy <span style="font-size:0.7rem; color:#6aafff;">Domain‑Lock</span>
+          <span>Chromato</span>Buddy <span style="font-size:0.7rem; color:#6aafff;">Domain‑Lock + Phi‑3</span>
         </h1>
       </div>
       <div class="badge-group">
         <span class="badge notebook">📓 NotebookLM</span>
         <span class="badge turbo">⚡ BM25+BGE</span>
         <span class="badge brain">🧠 BGE-small</span>
+        <span class="badge phi">🧠 Phi-3 Mini</span>
         <span class="badge" id="statusBadge">⏳ carregando…</span>
         <span class="badge" id="modelBadge">⏳ modelo…</span>
       </div>
@@ -543,18 +546,19 @@
         <span class="name">ChromatoBuddy Pro</span>
       </div>
       <div class="welcome-box">
-        <strong>🚀 Domain‑Lock + Ontologia Leve</strong>
+        <strong>🚀 Domain‑Lock + Ontologia Leve + Phi‑3</strong>
         <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-          Detecção de domínio (GC/LC) → lock → expansão contextual → ranking com penalidade.
+          Detecção de domínio (GC/LC) → lock → expansão → ranking → síntese com IA.
         </div>
         <div class="features">
           <span class="feature-item turbo">⚡ BM25 + BGE</span>
           <span class="feature-item brain">🧠 Embeddings sob demanda</span>
+          <span class="feature-item phi">🧠 Phi-3 Mini (síntese)</span>
           <span class="feature-item">📚 100% local</span>
           <span class="feature-item">🔒 Lock por domínio</span>
         </div>
         <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
-          💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
+          💬 Pergunte sobre cromatografia – a resposta será gerada com fluidez científica!
         </div>
       </div>
       <div class="meta">
@@ -580,7 +584,7 @@
       <span id="sourceInfo">📄 origem: -</span>
       <span id="perfInfo">⚡ GPU: -</span>
     </div>
-    <span>🔒 Local · 📓 NotebookLM · ⚡ BGE</span>
+    <span>🔒 Local · 📓 NotebookLM · ⚡ BGE · 🧠 Phi-3</span>
   </div>
 </div>
 
@@ -602,7 +606,7 @@
 
 <script type="module">
 // ============================================================
-//  CHROMATOBUDDY PRO – DOMAIN‑LOCK + ONTOLOGIA LEVE
+//  CHROMATOBUDDY PRO – DOMAIN‑LOCK + ONTOLOGIA LEVE + PHI‑3
 // ============================================================
 
 // ---------- NORMALIZAÇÃO (remove pontuação, acentos opcional, minúsculas, espaços extras) ----------
@@ -610,11 +614,8 @@ function normalizeText(text) {
   if (!text) return '';
   return text
     .toLowerCase()
-    // Remove acentos (opcional, mas recomendado)
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    // Substitui pontuação por espaço
     .replace(/[^\w\s]/g, ' ')
-    // Colapsa múltiplos espaços
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -627,6 +628,10 @@ let useFallback = false;
 const embeddingCache = new Map();
 let cacheHits = 0;
 let cacheMisses = 0;
+
+// Phi-3
+let llm = null;
+let llmReady = false;
 
 // Filtros (pesos)
 const FILTER_WEIGHTS = {
@@ -759,11 +764,8 @@ function buildChunkText(chunk) {
 
 // ---------- DETECÇÃO DE DOMÍNIO (usa pergunta já normalizada) ----------
 function detectDomain(queryNorm) {
-  // GC
   if (DOMAINS.GC.keywords.some(k => queryNorm.includes(k))) return 'GC';
-  // LC
   if (DOMAINS.LC.keywords.some(k => queryNorm.includes(k))) return 'LC';
-  // GENERAL (fallback)
   return 'GENERAL';
 }
 
@@ -782,18 +784,14 @@ async function loadKnowledgeBase() {
     const chunks = knowledgeData.chunks || [];
     chunks.forEach((chunk, idx) => {
       chunk.id = idx;
-      // Campos originais já existem: titulo, conteudo, tags
-      // Criar versões normalizadas
       chunk.titulo_norm = normalizeText(chunk.titulo || '');
       chunk.conteudo_norm = normalizeText(chunk.conteudo || '');
       chunk.tags_norm = (chunk.tags || []).map(t => normalizeText(t));
-      // Texto completo normalizado para buscas
       chunk._textoCompletoNorm = normalizeText(
         (chunk.titulo || '') + ' ' +
         (chunk.conteudo || '') + ' ' +
         (chunk.tags || []).join(' ')
       );
-      // Base original para fallback
       chunk._baseText = `${chunk.titulo || ''} ${(chunk.tags || []).join(' ')} ${chunk.conteudo || ''}`;
     });
     fill.style.width = '15%';
@@ -861,42 +859,101 @@ async function initBGE() {
       document.getElementById('perfInfo').textContent = '⚡ CPU (BGE)';
       useFallback = true;
     }
-    fill.style.width = '80%';
-    text.textContent = '80% – pronto';
-    await new Promise(r => setTimeout(r, 300));
-    fill.style.width = '100%';
-    text.textContent = '100% – carregado!';
-    document.getElementById('statusBadge').textContent = '✅ pronto';
-    document.getElementById('statusBadge').className = 'badge success';
+    fill.style.width = '70%';
+    text.textContent = '70% – BGE pronto';
     return true;
   } catch (err) {
     console.error('Erro ao inicializar BGE:', err);
     modelBadge.textContent = '❌ BGE indisponível';
     modelBadge.className = 'badge fallback';
-    fill.style.width = '100%';
-    text.textContent = '⚠️ erro';
     return false;
+  }
+}
+
+// ---------- INICIALIZAR PHI-3 ----------
+async function initPhi3() {
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  const modelBadge = document.getElementById('modelBadge');
+  try {
+    const { pipeline } = await import('@xenova/transformers');
+    fill.style.width = '75%';
+    text.textContent = '75% – carregando Phi-3 Mini (WebGPU)…';
+    llm = await pipeline(
+      'text-generation',
+      'Xenova/phi-3-mini-4k-instruct',
+      {
+        device: 'webgpu',
+        dtype: 'fp16',
+        progress_callback: (p) => {
+          if (p.status === 'progress') {
+            const prog = 75 + p.progress * 20;
+            fill.style.width = Math.min(prog, 95) + '%';
+            text.textContent = Math.round(Math.min(prog, 95)) + '% – Phi-3';
+          }
+        }
+      }
+    );
+    llmReady = true;
+    modelBadge.textContent = '✅ Phi-3 Mini (WebGPU)';
+    modelBadge.className = 'badge phi';
+    document.getElementById('perfInfo').textContent += ' · Phi-3 WebGPU';
+    fill.style.width = '100%';
+    text.textContent = '100% – pronto!';
+    document.getElementById('statusBadge').textContent = '✅ pronto';
+    document.getElementById('statusBadge').className = 'badge success';
+    return true;
+  } catch (err) {
+    console.warn('Phi-3 WebGPU falhou, tentando CPU…', err);
+    try {
+      const { pipeline } = await import('@xenova/transformers');
+      llm = await pipeline(
+        'text-generation',
+        'Xenova/phi-3-mini-4k-instruct',
+        {
+          device: 'cpu',
+          dtype: 'fp32',
+          progress_callback: (p) => {
+            if (p.status === 'progress') {
+              const prog = 75 + p.progress * 20;
+              fill.style.width = Math.min(prog, 95) + '%';
+              text.textContent = Math.round(Math.min(prog, 95)) + '% – Phi-3 (CPU)';
+            }
+          }
+        }
+      );
+      llmReady = true;
+      modelBadge.textContent = '✅ Phi-3 Mini (CPU)';
+      modelBadge.className = 'badge phi';
+      document.getElementById('perfInfo').textContent += ' · Phi-3 CPU';
+      fill.style.width = '100%';
+      text.textContent = '100% – pronto!';
+      document.getElementById('statusBadge').textContent = '✅ pronto';
+      document.getElementById('statusBadge').className = 'badge success';
+      return true;
+    } catch (e2) {
+      console.error('Erro ao carregar Phi-3:', e2);
+      modelBadge.textContent = '⚠️ Phi-3 indisponível';
+      modelBadge.className = 'badge warning';
+      fill.style.width = '100%';
+      text.textContent = '⚠️ Phi-3 não carregado';
+      return false;
+    }
   }
 }
 
 // ---------- EXPANSÃO CONTEXTUAL (respeita domínio, com normalização) ----------
 function expandQuery(query, queryNorm, domain) {
-  let expanded = query; // mantém a original para não perder formatação
-
-  // Se domínio for GC ou LC, adiciona sinônimos daquele domínio
+  let expanded = query;
   const domainSynonyms = (domain === 'GC') ? DOMAINS.GC.synonyms :
                          (domain === 'LC') ? DOMAINS.LC.synonyms :
                          [];
   for (const syn of domainSynonyms) {
     if (!expanded.includes(syn)) expanded += ' ' + syn;
   }
-
-  // Adiciona sinônimos gerais (não específicos de domínio)
   for (const [term, synonyms] of Object.entries(SYNONYM_MAP_RAW)) {
-    // Pula se o termo for específico de outro domínio (ex: 'lc' para GC)
     if (domain === 'GC' && ['lc', 'hplc', 'uhplc'].includes(term)) continue;
     if (domain === 'LC' && term === 'cromatografia gasosa') continue;
-
     const termNorm = normalizeText(term);
     if (queryNorm.includes(termNorm)) {
       for (const syn of synonyms) {
@@ -913,8 +970,6 @@ function expandQuery(query, queryNorm, domain) {
       }
     }
   }
-
-  // Fallback para consultas curtas
   if (query.split(' ').length < 4) expanded += ' cromatografia separação eficiência';
   return expanded;
 }
@@ -924,8 +979,6 @@ function extractSynonymGroups(queryNorm) {
   const tokens = queryNorm.split(/\s+/).filter(t => t.length > 2);
   const groups = [];
   const usedTokens = new Set();
-
-  // Primeiro, tenta encontrar grupos completos (chaves)
   const sortedKeys = Object.keys(SYNONYM_MAP).sort((a, b) => b.length - a.length);
   for (const key of sortedKeys) {
     if (queryNorm.includes(key)) {
@@ -944,8 +997,6 @@ function extractSynonymGroups(queryNorm) {
       }
     }
   }
-
-  // Depois, adiciona tokens comuns que não estão em nenhum grupo
   const commonSet = new Set(COMMON_WORDS_NORM);
   for (const t of tokens) {
     if (!usedTokens.has(t) && commonSet.has(t)) {
@@ -959,7 +1010,6 @@ function extractSynonymGroups(queryNorm) {
       }
     }
   }
-
   return groups;
 }
 
@@ -967,7 +1017,6 @@ function extractSynonymGroups(queryNorm) {
 function filterChunksBySynonymGroups(groups, chunks) {
   if (groups.length === 0) return chunks;
   return chunks.filter(chunk => {
-    // Usa os campos normalizados já pré-calculados
     const titleNorm = chunk.titulo_norm || '';
     const contentNorm = chunk.conteudo_norm || '';
     return groups.every(group => {
@@ -982,12 +1031,8 @@ function filterChunksBySynonymGroups(groups, chunks) {
 // ---------- DOMAIN SCORE (NEUTRO) ----------
 function domainScore(chunk, domain) {
   const tags = chunk.tags || [];
-
-  // regra mínima: só confirma alinhamento estrutural
   if (domain === 'GC' && tags.includes('GC')) return 1.0;
   if (domain === 'LC' && tags.includes('LC')) return 1.0;
-
-  // tudo mais é neutro
   return 0.5;
 }
 
@@ -995,11 +1040,8 @@ function domainScore(chunk, domain) {
 function bm25Search(queryNorm, chunks, domain, topK = 15) {
   const tokens = queryNorm.split(/\s+/).filter(w => w.length > 2);
   if (tokens.length === 0) return chunks.slice(0, topK);
-
-  // Usa o texto completo normalizado de cada chunk
   const docTexts = chunks.map(c => c._textoCompletoNorm || '');
   const docTokens = docTexts.map(t => t.split(/\s+/).filter(w => w.length > 0));
-
   const termDocs = {};
   docTokens.forEach((t, idx) => {
     const unique = new Set(t);
@@ -1008,11 +1050,9 @@ function bm25Search(queryNorm, chunks, domain, topK = 15) {
       termDocs[token].add(idx);
     });
   });
-
   const avgDocLen = docTokens.reduce((s, t) => s + t.length, 0) / docTokens.length;
   const totalDocs = docTokens.length;
   const k1 = 1.5, b = 0.75;
-
   return chunks.map((chunk, idx) => {
     const doc = docTokens[idx];
     let score = 0;
@@ -1023,7 +1063,6 @@ function bm25Search(queryNorm, chunks, domain, topK = 15) {
       const docLen = doc.length;
       score += idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * docLen / avgDocLen));
     });
-    // Aplica penalidade de domínio
     const dScore = domainScore(chunk, domain);
     score *= (0.5 + 0.5 * dScore);
     return { ...chunk, bm25_score: score };
@@ -1046,11 +1085,9 @@ function cosineSimilarity(vecA, vecB) {
 // ---------- BUSCA HÍBRIDA (BM25 + BGE + Domain Score) ----------
 async function hybridSearch(query, queryNorm, chunks, domain, topK = 8) {
   const bm25Results = bm25Search(queryNorm, chunks, domain, 15);
-
   if (!embedderReady || !embedder) {
     return bm25Results.slice(0, topK);
   }
-
   let queryVec;
   if (embeddingCache.has(query)) {
     queryVec = embeddingCache.get(query);
@@ -1061,7 +1098,6 @@ async function hybridSearch(query, queryNorm, chunks, domain, topK = 8) {
     embeddingCache.set(query, queryVec);
     cacheMisses++;
   }
-
   const withEmbedding = await Promise.all(bm25Results.map(async (chunk) => {
     const text = buildChunkText(chunk) || chunk._baseText;
     if (!chunk.embedding) {
@@ -1075,7 +1111,6 @@ async function hybridSearch(query, queryNorm, chunks, domain, topK = 8) {
     const sim = chunk.embedding ? cosineSimilarity(queryVec, chunk.embedding) : 0;
     return { ...chunk, similarity: sim };
   }));
-
   return withEmbedding.map(chunk => ({
     ...chunk,
     hybrid_score: 0.3 * (chunk.bm25_score || 0) +
@@ -1085,34 +1120,84 @@ async function hybridSearch(query, queryNorm, chunks, domain, topK = 8) {
 }
 
 // ============================================================
-//  NOVA FUNÇÃO: REORDENAÇÃO POR TERMO MAIS LONGO DA LISTA
+//  REORDENAÇÃO POR TERMO MAIS LONGO DA LISTA
 // ============================================================
 function reorderByLongestMatch(results, queryNorm) {
-  // 1. Encontra quais termos da COMMON_WORDS_NORM estão presentes na consulta
   const matchingTerms = COMMON_WORDS_NORM.filter(term => queryNorm.includes(term));
-  if (matchingTerms.length === 0) return results; // nada a fazer
-
-  // 2. Para cada resultado, calcula o comprimento do maior termo que aparece no título
+  if (matchingTerms.length === 0) return results;
   const withScore = results.map(chunk => {
     const titleNorm = chunk.titulo_norm || '';
     let longest = 0;
     for (const term of matchingTerms) {
       if (titleNorm.includes(term)) {
-        const len = term.length; // comprimento da string (inclui espaços, se houver)
+        const len = term.length;
         if (len > longest) longest = len;
       }
     }
     return { ...chunk, _longestMatch: longest };
   });
-
-  // 3. Ordena decrescente pelo comprimento do termo encontrado
   withScore.sort((a, b) => b._longestMatch - a._longestMatch);
-
-  // 4. Remove a propriedade auxiliar
   return withScore.map(({ _longestMatch, ...chunk }) => chunk);
 }
 
-// ---------- SÍNTESE DA RESPOSTA ----------
+// ============================================================
+//  SÍNTESE COM PHI-3
+// ============================================================
+async function generateCoherentAnswer(query, chunks) {
+  if (!llmReady || !llm) {
+    // Fallback: resposta simples concatenada
+    return chunks.map(c => c.conteudo).join('\n\n');
+  }
+
+  // Limita a 5 chunks e reduz conteúdo para não estourar contexto
+  const maxChunks = Math.min(chunks.length, 5);
+  const context = chunks.slice(0, maxChunks).map((c, i) => {
+    const contentPreview = c.conteudo ? c.conteudo.slice(0, 300) : '';
+    return `CHUNK ${i + 1}:
+TÍTULO: ${c.titulo || 'Sem título'}
+CONTEÚDO: ${contentPreview}${c.conteudo && c.conteudo.length > 300 ? '…' : ''}
+TAGS: ${(c.tags || []).join(', ')}`;
+  }).join('\n\n');
+
+  const prompt = `Você é um assistente especializado em química analítica.
+
+Sua tarefa:
+- Escrever um texto único e coeso
+- Usar apenas os chunks abaixo como fonte
+- Conectar as ideias com fluidez científica
+- NÃO listar chunks
+- NÃO repetir conteúdo
+- Manter linguagem técnica clara
+
+PERGUNTA:
+${query}
+
+CONHECIMENTO:
+${context}
+
+RESPOSTA:`;
+
+  try {
+    const result = await llm(prompt, {
+      max_new_tokens: 350,
+      temperature: 0.3,
+      repetition_penalty: 1.1,
+      do_sample: true,
+      top_p: 0.95,
+    });
+    let generated = result[0].generated_text;
+    // Remove o prompt da resposta se ele vier junto
+    if (generated.startsWith(prompt)) {
+      generated = generated.slice(prompt.length).trim();
+    }
+    return generated || 'Não foi possível gerar uma resposta coesa.';
+  } catch (err) {
+    console.error('Erro na geração Phi-3:', err);
+    return chunks.map(c => c.conteudo).join('\n\n');
+  }
+}
+
+// ---------- SÍNTESE DA RESPOSTA (fallback sem IA) ----------
 function synthesizeResponse(query, chunks) {
   if (!chunks.length) return 'Não encontrei informações específicas sobre essa pergunta.';
   return chunks.map((c, i) => {
@@ -1179,42 +1264,50 @@ modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) modalOverlay.classList.remove('active');
 });
 
-// ---------- FORMATA RESPOSTA ----------
-function formatResponse(query, chunks, time, cacheInfo, activeFilters, domain) {
-  const response = synthesizeResponse(query, chunks);
+// ---------- FORMATA RESPOSTA (agora com texto coeso + fontes) ----------
+function formatResponse(query, chunks, coherentText, time, cacheInfo, activeFilters, domain) {
+  // Se não tiver texto coeso (fallback), usa a síntese antiga
+  const finalText = coherentText || synthesizeResponse(query, chunks);
+
   let html = `<div class="msg-header">
     <span class="avatar"><img src="img.png" alt="ChromatoBuddy"></span>
     <span class="name">ChromatoBuddy Pro</span>
     <span style="font-size:0.65rem; color:#8899b0; margin-left:auto;">
       ⚡ ${time}ms · 🧠 ${chunks.length} chunks
       ${cacheInfo ? `· 💾 ${cacheInfo}` : ''}
+      ${llmReady ? '· 🧠 Phi-3' : ''}
     </span>
   </div>`;
   const filterNames = activeFilters.map(f => `${f.label}(${f.peso})`).join(' + ');
   html += `<div style="font-size:0.7rem; color:#6aafff; margin-bottom:8px;">🔍 Filtros: ${filterNames} · 🌐 Domínio: ${domain}</div>`;
-  html += `<div class="answer-box">
-    <h4>📊 Resposta</h4>
-    <p>${response.replace(/\n/g, '<br>')}</p>
+
+  // Bloco principal: resposta coesa
+  html += `<div class="answer-box" style="border-left-color: #6c5ce7;">
+    <h4>🧠 Resposta Coesa (Phi-3 Mini)</h4>
+    <p>${finalText.replace(/\n/g, '<br>')}</p>
   </div>`;
-  const sources = chunks.filter(c => c.titulo);
-  if (sources.length) {
+
+  // Bloco de fontes (chunks)
+  if (chunks.length) {
     html += `<div class="sources-box">
-      📖 <strong>Fontes:</strong><br>
-      ${sources.map((c, idx) => {
-        return `<span class="source-link" data-chunk-id="${c.id}">• ${c.titulo}</span>`;
+      <strong>📚 Fontes (${chunks.length} chunks):</strong><br>
+      ${chunks.map((c, idx) => {
+        const label = c.titulo || `Chunk ${c.id}`;
+        return `<span class="source-link" data-chunk-id="${c.id}">• ${label}</span>`;
       }).join('<br>')}
     </div>`;
   }
+
   html += `<div class="meta">
     <span class="confidence-high">✅ ${chunks.length} chunks selecionados</span>
     <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
-    <span>🧠 BGE-small</span>
+    <span>🧠 BGE-small ${llmReady ? '· Phi-3' : ''}</span>
     <span>📓 NotebookLM</span>
   </div>`;
   return html;
 }
 
-// ---------- HANDLE QUERY (pipeline corrigido) ----------
+// ---------- HANDLE QUERY (pipeline com Phi-3) ----------
 async function handleUserQuery() {
   if (sendBtn.disabled) return;
   const query = userInput.value.trim();
@@ -1229,10 +1322,7 @@ async function handleUserQuery() {
   const startTime = performance.now();
 
   try {
-    // 1. NORMALIZA A PERGUNTA UMA VEZ
     const queryNorm = normalizeText(query);
-
-    // 2. DETECTA DOMÍNIO (usando a normalizada)
     const domain = detectDomain(queryNorm);
     domainInfo.textContent = `🌐 Domínio: ${domain}`;
 
@@ -1240,7 +1330,7 @@ async function handleUserQuery() {
 
     const chunks = knowledgeData?.chunks || [];
 
-    // 3. FILTRO POR DOMÍNIO (usando campos normalizados dos chunks)
+    // Filtro por domínio
     let filtered = chunks.filter(chunk => {
       const textNorm = chunk._textoCompletoNorm || '';
       if (domain === 'GC') {
@@ -1252,10 +1342,10 @@ async function handleUserQuery() {
                textNorm.includes('lc') || textNorm.includes('hplc') || textNorm.includes('uhplc') ||
                chunk.tags?.includes('LC') || chunk.tags?.includes('HPLC');
       }
-      return true; // GENERAL: mantém todos
+      return true;
     });
 
-    // 4. EXTRAI GRUPOS DE SINÔNIMOS (usando pergunta normalizada)
+    // Filtro por sinônimos
     const groups = extractSynonymGroups(queryNorm);
     if (groups.length > 0) {
       filtered = filterChunksBySynonymGroups(groups, filtered);
@@ -1263,16 +1353,20 @@ async function handleUserQuery() {
 
     const filteredCount = filtered.length;
 
-    // 5. EXPANSÃO CONTEXTUAL (respeita domínio)
+    // Expansão
     const expanded = expandQuery(query, queryNorm, domain);
 
     showTyping(`🧠 buscando com BM25 + BGE (${filteredCount} chunks filtrados)…`);
 
-    // 6. BUSCA HÍBRIDA (passa pergunta original para embedding, normalizada para BM25)
+    // Busca híbrida
     let results = await hybridSearch(query, queryNorm, filtered, domain, 8);
 
-    // 7. REORDENAÇÃO POR TERMO MAIS LONGO DA LISTA COMMON_WORDS_NORM
+    // Reordenação por termo mais longo
     results = reorderByLongestMatch(results, queryNorm);
+
+    // --- AGORA, ANTES DE RENDERIZAR, GERAR TEXTO COESO COM PHI-3 ---
+    showTyping('🧠 sintetizando resposta com Phi-3 Mini…');
+    const coherentText = await generateCoherentAnswer(query, results);
 
     removeTyping();
 
@@ -1285,9 +1379,11 @@ async function handleUserQuery() {
     if (chkTitles.checked) activeFilters.push({ label: 'Títulos', peso: FILTER_WEIGHTS.title });
     if (chkContent.checked) activeFilters.push({ label: 'Conteúdo', peso: FILTER_WEIGHTS.content });
 
-    const html = formatResponse(query, results, totalTime, cacheInfo, activeFilters, domain);
+    // Renderiza a mensagem completa (texto + fontes)
+    const html = formatResponse(query, results, coherentText, totalTime, cacheInfo, activeFilters, domain);
     addMessage('bot', html, true);
 
+    // Adiciona eventos de clique nas fontes
     document.querySelectorAll('.source-link').forEach(el => {
       el.addEventListener('click', (e) => {
         const chunkId = parseInt(el.dataset.chunkId);
@@ -1298,6 +1394,7 @@ async function handleUserQuery() {
 
     document.getElementById('chunkInfo').textContent =
       `📚 ${results.length} chunks (${filteredCount} após lock)`;
+
   } catch (err) {
     removeTyping();
     console.error(err);
@@ -1334,13 +1431,12 @@ document.addEventListener('keydown', (e) => {
 
 // ---------- INICIALIZAÇÃO ----------
 async function init() {
-  const chunks = await loadKnowledgeBase();
-  initBGE().then(() => {
-    console.log('🧠 BGE pronto');
-    if (!userInput.disabled) userInput.focus();
-  });
+  await loadKnowledgeBase();
+  await initBGE();
+  await initPhi3(); // Carrega Phi-3 depois do BGE (ou em paralelo se preferir)
   updatePriorityDisplay();
-  console.log(`🚀 ChromatoBuddy Pro (Domain‑Lock) iniciado com ${chunks.length} chunks`);
+  if (!userInput.disabled) userInput.focus();
+  console.log('🚀 ChromatoBuddy Pro com Phi-3 iniciado!');
 }
 
 init();
