@@ -542,10 +542,6 @@
         <span class="name">ChromatoBuddy Pro</span>
       </div>
       <div class="welcome-box">
-        <strong>🚀 Domain‑Lock + Ontologia Leve</strong>
-        <div style="margin-top:6px; font-size:0.9rem; color:#4a5a7a;">
-          Detecção de domínio (GC/LC) → lock → expansão contextual → ranking com penalidade.
-        </div>
         <div class="features">
           <span class="feature-item turbo">⚡ BM25 + BGE</span>
           <span class="feature-item brain">🧠 Embeddings sob demanda</span>
@@ -553,7 +549,7 @@
           <span class="feature-item">🔒 Lock por domínio</span>
         </div>
         <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
-          💬 bUSCAR POR KEYWORDS É MAIS EFICIENTE DO QUE POR PERGUNTAS COMPLEXAS!
+          💬 BUSCAR POR KEYWORDS É MAIS EFICIENTE DO QUE POR PERGUNTAS COMPLEXAS!
         </div>
       </div>
       <div class="meta">
@@ -695,25 +691,365 @@ const domainInfo = document.getElementById('domainInfo');
 
 // ---------- SINÔNIMOS (expansão) com normalização ----------
 const SYNONYM_MAP_RAW = {
-  'cromatografia': ['cromatográfico','cromatográfica','lc','hplc','uhplc','cromatografia liquida','cromatografia líquida','separação cromatográfica'],
-  'lc': ['cromatografia líquida','hplc','uhplc'],
-  'hplc': ['cromatografia líquida de alta eficiência','lc','uhplc'],
-  'uhplc': ['cromatografia líquida de ultra eficiência','lc','hplc','ultra alta pressão'],
-  'capilar': ['capilares','capillary','CLC','cromatografia líquida capilar','nano-LC','micro-LC'],
-  'partícula': ['particula','partículas','particulas','particle','beads','esferas','sílica','silica','dp','µm'],
-  'coluna': ['colunas','column','columns','empacotamento','packing','fase estacionária'],
-  'separação': ['separacao','separar','resolução','resolucao','rs','eficiencia','eficiência'],
-  'pressão': ['pressao','pressões','pressoes','bar','psi','pressure','backpressure'],
-  'fluxo': ['vazão','vazao','flow','vazões','vazoes'],
-  'vantagem': ['vantagens','benefício','benefícios','beneficio','beneficios','por que usar'],
-  'desvantagem': ['desvantagens','limitação','limitações','limitacao','limitacoes','problema','desafio'],
-  'eficiência': ['eficiencia','pratos teóricos','pratos teoricos','n','hetp'],
-  'resolução': ['resolucao','rs','poder de resolução','poder de resolucao'],
-  'lc-ms': ['lcms','espectrometria de massas','mass spectrometry','ms'],
-  'temperatura': ['térmico','termico','calor','aquecimento','thermal',"van't hoff",'termodinâmica','entropia','entalpia'],
-  'viscosidade': ['viscosidade','fluidez','resistência','fricção'],
-  'retenção': ['retention','tempo de retenção','fator de retenção',"k'",'fator de capacidade'],
-  'seletividade': ['selectivity','fator de separação','alfa','α']
+  // ===== CONCEITOS FUNDAMENTAIS =====
+  'cromatografia': [
+    'cromatográfico','cromatográfica','lc','hplc','uhplc',
+    'cromatografia liquida','cromatografia líquida',
+    'separação cromatográfica','técnica cromatográfica',
+    'método cromatográfico','análise cromatográfica','perfil cromatográfico'
+  ],
+  
+  'lc': [
+    'cromatografia líquida','hplc','uhplc','clae',
+    'cromatografia liquida de alta eficiência',
+    'cromatografia líquida de ultra eficiência',
+    'nano-lc','micro-lc','capillary lc','cromatografia liquida capilar',
+    'fase reversa','rp-lc','hilic'
+  ],
+  
+  'hplc': [
+    'cromatografia líquida de alta eficiência','clae',
+    'cromatografia liquida de alta eficiência','lc','uhplc',
+    'alta eficiência','high performance liquid chromatography'
+  ],
+  
+  'uhplc': [
+    'cromatografia líquida de ultra eficiência','ultra alta pressão',
+    'ultra-high performance','ultra high pressure','lc','hplc',
+    'alta pressão','1300 bar'
+  ],
+  
+  'gc': [
+    'cromatografia gasosa','gas chromatography','cg',
+    'cromatografia gasosa','capilar','gc-ms','gasosa',
+    'volatilidade','termicamente estáveis','compostos voláteis'
+  ],
+  
+  'gc-ms': [
+    'gcms','cromatografia gasosa acoplada à espectrometria de massas',
+    'gas chromatography-mass spectrometry','ei','impacto de elétrons',
+    '70 ev','fragmentação','espectros de massa'
+  ],
+
+  // ===== TÉCNICAS DE PREPARO DE AMOSTRA =====
+  'spe': [
+    'extração em fase sólida','solid phase extraction','cartucho',
+    'sorvente','hlb','c18','mcx','max','clean-up','concentração',
+    'extração','purificação'
+  ],
+  
+  'hlb': [
+    'hydrophilic-lipophilic balance','copolímero',
+    'divinilbenzeno','n-vinilpirrolidona','compostos polares',
+    'compostos apolares','amplo espectro','non-targeted'
+  ],
+  
+  'lle': [
+    'extração líquido-líquido','liquid-liquid extraction',
+    'partição','funil de separação','solvente orgânico',
+    'fase aquosa','fase orgânica','coeficiente de partição'
+  ],
+  
+  'meps': [
+    'microextração em fase sólida empacotada',
+    'microextraction by packed sorbent','seringa','cartucho',
+    'aspiração','dispensação','sorvente empacotado'
+  ],
+  
+  'spme': [
+    'microextração em fase sólida','solid-phase microextraction',
+    'fibra','headspace','imersão direta','dessorção térmica',
+    'dessorção por solvente','cold-fiber'
+  ],
+  
+  'dpx': [
+    'extração com ponteira descartável','disposable pipette extraction',
+    'ponteira','frits','aspiração','dispensação','pipeta'
+  ],
+  
+  'it-spme': [
+    'in-tube solid-phase microextraction','extração online',
+    'column-switching','coluna de extração','forward-flush',
+    'back-flush','comutação'
+  ],
+
+  // ===== TÉCNICAS CROMATOGRÁFICAS =====
+  'fase reversa': [
+    'rp','reverse phase','c18','c8','fenil','apolar',
+    'hidrofóbico','fase estacionária apolar','água','acn',
+    'metanol','van der waals','interações hidrofóbicas'
+  ],
+  
+  'hilic': [
+    'interação hidrofílica','hydrophilic interaction',
+    'compostos polares','acetonitrila','camada de água',
+    'fase estacionária polar','metabólitos','carboidratos',
+    'nucleotídeos','aminoácidos'
+  ],
+  
+  'fase normal': [
+    'normal phase','np','sílica','amino','diol','hexano',
+    'isopropanol','compostos apolares','isômeros'
+  ],
+  
+  'troca iônica': [
+    'ion exchange','iex','íons','catiônica','aniônica',
+    'resina','tampão','sal','carga iônica'
+  ],
+
+  // ===== TÉCNICAS ESTATÍSTICAS =====
+  'pca': [
+    'análise de componentes principais','principal component analysis',
+    'multivariada','quimiometria','scores','loadings','biplot',
+    'autovalores','eigenvalues','variância','correlação'
+  ],
+  
+  'pareto': [
+    'análise de pareto','princípio de pareto','80/20',
+    'efeitos padronizados','fatores influentes','otimização',
+    'significância estatística'
+  ],
+
+  // ===== PLANEJAMENTO EXPERIMENTAL =====
+  'fatorial': [
+    'planejamento fatorial','fatorial completo','2^k',
+    'efeitos principais','interações','níveis','fatores'
+  ],
+  
+  'ccf': [
+    'delineamento composto central face-centrado',
+    'central composite face-centered','pontos fatoriais',
+    'pontos axiais','pontos centrais','superfície de resposta',
+    'modelo de segunda ordem','curvatura'
+  ],
+  
+  'ray design': [
+    'ray design','delineamento por raios','misturas binárias',
+    'unidades tóxicas','tu','proporções','raios','sinergismo',
+    'antagonismo','aditivo'
+  ],
+  
+  'simplex centroide': [
+    'simplex-centroide','misturas ternárias','vértices',
+    'arestas','centroide','triângulo','superfície de resposta',
+    'modelo polinomial','regressão múltipla'
+  ],
+
+  // ===== ECOTOXICOLOGIA =====
+  'ecotoxicologia': [
+    'ecotoxicology','toxicidade','contaminantes','biota',
+    'efeitos crônicos','efeitos agudos','lc50','ec50',
+    'bioindicador','biomonitoramento'
+  ],
+  
+  'chironomus': [
+    'chironomus sancticaroli','sancticaroli','larvas',
+    'diptera','chironomidae','bioindicador','instar',
+    'mortalidade','deformidades','mento','biomarcador'
+  ],
+  
+  'toxicidade aguda': [
+    'toxicidade aguda','acute toxicity','24h','48h','96h',
+    'lc50','mortalidade','curto prazo','dose letal'
+  ],
+  
+  'toxicidade crônica': [
+    'toxicidade crônica','chronic toxicity','subletal',
+    'crescimento','reprodução','deformidades','longo prazo',
+    '7 dias','28 dias'
+  ],
+  
+  'unidades tóxicas': [
+    'unidades toxicas','tu','toxic units','concentração',
+    'lc50 individual','misturas','aditividade','sinergismo',
+    'antagonismo','fator de toxicidade'
+  ],
+
+  // ===== COMPOSTOS E CONTAMINANTES =====
+  'pesticidas': [
+    'pesticidas','herbicidas','fungicidas','inseticidas',
+    'atrazina','alachlor','chlorpyrifos','defensivos agrícolas'
+  ],
+  
+  'metais': [
+    'metais pesados','heavy metals','cádmio','cobre','zinco',
+    'chumbo','mercúrio','arsênio','cromo','níquel','icp-ms','aas',
+    'digestão','absorção atômica','especiação'
+  ],
+  
+  'hormônios': [
+    'hormônios','esteroides','testosterona','estrona',
+    'progesterona','urina','lc-ms','metabólitos'
+  ],
+  
+  'contaminantes emergentes': [
+    'poluentes emergentes','emerging contaminants','fármacos',
+    'cosméticos','microplásticos','pfas','ibuprofeno',
+    'bisfenol a','cafeína','estrona'
+  ],
+
+  // ===== EQUIPAMENTOS E INSTRUMENTAÇÃO =====
+  'lc-ms': [
+    'lcms','espectrometria de massas','mass spectrometry','ms',
+    'esi','apci','interface','ionização','acoplamento'
+  ],
+  
+  'hrms': [
+    'high resolution mass spectrometry','alta resolução',
+    'massa exata','tof','orbitrap','fwhm','ppm',
+    'fórmula molecular','non-targeted'
+  ],
+  
+  'tof': [
+    'tempo de voo','time-of-flight','analisador','alta resolução',
+    'mass exata','aquisição rápida','full scan'
+  ],
+  
+  'orbitrap': [
+    'orbitrap','analisador de massas','alta resolução',
+    'exatidão de massa','fourier transform','image current'
+  ],
+  
+  'esi': [
+    'electrospray','ionização por electrospray','modo positivo',
+    'modo negativo','protonação','desprotonação','supressão iônica',
+    'acido fórmico','voltagem do capilar'
+  ],
+  
+  'apci': [
+    'apci','ionização química à pressão atmosférica',
+    'atmospheric pressure chemical ionization','corona discharge',
+    'compostos apolares','termicamente estáveis'
+  ],
+  
+  'icp-ms': [
+    'icp-ms','plasma acoplado indutivamente','multielementar',
+    'metais','ppt','interferências espectrais','célula de colisão',
+    'argônio'
+  ],
+  
+  'aas': [
+    'espectrometria de absorção atômica','atomic absorption spectroscopy',
+    'chama','forno de grafite','lâmpada de cátodo oco','monoelementar',
+    'beer-lambert'
+  ],
+
+  // ===== PARÂMETROS CROMATOGRÁFICOS =====
+  'resolução': [
+    'resolucao','rs','poder de resolução','separação de picos',
+    'pico adjacente','linha de base','resolução cromatográfica'
+  ],
+  
+  'eficiência': [
+    'eficiencia','pratos teóricos','pratos teoricos','n',
+    'altura do prato','hetp','van deemter','curva de van deemter'
+  ],
+  
+  'retenção': [
+    'retention','tempo de retenção','fator de retenção',"k'",
+    'fator de capacidade','k','coeficiente de partição',
+    'retenção cromatográfica'
+  ],
+  
+  'seletividade': [
+    'selectivity','fator de separação','alfa','α',
+    'seletividade cromatográfica','co-eluentes','picos'
+  ],
+  
+  'temperatura': [
+    'térmico','termico','calor','aquecimento','thermal',
+    "van't hoff",'termodinâmica','entropia','entalpia',
+    'gradiente de temperatura','rampa','programa de temperatura',
+    'isotérmico','aquecimento friccional'
+  ],
+  
+  'pressão': [
+    'pressao','pressões','pressoes','bar','psi','pressure',
+    'backpressure','contrapressão','alta pressão','uhplc',
+    'darcy','vazão','resistência'
+  ],
+  
+  'viscosidade': [
+    'viscosidade','fluidez','resistência','fricção',
+    'fluxo laminar','atrito','arrhenius'
+  ],
+
+  // ===== MATERIAIS =====
+  'grafeno': [
+    'graphene','óxido de grafeno','go','sigo',
+    'sigo-c18ec','π-π','interações π-π','hummers',
+    'esfoliação','nanomaterial','carbono'
+  ],
+  
+  'silica': [
+    'sílica','silica','silanóis','endcapping','c18','c8',
+    'partículas porosas','partículas core-shell','spp',
+    'totalmente porosa','fpp','dp'
+  ],
+  
+  'coluna': [
+    'colunas','column','columns','empacotamento','packing',
+    'fase estacionária','leito cromatográfico','capilar',
+    'monolítica','tubular aberta','empacotada','frit',
+    'hardware','peeksil'
+  ],
+  
+  'capilar': [
+    'capilares','capillary','clc','cromatografia líquida capilar',
+    'nano-lc','micro-lc','capillary-lc','peeksil',
+    'sílica fundida','1/16 polegadas','0,3 mm','vazão reduzida'
+  ],
+  
+  'partícula': [
+    'particula','partículas','particulas','particle','beads',
+    'esferas','sílica','silica','dp','µm','core-shell',
+    'totalmente porosa','superficialmente porosa','spp','fpp'
+  ],
+
+  // ===== CONCEITOS FÍSICO-QUÍMICOS =====
+  'ph': [
+    'ph','acidez','alcalinidade','hidrogênio','ionização',
+    'especiação','biodisponibilidade','ácido','base','tampão'
+  ],
+  
+  'salinidade': [
+    'salinidade','sal','kcl','cloreto de potássio','osmótico',
+    'condutividade','íons','sais dissolvidos'
+  ],
+  
+  'gradiente': [
+    'gradiente','eluicao','rampa','isocrático','composição',
+    'fase móvel','solvente','acetonitrila','metanol','água'
+  ],
+
+  // ===== TERMOS GERAIS =====
+  'derivatização': [
+    'derivatizacao','sililanização','metoximação','bstfa',
+    'tmcs','mstfa','mtbstfa','trimetilsilil','tms','oxima',
+    'volatilidade','estabilidade térmica'
+  ],
+  
+  'digestão': [
+    'digestao','ácida','epa 3052','epa 3010a','micro-ondas',
+    'hno3','hcl','h2o2','sistema fechado','metais','tecido biológico'
+  ],
+  
+  'filtração': [
+    'filtracao','filtros','membrana','0.2um','0.45um','ptfe',
+    'pvdf','nylon','pes','seringa','partículas','clean-up'
+  ],
+  
+  'automação': [
+    'automacao','online','column-switching','flow-split',
+    'válvulas','comutação','forward-flush','back-flush',
+    'robótica','high throughput'
+  ],
+  
+  'química verde': [
+    'quimica verde','green chemistry','sustentabilidade',
+    'solventes','água','subcritical water','redução',
+    'resíduos','economia','impacto ambiental'
+  ]
 };
 
 // Criar versão normalizada para matching (chaves e valores)
