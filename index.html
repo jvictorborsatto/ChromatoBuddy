@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ChromatoBuddy Pro · Domain‑Lock</title>
+  <title>ChromatoBuddy · Domain‑Lock</title>
   <style>
     /* ===== RESET E BASE (mesmo estilo anterior) ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -504,7 +504,6 @@
         </h1>
       </div>
       <div class="badge-group">
-        <span class="badge notebook">📓 NotebookLM</span>
         <span class="badge turbo">⚡ BM25+BGE</span>
         <span class="badge brain">🧠 BGE-small</span>
         <span class="badge" id="statusBadge">⏳ carregando…</span>
@@ -554,7 +553,7 @@
           <span class="feature-item">🔒 Lock por domínio</span>
         </div>
         <div style="margin-top:10px; font-size:0.85rem; color:#5a6a8a;">
-          💬 Pergunte sobre cromatografia, temperatura, pressão, colunas e muito mais!
+          💬 bUSCAR POR KEYWORDS É MAIS EFICIENTE DO QUE POR PERGUNTAS COMPLEXAS!
         </div>
       </div>
       <div class="meta">
@@ -567,7 +566,7 @@
   </div>
 
   <div class="input-area">
-    <textarea id="userInput" rows="1" placeholder="Ex: qual o efeito da temperatura na cromatografia gasosa?" disabled></textarea>
+    <textarea id="userInput" rows="1" placeholder="Digite aqui a pergunta" disabled></textarea>
     <button id="sendBtn" disabled>
       Enviar
       <span class="shortcut">⌘↵</span>
@@ -580,7 +579,7 @@
       <span id="sourceInfo">📄 origem: -</span>
       <span id="perfInfo">⚡ GPU: -</span>
     </div>
-    <span>🔒 Local · 📓 NotebookLM · ⚡ BGE</span>
+    <span>João Victor Basolli Borsatto - 2026
   </div>
 </div>
 
@@ -602,7 +601,7 @@
 
 <script type="module">
 // ============================================================
-//  CHROMATOBUDDY PRO – DOMAIN‑LOCK + ONTOLOGIA LEVE
+//  CHROMATOBUDDY – DOMAIN‑LOCK + ONTOLOGIA LEVE
 // ============================================================
 
 // ---------- NORMALIZAÇÃO (remove pontuação, acentos opcional, minúsculas, espaços extras) ----------
@@ -1209,7 +1208,6 @@ function formatResponse(query, chunks, time, cacheInfo, activeFilters, domain) {
     <span class="confidence-high">✅ ${chunks.length} chunks selecionados</span>
     <span>⚡ ${useFallback ? 'CPU' : 'WebGPU'}</span>
     <span>🧠 BGE-small</span>
-    <span>📓 NotebookLM</span>
   </div>`;
   return html;
 }
@@ -1340,7 +1338,7 @@ async function init() {
     if (!userInput.disabled) userInput.focus();
   });
   updatePriorityDisplay();
-  console.log(`🚀 ChromatoBuddy Pro (Domain‑Lock) iniciado com ${chunks.length} chunks`);
+  console.log(`🚀 ChromatoBuddy (Domain‑Lock) iniciado com ${chunks.length} chunks`);
 }
 
 init();
